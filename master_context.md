@@ -475,6 +475,8 @@ Coprem/
             README.md
             personal/
                 README.md
+                wealth/
+                    investing.md
                 learning/
                     learning_ssot.md
                 business/
@@ -488,6 +490,10 @@ Coprem/
                 ego_era/
                     core_rules.md
                     style_ref.md
+                tech/
+                    claude_connectors.md
+                    claude_plugins.md
+                    claude_use_cases.md
                 eilinaire/
                     eilinaire_ssot.md
                 transsion/
@@ -587,6 +593,8 @@ Coprem/
             README.md
             personal/
                 README.md
+                wealth/
+                    investing.md
                 learning/
                     learning_ssot.md
                 business/
@@ -600,6 +608,10 @@ Coprem/
                 ego_era/
                     core_rules.md
                     style_ref.md
+                tech/
+                    claude_connectors.md
+                    claude_plugins.md
+                    claude_use_cases.md
                 eilinaire/
                     eilinaire_ssot.md
                 transsion/
