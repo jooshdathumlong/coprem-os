@@ -390,11 +390,14 @@ Coprem/
                 songwriting_sandbox.md
             brands/
                 peabuntid/
+                    README.md
                     brand_constitution.md
                     master_product_document.md
                     sitemap_and_navigation.md
                 eilinaire/
+                    README.md
                     brand_architecture.md
+                    brand_constitution.md
                     core_axes.md
                     factory_brief.md
                     fuel_system.md
@@ -434,6 +437,10 @@ Coprem/
                 creative_connectors.md
                 ops_connectors.md
                 wealth_connectors.md
+            plugins/
+                code_analysis.md
+                data_pipelines.md
+                design_auditing.md
             scripts/
                 background_sync_blueprint.md
                 mcp_migration_blueprint.md
@@ -446,6 +453,7 @@ Coprem/
                 goals_cascade.md
                 okrs.md
             skills/
+                README.md
                 competitor_battle_card.md
                 copywriting_framework.md
                 cross_platform_content_adaptation.md
@@ -455,6 +463,7 @@ Coprem/
                 playbook_template.md
                 visual_diagramming.md
         knowledge/
+            README.md
             personal/
                 README.md
                 learning/
@@ -475,6 +484,7 @@ Coprem/
                 transsion/
                     transsion_ssot.md
             job/
+                README.md
         outputs/
             idea_cards/
             plans/
