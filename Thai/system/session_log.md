@@ -38,7 +38,7 @@
   - Life Progression Arc (6-stage cycle)
   - Writer OS Mode expanded (11 rules: Real-Time Filter, Sanctuary Priority, Character Voice, Writer State, Hard Exit Rule)
   - Auto Scene Validator (5-step pre-write + 3-question final check)
-- **Knowledge Base Entry:** Created `knowledge/personal/novel/ego_era_core_rules.md` as quick-reference summary.
+- **Knowledge Base Entry:** Created `knowledge/personal/novel/core_rules.md` as quick-reference summary.
 - **Project Restructuring (EGO ERA):** 
   - Renamed `projects/novel` to `projects/ego_era` and `knowledge/personal/novel` to `knowledge/personal/ego_era`.
   - Created `awakenings/` for chapters, and extracted Chapter 1 into `ch01_วันที่โลกไม่มองกลับ.md`.
@@ -84,7 +84,7 @@
   - Deployed five python scripts under `system/scripts/`: `sqlite_io.py`, `obsidian_io.py`, `line_oa_broadcast.py`, `social_broadcast.py`, `google_apps_trigger.py`.
   - Installed dependencies (`python-dotenv`, `requests`) and initialized the local SQLite database at `system/db/Coprem.db` with idempotent tables (`outputs`, `tasks`, `contacts`, `intel`).
   - Updated all Ops agents' profiles (`archie.md`, `libby.md`, `newy.md`) with the new local database and cloud-native script permission controls.
-  - Published the Master Blueprint: [master_lean_blueprint.md](file://./outputs/plans/master_lean_blueprint.md).
+  - Published the Master Blueprint: [lean_blueprint.md](file://./outputs/plans/lean_blueprint.md).
 
 ### Learnings / Decisions
 - **Architecture:** Bypassing middleware like Make or Zapier saves monthly overhead and ensures direct control over long-lived OAuth tokens inside `.env.vault`.
@@ -100,7 +100,7 @@
   - Created the OKR Engine file: [okrs.md](file://./system/db/okrs.md) and migrated the SQLite schema to introduce the `okrs` database table with 9 baseline key results seeded.
   - Deployed **Grace (Chief People & Performance Officer)** at [grace.md](file://./system/personal/ops/grace.md) to audit agent performance and align outputs with OKRs. Registered Grace in [dept_ops.md](file://./system/personal/dept_ops.md).
   - Updated the operating rules in [GEMINI.md](file://./GEMINI.md) and [jeff.md](file://./system/jeff.md) to govern autonomous execution and dashboard generation.
-  - Added the [dashboard_reporting.md](file://./system/skills/dashboard_reporting.md) playbook and generated the first **Executive OKR Dashboard Report**.
+  - Added the [reporting.md](file://./system/skills/reporting.md) playbook and generated the first **Executive OKR Dashboard Report**.
 
 ### Learnings / Decisions
 - **Boundaries:** Keeping the Day-Job Pillar prompt-driven ensures no unwanted autonomous task generation happens in corporate workflows, while the Personal Empire can run autonomously to relieve เปรม's mental load.

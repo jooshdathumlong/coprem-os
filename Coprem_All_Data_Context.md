@@ -318,7 +318,7 @@ Building income streams/creative projects simultaneously. Needs system to reduce
 
 ---
 
-### 📄 File: `Thai/คุมบังเหียน_Coprem.md`
+### 📄 File: `Thai/คุมบังเหียน.md`
 
 # 🧭 คุมบังเหียน Coprem (Master Dashboard)
 
@@ -384,29 +384,29 @@ Coprem/
         GEMINI.md
         README.md
         prem_profile.md
-        คุมบังเหียน_Coprem.md
+        คุมบังเหียน.md
         projects/
             music/
-                songwriting_sandbox.md
+                sandbox.md
             brands/
                 peabuntid/
                     README.md
-                    brand_constitution.md
-                    master_product_document.md
-                    sitemap_and_navigation.md
+                    constitution.md
+                    product.md
+                    sitemap.md
                 eilinaire/
                     README.md
-                    brand_architecture.md
-                    brand_constitution.md
+                    architecture.md
+                    constitution.md
                     core_axes.md
                     factory_brief.md
                     fuel_system.md
                     look_system.md
-                    tech_pack_template.md
+                    tech_pack.md
                     outputs/
             ego_era/
+                bible_template.md
                 ego_era_bible.md
-                novel_bible_template.md
                 character/
                     README.md
                     ann/
@@ -423,18 +423,18 @@ Coprem/
                     ray/
                 awakenings/
                     README.md
-                    ch01_the_day_the_world_didnt_look_back.md
+                    ch01.md
             trading/
+                rules.md
                 trading_journal.md
-                trading_strategy_rules.md
         system/
             jeff.md
             session_log.md
             personal/
                 personal_matrix.md
             mcp_connectors/
-                business_connectors.md
-                creative_connectors.md
+                business.md
+                creative.md
                 ops_connectors.md
                 wealth_connectors.md
             plugins/
@@ -442,8 +442,8 @@ Coprem/
                 data_pipelines.md
                 design_auditing.md
             scripts/
-                background_sync_blueprint.md
-                mcp_migration_blueprint.md
+                mcp_migration.md
+                sync_blueprint.md
             job/
                 dept_marketing.md
                 dept_ops.md
@@ -454,14 +454,14 @@ Coprem/
                 okrs.md
             skills/
                 README.md
-                competitor_battle_card.md
-                copywriting_framework.md
-                cross_platform_content_adaptation.md
-                dashboard_reporting.md
-                data_visualization.md
-                financial_model_updating.md
+                adaptation.md
+                battle_card.md
+                copywriting.md
+                diagramming.md
+                financial.md
                 playbook_template.md
-                visual_diagramming.md
+                reporting.md
+                visualization.md
         knowledge/
             README.md
             personal/
@@ -469,7 +469,7 @@ Coprem/
                 learning/
                     learning_ssot.md
                 business/
-                    business_project_ssot.md
+                    business_ssot.md
                 peabuntid/
                     peabuntid_ssot.md
                 mindset/
@@ -477,8 +477,8 @@ Coprem/
                 me/
                     me_ssot.md
                 ego_era/
-                    ego_era_core_rules.md
-                    ego_era_style_reference.md
+                    core_rules.md
+                    style_ref.md
                 eilinaire/
                     eilinaire_ssot.md
                 transsion/
@@ -488,7 +488,7 @@ Coprem/
         outputs/
             idea_cards/
             plans/
-                master_lean_blueprint.md
+                lean_blueprint.md
             research_reports/
     shared_scripts/
     English/
@@ -497,26 +497,26 @@ Coprem/
         prem_profile.md
         projects/
             music/
-                songwriting_sandbox.md
+                sandbox.md
             brands/
                 peabuntid/
                     README.md
-                    brand_constitution.md
-                    master_product_document.md
-                    sitemap_and_navigation.md
+                    constitution.md
+                    product.md
+                    sitemap.md
                 eilinaire/
                     README.md
-                    brand_architecture.md
-                    brand_constitution.md
+                    architecture.md
+                    constitution.md
                     core_axes.md
                     factory_brief.md
                     fuel_system.md
                     look_system.md
-                    tech_pack_template.md
+                    tech_pack.md
                     outputs/
             ego_era/
+                bible_template.md
                 ego_era_bible.md
-                novel_bible_template.md
                 character/
                     README.md
                     ann/
@@ -533,18 +533,18 @@ Coprem/
                     ray/
                 awakenings/
                     README.md
-                    ch01_the_day_the_world_didnt_look_back.md
+                    ch01.md
             trading/
+                rules.md
                 trading_journal.md
-                trading_strategy_rules.md
         system/
             jeff.md
             session_log.md
             personal/
                 personal_matrix.md
             mcp_connectors/
-                business_connectors.md
-                creative_connectors.md
+                business.md
+                creative.md
                 ops_connectors.md
                 wealth_connectors.md
             plugins/
@@ -552,8 +552,8 @@ Coprem/
                 data_pipelines.md
                 design_auditing.md
             scripts/
-                background_sync_blueprint.md
-                mcp_migration_blueprint.md
+                mcp_migration.md
+                sync_blueprint.md
             job/
                 dept_marketing.md
                 dept_ops.md
@@ -564,14 +564,14 @@ Coprem/
                 okrs.md
             skills/
                 README.md
-                competitor_battle_card.md
-                copywriting_framework.md
-                cross_platform_content_adaptation.md
-                dashboard_reporting.md
-                data_visualization.md
-                financial_model_updating.md
+                adaptation.md
+                battle_card.md
+                copywriting.md
+                diagramming.md
+                financial.md
                 playbook_template.md
-                visual_diagramming.md
+                reporting.md
+                visualization.md
         knowledge/
             README.md
             personal/
@@ -579,7 +579,7 @@ Coprem/
                 learning/
                     learning_ssot.md
                 business/
-                    business_project_ssot.md
+                    business_ssot.md
                 peabuntid/
                     peabuntid_ssot.md
                 mindset/
@@ -587,8 +587,8 @@ Coprem/
                 me/
                     me_ssot.md
                 ego_era/
-                    ego_era_core_rules.md
-                    ego_era_style_reference.md
+                    core_rules.md
+                    style_ref.md
                 eilinaire/
                     eilinaire_ssot.md
                 transsion/
@@ -598,7 +598,7 @@ Coprem/
         outputs/
             idea_cards/
             plans/
-                master_lean_blueprint.md
+                lean_blueprint.md
             research_reports/
     praem-os-ui/
         README.md

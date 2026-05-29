@@ -7,7 +7,7 @@ CORE_FILES = {
     "Thai/GEMINI.md",
     "Thai/prem_profile.md",
     "Thai/README.md",
-    "Thai/คุมบังเหียน_Coprem.md"
+    "Thai/คุมบังเหียน.md"
 }
 
 def generate_tree(startpath):

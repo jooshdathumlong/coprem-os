@@ -193,7 +193,7 @@ graph LR
 > **"โหมดล็อกความคิดเพื่อป้องกัน Shonen Leak / ต่อสู้ / โทนที่เร้าเกินไป"**
 > ระบบนี้คือ "โหมดทำงานของนักเขียน" ไม่ใช่กฎโลก — ใช้เพื่อคุมไม่ให้หลุดไปเป็นโชเน็น แอ็กชัน หรือแฟนตาซีต่อสู้ในขณะเขียน
 
-> 📎 **ตัวอย่างงานเขียนที่อนุมัติแล้ว (Approved Style Reference):** `knowledge/personal/novel/ego_era_style_reference.md`
+> 📎 **ตัวอย่างงานเขียนที่อนุมัติแล้ว (Approved Style Reference):** `knowledge/personal/novel/style_ref.md`
 > ก่อนเขียนทุกครั้ง ให้อ่านตัวอย่างนั้นเพื่อ calibrate โทน
 
 ### 1. Core Render Rule (กฎเรนเดอร์ความคิด)

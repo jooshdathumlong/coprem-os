@@ -41,12 +41,12 @@ It is a **Layer above products** — a filter for daily chaos that lets you choo
 
 | File | Contents |
 |------|---------|
-| `brand_architecture.md` | Full Business Model (positioning → revenue → GTM) |
-| `brand_constitution.md` | Brand philosophy, core beliefs, and non-negotiable iron rules |
+| `architecture.md` | Full Business Model (positioning → revenue → GTM) |
+| `constitution.md` | Brand philosophy, core beliefs, and non-negotiable iron rules |
 | `core_axes.md` | Deep expansion of all 4 axes |
 | `look_system.md` | Garment Operating System — LOOK product rules |
 | `fuel_system.md` | The Biological Flavor Wave — FUEL product rules |
-| `tech_pack_template.md` | Production-grade tech pack template |
+| `tech_pack.md` | Production-grade tech pack template |
 | `factory_brief.md` | Supplier-ready factory brief pack |
 
 ---

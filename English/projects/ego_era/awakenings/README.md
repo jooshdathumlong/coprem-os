@@ -9,7 +9,7 @@ This folder stores **all EGO ERA novel chapter manuscripts** in sequential order
 ## 📋 Pre-Writing Checklist
 
 1. Read `ego_era_bible.md` (Production Bible) to recap universe rules.
-2. Read `knowledge/personal/ego_era/ego_era_style_reference.md` to calibrate tone.
+2. Read `knowledge/personal/ego_era/style_ref.md` to calibrate tone.
 3. Use **Auto Scene Validator** (5 Steps + Final 3 Questions) before publishing.
 
 ---
@@ -18,7 +18,7 @@ This folder stores **all EGO ERA novel chapter manuscripts** in sequential order
 
 | Ch. | Title | Protagonist | Status |
 | :--- | :--- | :--- | :--- |
-| [Ch.1](./ch01_the_day_the_world_didnt_look_back.md) | The Day the World Stopped Looking Back | Rin | ✅ Draft |
+| [Ch.1](./ch01.md) | The Day the World Stopped Looking Back | Rin | ✅ Draft |
 
 ---
 
@@ -27,5 +27,5 @@ This folder stores **all EGO ERA novel chapter manuscripts** in sequential order
 Format: `ch[2-digit number]_[chapter title].md`
 
 Examples:
-- `ch01_the_day_the_world_didnt_look_back.md`
+- `ch01.md`
 - `ch02_[chapter title].md`

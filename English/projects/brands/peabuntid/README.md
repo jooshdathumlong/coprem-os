@@ -21,6 +21,6 @@ The world doesn't lack information — it lacks **reliable information**. Peabun
 
 | File | Contents |
 |------|---------| 
-| `master_product_document.md` | Vision, system structure, strengths, revenue model |
-| `brand_constitution.md` | Brand constitution, iron rules, immutable core |
-| `sitemap_and_navigation.md` | Website structure and UX/UI flow |
+| `product.md` | Vision, system structure, strengths, revenue model |
+| `constitution.md` | Brand constitution, iron rules, immutable core |
+| `sitemap.md` | Website structure and UX/UI flow |
