@@ -62,7 +62,7 @@ Central operating system for Prem's projects, businesses, and knowledge, maintai
 - `skills/`: Playbook DB for agent learning.
 - `session_log.md`: Daily execution record.
 
-### 🛠️ Shared Scripts (`shared_scripts/`)
+### 🛠️ Shared Scripts (`scripts/`)
 - Centralized Python execution scripts serving both English and Thai vaults via dynamic `--vault` routing to maximize token efficiency.
 
 ### 🧠 Knowledge Base (`knowledge/`)
@@ -219,7 +219,7 @@ Building income streams/creative projects simultaneously. Needs system to reduce
 - **`system/skills/`**: ฐานข้อมูล Playbook ที่ทีมใช้เรียนรู้และพัฒนาตนเอง
 - `system/session_log.md`: บันทึกการทำงานรายวัน (สำเร็จ/ล้มเหลว)
 
-### 🛠️ Script ส่วนกลาง (`shared_scripts/`)
+### 🛠️ Script ส่วนกลาง (`scripts/`)
 - ศูนย์รวม Script ประมวลผล (เช่น `sqlite_io.py`) ที่ใช้งานร่วมกันทั้งสอง Vault ผ่านคำสั่ง `--vault` เพื่อลดความซ้ำซ้อนและประหยัด Token
 
 ### 🧠 ฐานความรู้ (`knowledge/`)
@@ -331,7 +331,7 @@ Building income streams/creative projects simultaneously. Needs system to reduce
 ## 📊 สถานะสุขภาพของระบบ (System Health)
 - **สถาปัตยกรรมห้องคู่ (Dual-Folder Architecture):** 🟢 บังคับใช้สมบูรณ์แบบ (แบ่งแยกห้อง `English/` และ `Thai/` ชัดเจนที่ Root)
 - **การแปลและทักษะแกนร่วม (AI Core Localisation):** 🟢 สำเร็จ 100% (ห้อง `English/` เป็นภาษาอังกฤษประหยัดโทเคนล้วน / ห้อง `Thai/` เป็นภาษาไทยสำหรับผู้ใช้ล้วน)
-- **ไฟล์รวมบริบทความรู้ (Consolidated Master Context):** 🟢 อัปเดตล่าสุดสมบูรณ์ (`Coprem_All_Data_Context.md` ได้รับการตั้งค่าให้อัปเดตอัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลงในแฟ้ม `English/`)
+- **ไฟล์รวมบริบทความรู้ (Consolidated Master Context):** 🟢 อัปเดตล่าสุดสมบูรณ์ (`master_context.md` ได้รับการตั้งค่าให้อัปเดตอัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลงในแฟ้ม `English/`)
 - **กฎของแฟ้ม Thai/ (Read-Only Mirror):** 🟢 เปิดใช้งานเข้มงวด (AI ห้ามดึงข้อมูลจากแฟ้ม `Thai/` เด็ดขาด ใช้สำหรับคุณเปรมอ่านเท่านั้น และทุกอย่างจะถูกแปลอัตโนมัติจาก `English/`)
 - **กฎการคัดกรองความปลอดภัย (HITL Control):** 🟢 เปิดใช้งานพร้อมทำงานประสานคำสั่งอนุมัติ (`Approved` / `Reject`)
 - **การอัปเกรดสถาปัตยกรรมระดับซอฟต์แวร์ (Practicality Sprint):** 🟢 สำเร็จ (ใช้ JSON Tool Delegation แทน Persona, ปรับ SQLite เป็น SSOT เด็ดขาด, และเตรียมพิมพ์เขียวสำหรับ MCP & Background Sync)
@@ -380,6 +380,12 @@ Building income streams/creative projects simultaneously. Needs system to reduce
 Coprem/
     CHANGELOG.md
     VERSION.md
+    app/
+        README.md
+        public/
+        services/
+        src/
+            assets/
     Thai/
         GEMINI.md
         README.md
@@ -432,6 +438,8 @@ Coprem/
             session_log.md
             personal/
                 personal_matrix.md
+                hr/
+                    grace.md
             mcp_connectors/
                 business.md
                 creative.md
@@ -459,6 +467,7 @@ Coprem/
                 copywriting.md
                 diagramming.md
                 financial.md
+                naming_and_memory_protocol.md
                 playbook_template.md
                 reporting.md
                 visualization.md
@@ -490,7 +499,6 @@ Coprem/
             plans/
                 lean_blueprint.md
             research_reports/
-    shared_scripts/
     English/
         GEMINI.md
         README.md
@@ -542,6 +550,8 @@ Coprem/
             session_log.md
             personal/
                 personal_matrix.md
+                hr/
+                    grace.md
             mcp_connectors/
                 business.md
                 creative.md
@@ -569,6 +579,7 @@ Coprem/
                 copywriting.md
                 diagramming.md
                 financial.md
+                naming_and_memory_protocol.md
                 playbook_template.md
                 reporting.md
                 visualization.md
@@ -600,11 +611,6 @@ Coprem/
             plans/
                 lean_blueprint.md
             research_reports/
-    praem-os-ui/
-        README.md
-        public/
-        services/
-        src/
-            assets/
+    scripts/
 ```
 

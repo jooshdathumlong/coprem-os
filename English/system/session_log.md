@@ -137,3 +137,17 @@
 ### Learnings / Decisions
 - **Token Efficiency:** Moving from multi-agent chat environments to linear single-agent checklists manages context size and maximizes execution efficiency.
 
+
+## 2026-05-29 (Master OS Update)
+
+### Actions Taken
+- **Phase 1: Safe Root Renaming:** Renamed `praem-os-ui` -> `app`, `shared_scripts` -> `scripts`, and `Coprem_All_Data_Context.md` -> `master_context.md` for extreme conciseness.
+- **Link Updating:** Executed a global search and replace across all `.md` and `.py` files to ensure zero broken internal links.
+- **Phase 2: Global Naming Protocol:** Established rules for tech-standard naming (short, lowercase, snake/kebab-case) and banned bulk file renaming without S&R plans.
+- **Phase 3: 3-Tier Systemic Memory Activation:**
+  - Created `naming_and_memory_protocol.md` in `system/skills/`.
+  - Upgraded Grace's HR auditing protocol (`system/personal/hr/grace.md`) to enforce HITL and token efficiency.
+
+### Learnings / Decisions
+- **Error Acknowledgment:** Bulk renaming files without considering internal Markdown links causes regressions and dead links.
+- **Systemic Rule:** Any future renaming MUST include an explicit Search & Replace phase. Global standards apply from root to leaf directories.

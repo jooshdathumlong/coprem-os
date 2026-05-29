@@ -27,7 +27,7 @@ When the debounce timer fires for `English/path/to/file.md`:
    - Save the translated output to `Thai/path/to/file.md` (creating directories if they don't exist).
 2. **Context Compilation:**
    - Execute the concatenation logic (iterating through all `English/**/*.md` files).
-   - Overwrite `Coprem_All_Data_Context.md` at the root.
+   - Overwrite `master_context.md` at the root.
 
 ## 4. Error Handling
 - If the translation API fails, log the error to `system/scripts/logs/sync_error.log` and retry with exponential backoff.

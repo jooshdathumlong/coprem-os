@@ -27,7 +27,7 @@
    - บันทึกผลลัพธ์ลงใน `Thai/path/to/file.md` (สร้างโฟลเดอร์อัตโนมัติหากยังไม่มี)
 2. **การรวบรวมบริบท (Context Compilation):**
    - รันตรรกะการต่อไฟล์ (วนซ้ำอ่านไฟล์ `English/**/*.md` ทั้งหมด)
-   - เขียนทับไฟล์ `Coprem_All_Data_Context.md` ที่หน้าแรก (Root)
+   - เขียนทับไฟล์ `master_context.md` ที่หน้าแรก (Root)
 
 ## 4. การจัดการข้อผิดพลาด (Error Handling)
 - หาก API แปลภาษาล้มเหลว ให้บันทึกข้อผิดพลาดลงใน `system/scripts/logs/sync_error.log` และลองใหม่ด้วยระบบทวีคูณเวลา (Exponential Backoff)

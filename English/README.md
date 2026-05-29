@@ -16,7 +16,7 @@ Central operating system for Prem's projects, businesses, and knowledge, maintai
 - `skills/`: Playbook DB for agent learning.
 - `session_log.md`: Daily execution record.
 
-### 🛠️ Shared Scripts (`shared_scripts/`)
+### 🛠️ Shared Scripts (`scripts/`)
 - Centralized Python execution scripts serving both English and Thai vaults via dynamic `--vault` routing to maximize token efficiency.
 
 ### 🧠 Knowledge Base (`knowledge/`)

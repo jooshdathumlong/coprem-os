@@ -137,3 +137,17 @@
 ### Learnings / Decisions
 - **Token Efficiency:** Moving from multi-agent chat environments to linear single-agent checklists manages context size and maximizes execution efficiency.
 
+
+## 2026-05-29 (Master OS Update)
+
+### Actions Taken
+- **Phase 1: Safe Root Renaming:** เปลี่ยนชื่อ `praem-os-ui` -> `app`, `shared_scripts` -> `scripts`, และ `Coprem_All_Data_Context.md` -> `master_context.md` เพื่อความสั้นกระชับที่สุด
+- **Link Updating:** รัน Global Search & Replace ทั่วทั้งโปรเจกต์ (`.md` และ `.py`) ป้องกันปัญหาลิงก์ภายในพัง
+- **Phase 2: Global Naming Protocol:** บังคับใช้มาตรฐานการตั้งชื่อ (สั้น, ตัวพิมพ์เล็ก, snake/kebab-case) และห้ามเปลี่ยนชื่อไฟล์จำนวนมากโดยไม่มีแผน S&R
+- **Phase 3: 3-Tier Systemic Memory Activation:**
+  - สร้างกฎถาวร `naming_and_memory_protocol.md` ใน `system/skills/`
+  - อัปเกรดระบบตรวจสอบของ Grace (`system/personal/hr/grace.md`) ควบคุมความถูกต้องและ HITL
+
+### Learnings / Decisions
+- **Error Acknowledgment:** การเปลี่ยนชื่อไฟล์โดยไม่เช็กลิงก์อ้างอิงทำให้ระบบมีปัญหาช่องโหว่
+- **Systemic Rule:** การเปลี่ยนชื่อใดๆ ในอนาคต "ต้องมี" ขั้นตอน Search & Replace เสมอ และต้องยึดมาตรฐานการตั้งชื่อสากล

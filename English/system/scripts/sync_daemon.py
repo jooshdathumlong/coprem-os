@@ -23,14 +23,14 @@ def generate_tree(startpath):
         tree_str += f"{indent}{os.path.basename(root)}/\n"
         subindent = ' ' * 4 * (level + 1)
         for f in sorted(files):
-            if f.endswith('.md') and f != "Coprem_All_Data_Context.md":
+            if f.endswith('.md') and f != "master_context.md":
                 tree_str += f"{subindent}{f}\n"
     tree_str += "```\n\n"
     return tree_str
 
 def compile_context():
     vault_path = "/Users/eilinaire/Desktop/Coprem"
-    output_file = os.path.join(vault_path, "Coprem_All_Data_Context.md")
+    output_file = os.path.join(vault_path, "master_context.md")
     version_file = os.path.join(vault_path, "VERSION.md")
     
     version = "Unknown"
