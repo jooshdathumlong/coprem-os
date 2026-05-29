@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import os
 CORE_FILES = {
-    "GEMINI.md",
-    "prem_profile.md",
-    "README.md",
+    "English/GEMINI.md",
+    "English/prem_profile.md",
+    "English/README.md",
     "Thai/GEMINI.md",
     "Thai/prem_profile.md",
     "Thai/README.md",
