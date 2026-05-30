@@ -1,0 +1,145 @@
+{
+  "name": "WF01 — COPREM-MVP (Dify)",
+  "nodes": [
+    {
+      "id": "tg-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_WITH_YOUR_TELEGRAM_CRED_ID",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      }
+    },
+    {
+      "id": "check-user",
+      "name": "Check Approved User",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [440, 300],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_YOUR_POSTGRES_CRED_ID",
+          "name": "Postgres COPREM"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT status FROM users WHERE chat_id={{ $json.message.chat.id }} LIMIT 1;"
+      }
+    },
+    {
+      "id": "is-approved",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "approved",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dify-router",
+      "name": "Dify Smart Router",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [920, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.dify.ai/v1/chat-messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer app-EeCD0rYnH9eTTxWKdYxbXD2Q" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"inputs\": {},\n  \"query\": \"{{ $('Telegram Trigger').item.json.message.text }}\",\n  \"response_mode\": \"blocking\",\n  \"conversation_id\": \"\",\n  \"user\": \"{{ $('Telegram Trigger').item.json.message.chat.id }}\"\n}",
+        "options": {}
+      }
+    },
+    {
+      "id": "extract-reply",
+      "name": "Extract Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1160, 200],
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst reply = data.answer || data.text || 'ขออภัย ไม่สามารถตอบได้ตอนนี้';\nreturn [{ json: { reply } }];"
+      }
+    },
+    {
+      "id": "tg-reply",
+      "name": "Send Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1400, 200],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_WITH_YOUR_TELEGRAM_CRED_ID",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.reply }}"
+      }
+    },
+    {
+      "id": "tg-deny",
+      "name": "Not Approved",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [920, 400],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_WITH_YOUR_TELEGRAM_CRED_ID",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "❌ คุณยังไม่ได้รับอนุมัติ กรุณาส่ง /start เพื่อสมัครก่อนครับ"
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [[{ "node": "Check Approved User", "type": "main", "index": 0 }]]
+    },
+    "Check Approved User": {
+      "main": [[{ "node": "Approved?", "type": "main", "index": 0 }]]
+    },
+    "Approved?": {
+      "main": [
+        [{ "node": "Dify Smart Router", "type": "main", "index": 0 }],
+        [{ "node": "Not Approved", "type": "main", "index": 0 }]
+      ]
+    },
+    "Dify Smart Router": {
+      "main": [[{ "node": "Extract Reply", "type": "main", "index": 0 }]]
+    },
+    "Extract Reply": {
+      "main": [[{ "node": "Send Reply", "type": "main", "index": 0 }]]
+    }
+  }
+}
