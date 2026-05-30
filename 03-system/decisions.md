@@ -1,40 +1,44 @@
-# COPREM OS — Decision Log
+# COPREM OS - Decision Log
 
-> Jeff บันทึกทุกการตัดสินใจสำคัญที่นี่ทุกครั้งหลังจบ session
-> Format: วันที่ | หัวข้อ | เหตุผล | ผลลัพธ์
+Jeff logs every important decision here after each session.
+Format: Date | Topic | Reason | Outcome
 
 ---
 
 ## 2026-05-30
 
-**Telegram แทน LINE/Discord**
-เหตุผล: n8n มี Telegram Trigger node พร้อมใช้, ไม่ต้อง signature verification, setup 5 นาที
-ผลลัพธ์: @Coprem_Bot live, webhook ถาวรที่ n8n.peabuntid.com
+### Telegram instead of LINE/Discord
+Reason: n8n has a native Telegram Trigger node, no signature verification needed, 5-minute setup.
+Outcome: @Coprem_Bot is live, permanent webhook at n8n.peabuntid.com
 
-**Gemini แทน OpenAI (MVP)**
-เหตุผล: มี Gemini API key อยู่แล้ว, OpenAI ยังไม่มี key
-ผลลัพธ์: ใช้ gemini-2.0-flash, สลับ Claude Sonnet เมื่อมี Anthropic key
+### Gemini instead of OpenAI (MVP)
+Reason: Gemini API key already available, no OpenAI key.
+Outcome: Using gemini-2.0-flash, will switch to Claude Sonnet when Anthropic key is ready.
 
-**Docker Compose แทน local n8n**
-เหตุผล: persistent volumes, ไม่หายเมื่อ restart, production-grade
-ผลลัพธ์: n8n + Postgres + Redis + Cloudflared รันใน Docker
+### Docker Compose instead of local n8n
+Reason: Persistent volumes, data survives restarts, production-grade setup.
+Outcome: n8n + Postgres + Redis + Cloudflared running in Docker.
 
-**Cloudflare Tunnel + peabuntid.com แทน ngrok**
-เหตุผล: ngrok URL เปลี่ยนทุก restart, Cloudflare ฟรีและถาวร, ใช้ domain ที่มีอยู่แล้ว
-ผลลัพธ์: n8n.peabuntid.com — URL ถาวรไม่เปลี่ยน
+### Cloudflare Tunnel + peabuntid.com instead of ngrok
+Reason: ngrok URL changes every restart, Cloudflare is free and permanent, uses existing domain.
+Outcome: n8n.peabuntid.com - permanent URL that never changes.
 
-**PARA structure แทน English/Thai split**
-เหตุผล: English/Thai สับสนใน Obsidian, PARA เป็นมาตรฐานสากล
-ผลลัพธ์: 01-projects/ 02-knowledge/ 03-system/ 04-outputs/
+### PARA structure instead of English/Thai split
+Reason: English/Thai folders were confusing in Obsidian, PARA is an international standard.
+Outcome: 01-projects/ 02-knowledge/ 03-system/ 04-outputs/
 
-**Mac launchd auto-start**
-เหตุผล: Prem ไม่อยากสั่ง start เอง ทุกครั้งที่เปิด Mac
-ผลลัพธ์: Docker stack รันอัตโนมัติ 30 วินาทีหลัง login
+### Mac launchd auto-start
+Reason: Prem did not want to manually start services every time.
+Outcome: Docker stack starts automatically 30 seconds after Mac login.
+
+### Dify.ai as AI Brain layer
+Reason: No-code agent platform with KB integration, free tier available.
+Outcome: 5 KBs created - Brand, Ego Era, Trading, Job, Decisions.
 
 ---
 
-## Template (Jeff ใช้ทุก session)
+## Decision Template (Jeff uses every session)
 
-**[หัวข้อการตัดสินใจ]**
-เหตุผล: [ทำไมถึงเลือกแบบนี้]
-ผลลัพธ์: [เกิดอะไรขึ้น]
+Topic: [decision topic]
+Reason: [why this choice was made]
+Outcome: [what happened as a result]
