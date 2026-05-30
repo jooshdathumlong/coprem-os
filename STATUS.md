@@ -5,35 +5,29 @@
 ---
 
 ## Last Updated
-2026-05-31 | Session: Dify.ai Setup
+2026-05-31 | Session: Dify.ai + Multi-user
 
 ## ✅ Done (v3.1.0)
-- Docker stack: n8n + Postgres + Redis + Cloudflared
+- Docker: n8n + Postgres + Redis + Cloudflared
 - Telegram @Coprem_Bot + webhook (n8n.peabuntid.com)
 - Workflows 01–04, 06 active
-- PARA file structure + Obsidian clean
+- Dify.ai: KB-01–05 + 4 Agents (Smart Router, Jeff, Eilinaire, Ego Era)
+- Multi-user: Self-registration + one-tap approval (WF00A + WF00B)
 - Mac auto-start via launchd
-- Dify.ai: KB-01 to KB-05 created
-- Dify.ai: Smart Router, Jeff, Eilinaire, Ego Era imported
-- Dify.ai: KB connections set per agent
 
-## ⏳ Next Session (start here)
-- [ ] Test Dify agents via Preview (Gemini quota resets 08:00)
+## ⏳ Next Session
+- [ ] Activate WF00A + WF00B in n8n UI
+- [ ] Test Dify agents (Gemini quota resets 08:00)
 - [ ] Connect n8n Workflow-01 → Dify Smart Router → Jeff
-- [ ] Export updated n8n workflows to GitHub
+- [ ] Add Postgres credential in n8n for user DB
 
 ## 🚫 Blocked
-- Gemini quota — resets 08:00 daily
+- Gemini quota resets 08:00 daily
 
-## Dify API Keys (in .env)
-- Smart Router, Jeff, Eilinaire, Ego Era configured
-- Base URL: https://api.dify.ai/v1
-
-## Stack Health
+## Stack
 ```
-n8n        → http://localhost:5678 (Docker)
-Telegram   → https://n8n.peabuntid.com
-Postgres   → healthy
-Redis      → healthy
-Dify.ai    → cloud.dify.ai (4 agents ready)
+n8n      → localhost:5678 (Docker)
+Telegram → n8n.peabuntid.com (Cloudflare)
+Dify.ai  → cloud.dify.ai (4 agents ready)
+Postgres → Docker (users table ready)
 ```
