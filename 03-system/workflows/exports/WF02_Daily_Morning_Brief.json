@@ -6,16 +6,238 @@
   "description": null,
   "active": true,
   "isArchived": false,
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "07:00 Daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "n2",
+      "name": "Get Pending",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        440,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "226PbeVgki0neEi4",
+          "name": "Postgres COPREM"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM users WHERE status='pending';"
+      }
+    },
+    {
+      "id": "n3",
+      "name": "Send Brief",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "chatId": "7731591925",
+        "text": "=☀️ Morning Brief — {{ $now.format('DD MMM YYYY') }}\n\nPending approvals: {{ $items().length }}"
+      },
+      "webhookId": "c8edde8c-8ca0-4322-b3bc-83d05d1a4f21"
+    }
+  ],
+  "connections": {
+    "07:00 Daily": {
+      "main": [
+        [
+          {
+            "node": "Get Pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pending": {
+      "main": [
+        [
+          {
+            "node": "Send Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
   "settings": null,
+  "staticData": {
+    "node:07:00 Daily": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
   "versionId": "80d0985f-7d80-4e3d-95b1-b3d76e2e6f34",
   "activeVersionId": "80d0985f-7d80-4e3d-95b1-b3d76e2e6f34",
-  "parentFolder": null,
+  "versionCounter": 1,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-30T21:03:39.035Z",
+      "createdAt": "2026-05-30T21:03:39.035Z",
+      "role": "workflow:owner",
+      "workflowId": "sou01B1RK3u5HZDV",
+      "projectId": "zcgfC5I8AUAr3U8J",
+      "project": {
+        "updatedAt": "2026-05-30T20:55:56.474Z",
+        "createdAt": "2026-05-30T20:51:13.491Z",
+        "id": "zcgfC5I8AUAr3U8J",
+        "name": "Jeff COPREM <jooshdathumlong@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      }
+    }
+  ],
   "tags": [],
-  "homeProject": {
-    "id": "zcgfC5I8AUAr3U8J",
-    "type": "personal",
-    "name": "Jeff COPREM <jooshdathumlong@gmail.com>",
-    "icon": null
+  "parentFolder": null,
+  "activeVersion": {
+    "updatedAt": "2026-05-30T21:03:39.035Z",
+    "createdAt": "2026-05-30T21:03:39.035Z",
+    "versionId": "80d0985f-7d80-4e3d-95b1-b3d76e2e6f34",
+    "workflowId": "sou01B1RK3u5HZDV",
+    "nodes": [
+      {
+        "id": "n1",
+        "name": "07:00 Daily",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          200,
+          300
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 7 * * *"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "n2",
+        "name": "Get Pending",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          440,
+          300
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "226PbeVgki0neEi4",
+            "name": "Postgres COPREM"
+          }
+        },
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT * FROM users WHERE status='pending';"
+        }
+      },
+      {
+        "id": "n3",
+        "name": "Send Brief",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          680,
+          300
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "7731591925",
+          "text": "=☀️ Morning Brief — {{ $now.format('DD MMM YYYY') }}\n\nPending approvals: {{ $items().length }}"
+        },
+        "webhookId": "c8edde8c-8ca0-4322-b3bc-83d05d1a4f21"
+      }
+    ],
+    "connections": {
+      "07:00 Daily": {
+        "main": [
+          [
+            {
+              "node": "Get Pending",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Pending": {
+        "main": [
+          [
+            {
+              "node": "Send Brief",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Jeff COPREM",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": []
   },
-  "sharedWithProjects": []
+  "scopes": [
+    "workflow:create",
+    "workflow:delete",
+    "workflow:execute",
+    "workflow:execute-chat",
+    "workflow:list",
+    "workflow:move",
+    "workflow:publish",
+    "workflow:read",
+    "workflow:share",
+    "workflow:unpublish",
+    "workflow:unshare",
+    "workflow:update",
+    "workflow:updateRedactionSetting"
+  ],
+  "checksum": "9efb0f97c9438da707f6052af57c3c48e618fdbd86e2c0a6ca7711da7674e3e2"
 }
