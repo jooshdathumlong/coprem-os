@@ -12,6 +12,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Backup Postgres DB
+        run: |
+          mkdir -p backups/$(date +%Y-%m-%d)
+          docker exec 03-system-postgres-1 pg_dump -U coprem coprem \
+            > backups/$(date +%Y-%m-%d)/postgres.sql
+          echo "✅ Postgres dumped"
+
       - name: Export n8n Workflows
         run: |
           mkdir -p backups/$(date +%Y-%m-%d)
