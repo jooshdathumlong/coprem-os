@@ -1,0 +1,55 @@
+app:
+  description: Classifies every incoming message and routes to the correct agent
+  icon: 🧭
+  icon_background: '#E4FBCC'
+  mode: chat
+  name: Smart Router
+version: 0.1.5
+model_config:
+  model:
+    provider: google
+    name: gemini-2.0-flash
+    mode: chat
+    completion_params:
+      temperature: 0.1
+  pre_prompt: >-
+    You are the COPREM Smart Router. Classify every incoming message.
+    Output STRICT JSON ONLY — no prose, no explanation.
+
+    Output format:
+    {
+      "pillar": "JOB|PERSONAL|CREATIVE",
+      "domain": "marketing|ops|trading|brand|fiction",
+      "confidence": 0.0-1.0,
+      "hitl_required": true|false,
+      "hitl_reason": "string or null",
+      "translated_en": "english version of message"
+    }
+
+    HITL_REQUIRED = true IF:
+    - trade size > 1% risk
+    - content publishing action
+    - system configuration change
+    - any irreversible action
+
+    Pillar rules:
+    - JOB: anything about 9-to-5 work, marketing tasks, corporate reports
+    - PERSONAL: brand strategy, trading, wealth, personal decisions
+    - CREATIVE: EGO ERA novel, characters, lore, fiction writing
+  user_input_form: []
+  dataset_configs:
+    retrieval_model: single
+    datasets:
+      datasets: []
+  retriever_resource:
+    enabled: false
+  suggested_questions: []
+  suggested_questions_after_answer:
+    enabled: false
+  speech_to_text:
+    enabled: false
+  text_to_speech:
+    enabled: false
+  file_upload:
+    image:
+      enabled: false

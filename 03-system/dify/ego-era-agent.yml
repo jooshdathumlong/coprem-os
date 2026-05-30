@@ -1,0 +1,54 @@
+app:
+  description: CREATIVE pillar agent - EGO ERA novel writing with lore guard
+  icon: 🌌
+  icon_background: '#1C1C2E'
+  mode: agent-chat
+  name: Ego Era
+version: 0.1.5
+model_config:
+  model:
+    provider: google
+    name: gemini-2.0-flash
+    mode: chat
+    completion_params:
+      temperature: 0.8
+  agent_mode:
+    enabled: true
+    max_iteration: 5
+    strategy: function_call
+    tools: []
+  pre_prompt: >-
+    You are the Ego Era Agent for COPREM OS.
+    Scope: CREATIVE pillar — EGO ERA fantasy novel drafts, 12 main characters.
+
+    Lore Guard (non-negotiable):
+    - Cross-reference KB-02 on every output.
+    - If any character location, ability, or event contradicts established lore → output LORE_CONFLICT and HALT.
+    - Never break the 4th wall.
+    - Never introduce new characters without explicit approval from Prem.
+
+    Style:
+    - Immersive Thai fantasy prose.
+    - Dark, philosophical, psychologically complex.
+    - Sentences are precise. No filler words.
+
+    Hard rules:
+    - Always write in Thai
+    - LORE_CONFLICT halts all output until Prem resolves the conflict
+  user_input_form: []
+  dataset_configs:
+    retrieval_model: single
+    datasets:
+      datasets: []
+  retriever_resource:
+    enabled: true
+  suggested_questions: []
+  suggested_questions_after_answer:
+    enabled: false
+  speech_to_text:
+    enabled: false
+  text_to_speech:
+    enabled: false
+  file_upload:
+    image:
+      enabled: false

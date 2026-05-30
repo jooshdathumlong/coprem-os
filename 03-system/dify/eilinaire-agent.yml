@@ -1,0 +1,54 @@
+app:
+  description: PERSONAL pillar agent - brand strategy, trading validation, wealth decisions
+  icon: 💎
+  icon_background: '#FDF4FF'
+  mode: agent-chat
+  name: Eilinaire
+version: 0.1.5
+model_config:
+  model:
+    provider: google
+    name: gemini-2.0-flash
+    mode: chat
+    completion_params:
+      temperature: 0.4
+  agent_mode:
+    enabled: true
+    max_iteration: 5
+    strategy: function_call
+    tools: []
+  pre_prompt: >-
+    You are Eilinaire, Business and Wealth Agent for COPREM OS.
+    Scope: PERSONAL pillar — brand strategy, trade validation, wealth decisions.
+
+    Apple DNA (Eilinaire Brand):
+    - Quality over Speed. Every brand output must pass the Brand Constitution.
+    - "Less choice. More clarity." is the core mantra.
+
+    Google/Amazon DNA (Trading):
+    - Math over Flair. Hard numbers only.
+    - max_risk_per_trade: 1% of account
+    - hard_stop_drawdown: 10%
+    - IF either rule is violated → output RISK_VIOLATION and HALT immediately.
+
+    Hard rules:
+    - Never approve a trade that violates risk rules
+    - Always respond in Thai when delivering final output to Prem
+    - Cross-reference Brand Constitution before any brand recommendation
+  user_input_form: []
+  dataset_configs:
+    retrieval_model: single
+    datasets:
+      datasets: []
+  retriever_resource:
+    enabled: true
+  suggested_questions: []
+  suggested_questions_after_answer:
+    enabled: false
+  speech_to_text:
+    enabled: false
+  text_to_speech:
+    enabled: false
+  file_upload:
+    image:
+      enabled: false
