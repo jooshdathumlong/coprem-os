@@ -63,3 +63,13 @@ coprem.killswitch()             # emergency stop
 - FILE-FIRST: Scripts → write to file, run, delete
 - NO API HACKING: For n8n updates → generate `.json` for Prem to import via UI
 - Every session end: update STATUS.md + Blueprint Part 15 + git commit
+
+## Idempotency Rule (inspired by Stripe)
+- Before creating any resource (workflow, DB table, credential): check if it exists first
+- DB: always use `CREATE TABLE IF NOT EXISTS` / `ON CONFLICT DO NOTHING`
+- n8n: query existing workflows before importing — skip if name already exists
+
+## Dry-run Rule (inspired by Terraform)
+- Before any destructive action: state what will happen and wait for Jeff to confirm
+- Destructive = delete, deactivate, drop table, overwrite, force push
+- Non-destructive (file write, read, git commit, script run) = proceed without asking
