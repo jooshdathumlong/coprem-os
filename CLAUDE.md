@@ -2,22 +2,33 @@
 
 > "I manage, command, and make you rich."
 
-## Routing (Twin Pillars)
+---
+
+## 1. Routing
 - **JOB** → `03-system/job/` | Agent: Jeff | Prompt-driven
 - **PERSONAL** → `01-projects/` + `02-knowledge/` | Agent: Eilinaire | Objective-driven
 - **CREATIVE** → `01-projects/ego-era/` | Agent: Ego Era | Lore-guarded
 
-## Big Tech DNA (Veto Power)
+## 2. Big Tech DNA (Veto Power)
 - **Apple** (Eilinaire / EGO ERA): Quality > Speed. Must pass Brand Constitution.
 - **Google/Amazon** (Trading / Peabuntid): Math > Flair. Max 1% trade, 10% DD.
 
-## System Rules
-- Internal: English. Reports: Thai. No raw data to Prem.
+## 3. System Rules
+- Internal language: English. Reports to Jeff: Thai.
+- No raw data or tool chatter exposed to Jeff.
 - JSON delegation: `{"assign_to": "role", "task": "..."}`
-- HITL required: trade size >1% | publishing | system config changes
 - Kill switch: `coprem.killswitch()`
 
-## Key Paths
+## 4. HITL Gate (Human-In-The-Loop)
+Pause and confirm with Jeff before proceeding if any of these apply:
+- Trade size > 1% risk
+- Publishing content
+- System config change
+- **Destructive action**: delete, deactivate, drop table, overwrite, force push
+
+Non-destructive actions (file write, read, git commit, script run) → proceed without asking.
+
+## 5. Key Paths
 ```
 01-projects/     Active projects (eilinaire, peabuntid, ego-era, trading, music)
 02-knowledge/    KB-01→05 source files
@@ -27,49 +38,40 @@ app/             Module 4 UI (Next.js)
 ```
 - Navigation: `INDEX.md` | Blueprint: `03-system/COPREM_OS_Master_Blueprint_v8.2.md`
 
-## CLI
+## 6. CLI
 ```bash
-coprem.run("task")              # process task
-coprem.agent.jeff("task")       # force Jeff
-coprem.kb.sync("KB-01")         # sync knowledge base
-coprem.status()                 # system health
-coprem.cost.today()             # API cost
-coprem.killswitch()             # emergency stop
+coprem.run("task")         # process task
+coprem.agent.jeff("task")  # force Jeff
+coprem.kb.sync("KB-01")    # sync knowledge base
+coprem.status()            # system health
+coprem.cost.today()        # API cost
+coprem.killswitch()        # emergency stop
 ```
 
-## Context Pyramid (Token Budget)
-- L1 Auto-loaded: `CLAUDE.md` + `STATUS.md` — never re-read
-- L2 Grep first: `INDEX.md` | `Blueprint tail -30` (build log only)
-- L3 Section only: all other files — grep header → Read offset+limit, never full file
-- Blueprint Part 1–14: grep only, never read full
-
-## File Standards (all new files)
-- Must have `## SECTION` headers (grep gives TOC instantly)
-- Must register in `INDEX.md` (1 line)
-- Split when file exceeds 200 lines
-
-## Efficiency Rules
-- NEVER read whole files — `grep` or `head -n 30` first
-- NEVER re-read a file already in context
-- Prefer `Bash(grep)` over `Read` for search
-- Max file reads per session: 10
-
-## Reporting Rules (CRITICAL)
+## 7. Reporting Rules
 - Every response must begin with `## Summary: [topic]`
 - Summary = what was done + status + next steps (if any)
+- Summary header: English. Body report to Jeff: Thai.
 
-## Execution Rules (CRITICAL)
-- NO INLINE SCRIPTING: Never use `python3 -c`, `cat << EOF`, or huge curl payloads
-- FILE-FIRST: Scripts → write to file, run, delete
-- NO API HACKING: For n8n updates → generate `.json` for Prem to import via UI
-- Every session end: update STATUS.md + Blueprint Part 15 + git commit
+## 8. Context Pyramid (Token Budget)
+- **L1 Auto-loaded:** `CLAUDE.md` + `STATUS.md` — never re-read
+- **L2 Grep first:** `INDEX.md` | `Blueprint tail -30` (build log only)
+- **L3 Section only:** all other files — grep header → Read offset+limit, never full file
+- Blueprint Part 1–14: grep only, never read full
+- Minimize reads — justify each file read before doing it
 
-## Idempotency Rule (inspired by Stripe)
+## 9. File Standards
+- All new files must have `## SECTION` headers (grep gives TOC instantly)
+- Register every new file in `INDEX.md` (1 line entry)
+- Split any file that exceeds 200 lines
+
+## 10. Execution Rules
+- **NO INLINE SCRIPTING:** Never use `python3 -c`, `cat << EOF`, or large curl payloads
+- **FILE-FIRST:** Write script to `scripts/temp_*.py`, run it, delete it after
+- **n8n updates:** If Jeff says "you do" → use FILE-FIRST script. If Jeff says "manual" → generate `.json` for import via UI
+- **Session end:** update STATUS.md + append Blueprint Part 15 + git commit
+
+## 11. Idempotency Rule (inspired by Stripe)
 - Before creating any resource (workflow, DB table, credential): check if it exists first
 - DB: always use `CREATE TABLE IF NOT EXISTS` / `ON CONFLICT DO NOTHING`
 - n8n: query existing workflows before importing — skip if name already exists
-
-## Dry-run Rule (inspired by Terraform)
-- Before any destructive action: state what will happen and wait for Jeff to confirm
-- Destructive = delete, deactivate, drop table, overwrite, force push
-- Non-destructive (file write, read, git commit, script run) = proceed without asking
