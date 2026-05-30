@@ -2,6 +2,40 @@
 
 All notable changes to the Coprem project will be documented in this file.
 
+## [3.1.0] - 2026-05-31
+
+### Infrastructure — Docker Microservices Stack
+- **Docker Compose:** n8n + PostgreSQL (pgvector) + Redis + Cloudflared as isolated containers
+- **Persistent storage:** `./data/n8n`, `./data/db`, `./data/redis` volumes (never lost on restart)
+- **PostgreSQL:** 6 COPREM schemas auto-applied on first run (`03-system/database/schemas.sql`)
+- **Redis:** L1.5 session context manager (256MB LRU)
+
+### Networking — Permanent Webhook
+- **Cloudflare Tunnel:** `coprem-telegram` tunnel connected via Zero Trust
+- **Domain:** `peabuntid.com` added to Cloudflare DNS (nameservers: annabel + troy)
+- **Public hostname:** `n8n.peabuntid.com` → `http://n8n:5678` (permanent, no ngrok)
+- **Telegram webhook:** `https://n8n.peabuntid.com/webhook/f101f08c-430f-49f9-a94c-605d498b6410`
+
+### n8n Workflows (Docker instance)
+- **COPREM-MVP:** Active ✅ — Telegram Trigger → Gemini 2.0 Flash → Code → Telegram Send
+- **02 Morning Brief:** Active ✅ — Cron 07:00 daily
+- **03 Market Scanner:** Active ✅ — Cron every 6h
+- **04 OKR Review:** Active ✅ — Cron Sunday 20:00
+- **06 Health Ping:** Active ✅ — Cron every 6h
+- **Model:** Switched to `gemini-2.0-flash` (separate quota pool)
+
+### File Cleanup
+- Merged 6 SQL schemas → `03-system/database/schemas.sql`
+- Merged 4 agent prompts → `03-system/agents/prompts.md`
+- Merged dept_marketing + dept_ops → `03-system/job/departments.md`
+- Deleted 8 stale/placeholder files
+
+### Known pending
+- Dify.ai + 5 KBs (Week 2)
+- Workflows 05 HITL Saver, 07-11 (future)
+
+---
+
 ## [3.0.5] - 2026-05-30
 
 ### File Reorganization

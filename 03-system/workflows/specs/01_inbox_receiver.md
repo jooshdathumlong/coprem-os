@@ -1,8 +1,8 @@
 # Workflow 01 — Inbox Receiver (COPREM-MVP)
 
-> **Live deployment:** Telegram + Google Gemini (gemini-flash-latest) — 2026-05-30
+> **Live deployment:** Telegram + Google Gemini (gemini-2.0-flash) — 2026-05-31
 > **Status:** Live ✅ — tested and working
-> **Export:** `English/system/n8n/exports/COPREM-MVP.json`
+> **Export:          `03-system/workflows/exports/COPREM-MVP.json`
 
 **Trigger:** Telegram Trigger (On message)
 **Bot:** @Coprem_Bot
