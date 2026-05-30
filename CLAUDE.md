@@ -57,7 +57,9 @@ coprem.killswitch()        # emergency stop
 - **L1 Auto-loaded:** `CLAUDE.md` + `STATUS.md` — never re-read
 - **L2 Grep first:** `INDEX.md` | `Blueprint tail -30` (build log only)
 - **L3 Section only:** all other files — grep header → Read offset+limit, never full file
-- Blueprint Part 1–14: grep only, never read full
+- Blueprint Part 1–14: grep only, **never Read** — violation = wasted session
+- If Bash output > 50 lines → pipe `| tail -20` or summarize only, never read full output
+- If conversation > 20 turns or context feels heavy → propose new session immediately
 - Minimize reads — justify each file read before doing it
 
 ## 9. File Standards
