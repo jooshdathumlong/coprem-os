@@ -2,6 +2,18 @@
 
 All notable changes to the Coprem project will be documented in this file.
 
+## [3.0.1] - 2026-05-30
+
+### MVP Live
+- **Workflow-01 COPREM-MVP:** Webhook → Google Gemini → Code → Respond to Webhook — tested and live
+- **n8n v2.22.5** installed at `localhost:5678`
+- **Model:** Google Gemini (gemini-flash-latest) — temporary until Anthropic API key available
+- **Code node:** extracts text from Gemini variable parts array (handles thoughtSignature)
+- **Export:** `English/system/n8n/exports/COPREM-MVP.json` — committed to GitHub
+- **Workflow-01 spec** updated with full node chain, code, and test command
+
+---
+
 ## [3.0.0] - 2026-05-30
 
 ### Architecture
