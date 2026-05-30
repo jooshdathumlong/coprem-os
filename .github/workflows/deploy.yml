@@ -1,0 +1,28 @@
+name: Deploy COPREM
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '03-system/docker-compose.yml'
+      - '03-system/workflows/**'
+      - '03-system/database/**'
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Restart Docker Stack
+        run: |
+          cd ${{ github.workspace }}
+          docker compose -f 03-system/docker-compose.yml pull
+          docker compose -f 03-system/docker-compose.yml up -d --force-recreate
+
+      - name: Health Check
+        run: |
+          sleep 15
+          curl -f http://localhost:5678/healthz || exit 1
+          echo "✅ COPREM deployed successfully"

@@ -1,0 +1,30 @@
+name: Health Check
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # Every 15 minutes
+  workflow_dispatch:
+
+jobs:
+  health:
+    runs-on: self-hosted
+    steps:
+      - name: Check n8n
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5678/healthz)
+          if [ "$STATUS" != "200" ]; then
+            curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+              -d "chat_id=${{ secrets.PREM_CHAT_ID }}" \
+              -d "text=🚨 COPREM ALERT: n8n is down (HTTP $STATUS). Check localhost:5678"
+            exit 1
+          fi
+          echo "✅ n8n healthy"
+
+      - name: Check Cloudflare Tunnel
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://n8n.peabuntid.com/healthz)
+          if [ "$STATUS" != "200" ]; then
+            curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+              -d "chat_id=${{ secrets.PREM_CHAT_ID }}" \
+              -d "text=🚨 COPREM ALERT: Cloudflare tunnel is down. @Coprem_Bot unreachable."
+          fi

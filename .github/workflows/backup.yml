@@ -1,0 +1,42 @@
+name: Weekly Backup
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'  # Sunday 03:00 UTC (10:00 Bangkok)
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Export n8n Workflows
+        run: |
+          mkdir -p backups/$(date +%Y-%m-%d)
+
+          # Login and export all workflows
+          COOKIE=$(curl -s -c /tmp/backup-cookie.txt -X POST http://localhost:5678/rest/login \
+            -H "Content-Type: application/json" \
+            -d '{"emailOrLdapLoginId":"jooshdathumlong@gmail.com","password":"${{ secrets.N8N_PASSWORD }}"}' \
+            -D - | grep -i set-cookie | head -1 | cut -d' ' -f2)
+
+          curl -s -b /tmp/backup-cookie.txt http://localhost:5678/rest/workflows \
+            > backups/$(date +%Y-%m-%d)/workflows.json
+
+          echo "✅ Workflows exported"
+
+      - name: Commit Backup
+        run: |
+          git config user.email "jeff@coprem.ai"
+          git config user.name "Jeff COPREM"
+          git add backups/
+          git diff --staged --quiet || git commit -m "backup: weekly $(date +%Y-%m-%d)"
+          git push origin main
+
+      - name: Notify Prem
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.PREM_CHAT_ID }}" \
+            -d "text=✅ Weekly backup complete — $(date +%Y-%m-%d)"
