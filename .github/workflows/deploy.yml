@@ -4,9 +4,9 @@ on:
   push:
     branches: [main]
     paths:
-      - '03-system/docker-compose.yml'
-      - '03-system/workflows/**'
-      - '03-system/database/**'
+      - '03-system/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -18,12 +18,31 @@ jobs:
       - name: Restart Docker Stack
         run: |
           cd /Users/eilinaire/Desktop/Coprem
-          # Kill any stale container holding port 5678 (not part of current stack)
           docker ps -q --filter "publish=5678" | xargs -r docker stop | xargs -r docker rm || true
           docker compose --env-file .env -f 03-system/docker-compose.yml up -d
 
       - name: Health Check
+        id: health
         run: |
           sleep 15
           curl -f http://localhost:5678/healthz || exit 1
           echo "✅ COPREM deployed successfully"
+
+      - name: Notify Success
+        if: success()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.PREM_CHAT_ID }}" \
+            -d "text=✅ Deploy สำเร็จ | $(git log -1 --format='%s')"
+
+      - name: Rollback on Failure
+        if: failure()
+        run: |
+          cd /Users/eilinaire/Desktop/Coprem
+          echo "⚠️ Deploy failed — rolling back to previous commit"
+          git checkout HEAD~1 -- 03-system/docker-compose.yml
+          docker compose --env-file .env -f 03-system/docker-compose.yml up -d
+          sleep 15
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.PREM_CHAT_ID }}" \
+            -d "text=🔴 Deploy ล้มเหลว — Rollback to previous version แล้ว | $(git log -1 --format='%s')"
