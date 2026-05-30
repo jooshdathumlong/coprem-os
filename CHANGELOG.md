@@ -2,6 +2,21 @@
 
 All notable changes to the Coprem project will be documented in this file.
 
+## [3.0.5] - 2026-05-30
+
+### File Reorganization
+- Archive: `English/CLAUD.md` (superseded by CLAUDE.md)
+- Archive: `English/system/scripts/line_oa_broadcast.py` (LINE removed)
+- Archive: `English/system/scripts/obsidian_io.py`, `social_broadcast.py`, `google_apps_trigger.py` (not in v8.2)
+- Archive: `English/outputs/plans/lean_blueprint.md` (superseded by Blueprint v8.2)
+- Archive: `English/system/db/praem_os.db` (typo filename, stale)
+- Remove: `Thai/system/db/Coprem.db` (Thai is read-only, no operational DB)
+- Untrack: `English/system/db/Coprem.db` (added *.db to .gitignore)
+- .gitignore: add `.obsidian/`, `*.db`, `*.sqlite`
+- Create: `Thai/system/n8n/workflows/README.md`, `Thai/system/db/schemas/README.md`
+
+---
+
 ## [3.0.4] - 2026-05-30
 
 ### Housekeeping

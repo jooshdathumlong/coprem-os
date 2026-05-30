@@ -25,3 +25,12 @@ package-lock.json
 
 # Gemini Agent Scratch/Data
 .gemini/
+
+# Obsidian workspace config
+.obsidian/
+
+# SQLite databases (operational, not for git)
+*.db
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
