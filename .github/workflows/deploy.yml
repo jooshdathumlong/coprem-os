@@ -18,7 +18,8 @@ jobs:
       - name: Restart Docker Stack
         run: |
           cd /Users/eilinaire/Desktop/Coprem
-          docker compose --env-file .env -f 03-system/docker-compose.yml up -d --force-recreate
+          docker compose --env-file .env -f 03-system/docker-compose.yml down --remove-orphans
+          docker compose --env-file .env -f 03-system/docker-compose.yml up -d
 
       - name: Health Check
         run: |
