@@ -77,6 +77,7 @@ coprem.killswitch()        # emergency stop
 - If Bash output > 50 lines → pipe `| tail -20` or summarize only, never read full output
 - If conversation > 20 turns or context feels heavy → propose new session immediately
 - Minimize reads — justify each file read before doing it
+- **SRE Playbook:** For complex DB ops, external API calls, or server debugging → grep + read `03-system/skills/SRE_Master_Playbook.md` for rules 16–25
 
 ## 10. File Standards
 - All new files must have `## SECTION` headers (grep gives TOC instantly)
@@ -92,6 +93,14 @@ coprem.killswitch()        # emergency stop
 - **Pre-mortem:** Before destructive action or DB migration → state #1 risk + mitigation
 - **Dependency check:** Before any script using external CLI tools (psql, docker, jq, etc.) → verify with `which <tool>` batched first. Missing tool = STOP and report.
 - **Silent mode:** All CLI commands must suppress stdout — use `-q`, `--silent`, `-s`, or `> /dev/null` on every applicable tool to prevent token flooding.
+- **Trust but Verify:** After any state-changing command (INSERT, API update) → run a follow-up READ (SELECT, GET) to prove success. Never assume.
+- **Log-First Debugging:** If a service fails → fetch logs first (`docker logs --tail 30`). Do NOT write a fix before diagnosing root cause.
+- **Secret Guard:** Never print raw API keys/passwords. If verifying a credential → mask as `abc***xyz` (first 3, last 3 chars only).
+- **Leave No Trace:** Temp scripts must self-delete on success AND failure — use `try/finally` in Python or `trap` in Bash.
+- **Strict Timeouts:** Never run open-ended network/build commands. Enforce `--max-time 10` (curl) or `timeout 30s` on every applicable call.
+- **Atomic Operations:** One script = one change. Execute, verify, then move on. Never bundle unrelated changes — keep blast radius small.
+- **Pre-Destructive Snapshot:** Before overwriting a critical file or dropping DB records → create backup first (`cp file.json file.json.bak` or `pg_dump`).
+- **Execution Proof:** Never report a task as "done" from code alone — provide actual execution output or log proving state changed.
 - **n8n:** เปรม says "you do" → FILE-FIRST script | "manual" → generate `.json` for UI import
 - **Session end:** update STATUS.md + append Blueprint Part 15 + git commit
 
