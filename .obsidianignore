@@ -1,3 +1,4 @@
+# Folders
 _archive
 app
 data
@@ -5,11 +6,27 @@ scripts
 Thai
 English
 .git
-.env
-.env.vault
-.env.example
 .claude
 node_modules
+
+# Technical files (code, not notes)
+*.json
+*.sql
+*.yml
+*.yaml
+*.sh
+*.py
+*.js
+*.ts
+*.css
+
+# System / log files
+session_log.md
 docker-compose.yml
 VERSION.md
 CHANGELOG.md
+
+# Secrets
+.env
+.env.vault
+.env.example

@@ -4,17 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "98e510e4b4535a35",
+        "id": "b883745a0bed5921",
         "type": "tabs",
         "children": [
           {
-            "id": "1385682ace4e6862",
+            "id": "48069e18b69a4233",
             "type": "leaf",
             "state": {
-              "type": "graph",
+              "type": "empty",
               "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "icon": "lucide-file",
+              "title": "New tab"
             }
           }
         ]
@@ -176,7 +176,7 @@
       "bases:Create new base": false
     }
   },
-  "active": "1385682ace4e6862",
+  "active": "3fe60d3aa2ffcee3",
   "lastOpenFiles": [
     "_archive/v8.2-cleanup/praem_os.db",
     "_archive/v8.2-cleanup/lean_blueprint.md",
