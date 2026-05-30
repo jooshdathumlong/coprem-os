@@ -18,6 +18,12 @@
 - Prefer `Bash(grep)` over `Read` for search tasks
 - Max file reads per session: 10
 
+## Reading Rules (Token Saving)
+- STATUS.md = session start only (already in context via hook)
+- Blueprint = NEVER read full — use `grep -n "keyword"` or `tail -30` for Build Log only
+- If need spec detail: grep the section header, then `Read` with offset+limit
+- Never read Blueprint to answer general questions — use STATUS.md + memory
+
 ## Execution Rules (CRITICAL)
 - NO INLINE SCRIPTING: Never use `python3 -c`, `cat << EOF`, or huge curl payloads in the terminal.
 - FILE-FIRST: If a script is needed, write it to `/scripts/temp.py`, run it, and delete it.
