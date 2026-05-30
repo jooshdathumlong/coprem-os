@@ -6,16 +6,238 @@
   "description": null,
   "active": true,
   "isArchived": false,
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "Sunday 20:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 20 * * 0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "n2",
+      "name": "Get Stats",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        440,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "226PbeVgki0neEi4",
+          "name": "Postgres COPREM"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT status, COUNT(*) as count FROM users GROUP BY status;"
+      }
+    },
+    {
+      "id": "n3",
+      "name": "Send Report",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "chatId": "7731591925",
+        "text": "=📊 OKR Report {{ $now.format('DD MMM YYYY') }}\n\nRecords: {{ $items().length }}\n\n✅ COPREM nominal"
+      },
+      "webhookId": "7e21be3e-88aa-4073-ab0d-6216e612b85a"
+    }
+  ],
+  "connections": {
+    "Sunday 20:00": {
+      "main": [
+        [
+          {
+            "node": "Get Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Stats": {
+      "main": [
+        [
+          {
+            "node": "Send Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
   "settings": null,
+  "staticData": {
+    "node:Sunday 20:00": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
   "versionId": "d28c45e0-5a1c-4105-9232-84c2179d7db7",
   "activeVersionId": "d28c45e0-5a1c-4105-9232-84c2179d7db7",
-  "parentFolder": null,
+  "versionCounter": 1,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-30T21:03:39.087Z",
+      "createdAt": "2026-05-30T21:03:39.087Z",
+      "role": "workflow:owner",
+      "workflowId": "3cGfyp4wgNEXKkFu",
+      "projectId": "zcgfC5I8AUAr3U8J",
+      "project": {
+        "updatedAt": "2026-05-30T20:55:56.474Z",
+        "createdAt": "2026-05-30T20:51:13.491Z",
+        "id": "zcgfC5I8AUAr3U8J",
+        "name": "Jeff COPREM <jooshdathumlong@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      }
+    }
+  ],
   "tags": [],
-  "homeProject": {
-    "id": "zcgfC5I8AUAr3U8J",
-    "type": "personal",
-    "name": "Jeff COPREM <jooshdathumlong@gmail.com>",
-    "icon": null
+  "parentFolder": null,
+  "activeVersion": {
+    "updatedAt": "2026-05-30T21:03:39.087Z",
+    "createdAt": "2026-05-30T21:03:39.087Z",
+    "versionId": "d28c45e0-5a1c-4105-9232-84c2179d7db7",
+    "workflowId": "3cGfyp4wgNEXKkFu",
+    "nodes": [
+      {
+        "id": "n1",
+        "name": "Sunday 20:00",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          200,
+          300
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 20 * * 0"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "n2",
+        "name": "Get Stats",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          440,
+          300
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "226PbeVgki0neEi4",
+            "name": "Postgres COPREM"
+          }
+        },
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT status, COUNT(*) as count FROM users GROUP BY status;"
+        }
+      },
+      {
+        "id": "n3",
+        "name": "Send Report",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          680,
+          300
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "7731591925",
+          "text": "=📊 OKR Report {{ $now.format('DD MMM YYYY') }}\n\nRecords: {{ $items().length }}\n\n✅ COPREM nominal"
+        },
+        "webhookId": "7e21be3e-88aa-4073-ab0d-6216e612b85a"
+      }
+    ],
+    "connections": {
+      "Sunday 20:00": {
+        "main": [
+          [
+            {
+              "node": "Get Stats",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Stats": {
+        "main": [
+          [
+            {
+              "node": "Send Report",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Jeff COPREM",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": []
   },
-  "sharedWithProjects": []
+  "scopes": [
+    "workflow:create",
+    "workflow:delete",
+    "workflow:execute",
+    "workflow:execute-chat",
+    "workflow:list",
+    "workflow:move",
+    "workflow:publish",
+    "workflow:read",
+    "workflow:share",
+    "workflow:unpublish",
+    "workflow:unshare",
+    "workflow:update",
+    "workflow:updateRedactionSetting"
+  ],
+  "checksum": "24563182adb14eae3b701b9eb57a83c3d5049f8d18e82949d771314b0502dacb"
 }

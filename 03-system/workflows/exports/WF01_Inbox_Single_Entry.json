@@ -1,22 +1,44 @@
 {
+  "updatedAt": "2026-05-30T22:26:36.738Z",
+  "createdAt": "2026-05-30T22:25:22.775Z",
+  "id": "OTZhayuBBmCOO2CA",
   "name": "WF01 — Inbox Receiver (Single Entry)",
-  "_note": "Import this file. Then assign credentials: 'Telegram Bot' and 'Postgres COPREM' on each node.",
+  "description": null,
+  "active": true,
+  "isArchived": false,
   "nodes": [
     {
       "id": "tg-trigger",
       "name": "Telegram Trigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.1,
-      "position": [200, 400],
-      "credentials": { "telegramApi": { "id": "REPLACE", "name": "Telegram Bot" } },
-      "parameters": { "updates": ["message"], "additionalFields": {} }
+      "position": [
+        200,
+        400
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "webhookId": "7ffa1b5c-6a97-4620-96d7-ab323a89a9c3"
     },
     {
       "id": "l1a-preprocess",
       "name": "L1-A Preprocessor",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [440, 400],
+      "position": [
+        440,
+        400
+      ],
       "parameters": {
         "jsCode": "const msg = $input.first().json.message;\nconst text = (msg.text || '').replace(/\\u200b/g,'').trim();\nconst userId = msg.from.id;\nconst chatId = msg.chat.id;\nconst hash = require('crypto').createHash('md5').update(userId+'|'+text).digest('hex');\nconst isStart = text === '/start';\nconst isApproval = /^(APPROVE|REJECT)\\s+\\d+/i.test(text);\nconst isThai = /[\\u0E00-\\u0E7F]/.test(text);\nreturn [{ json: { text, userId, chatId, hash, isStart, isApproval, isThai, firstName: msg.from.first_name || '', username: msg.from.username || '' } }];"
       }
@@ -26,8 +48,16 @@
       "name": "Dedup Check",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [680, 400],
-      "credentials": { "postgres": { "id": "REPLACE", "name": "Postgres COPREM" } },
+      "position": [
+        680,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "226PbeVgki0neEi4",
+          "name": "Postgres COPREM"
+        }
+      },
       "parameters": {
         "operation": "executeQuery",
         "query": "INSERT INTO dedup_cache (hash) VALUES ('{{ $json.hash }}') ON CONFLICT DO NOTHING; SELECT COUNT(*) as is_new FROM dedup_cache WHERE hash='{{ $json.hash }}' AND created_at > NOW() - INTERVAL '60 seconds';"
@@ -38,13 +68,52 @@
       "name": "Route by Type",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
-      "position": [920, 400],
+      "position": [
+        920,
+        400
+      ],
       "parameters": {
         "mode": "rules",
         "rules": {
           "values": [
-            { "conditions": { "options": { "caseSensitive": false }, "conditions": [{ "leftValue": "={{ $('L1-A Preprocessor').item.json.isStart }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }] }, "renameOutput": true, "outputKey": "registration" },
-            { "conditions": { "options": { "caseSensitive": false }, "conditions": [{ "leftValue": "={{ $('L1-A Preprocessor').item.json.isApproval }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }] }, "renameOutput": true, "outputKey": "approval" }
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('L1-A Preprocessor').item.json.isStart }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "registration"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('L1-A Preprocessor').item.json.isApproval }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "approval"
+            }
           ]
         },
         "fallbackOutput": "extra"
@@ -55,8 +124,16 @@
       "name": "Check Existing User",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1160, 200],
-      "credentials": { "postgres": { "id": "REPLACE", "name": "Postgres COPREM" } },
+      "position": [
+        1160,
+        200
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "226PbeVgki0neEi4",
+          "name": "Postgres COPREM"
+        }
+      },
       "parameters": {
         "operation": "executeQuery",
         "query": "INSERT INTO users (chat_id, first_name, username, status) VALUES ({{ $('L1-A Preprocessor').item.json.chatId }}, '{{ $('L1-A Preprocessor').item.json.firstName }}', '{{ $('L1-A Preprocessor').item.json.username }}', 'pending') ON CONFLICT (chat_id) DO NOTHING; SELECT status FROM users WHERE chat_id={{ $('L1-A Preprocessor').item.json.chatId }};"
@@ -67,31 +144,52 @@
       "name": "Notify Jeff",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1400, 120],
-      "credentials": { "telegramApi": { "id": "REPLACE", "name": "Telegram Bot" } },
+      "position": [
+        1400,
+        120
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
       "parameters": {
         "chatId": "7731591925",
         "text": "=🔔 New Registration\n\nName: {{ $('L1-A Preprocessor').item.json.firstName }}\nUsername: @{{ $('L1-A Preprocessor').item.json.username }}\nChat ID: {{ $('L1-A Preprocessor').item.json.chatId }}\n\nReply:\nAPPROVE {{ $('L1-A Preprocessor').item.json.chatId }}\nor REJECT {{ $('L1-A Preprocessor').item.json.chatId }}"
-      }
+      },
+      "webhookId": "7015995c-8e4c-47bd-8a5e-12aab6bc71aa"
     },
     {
       "id": "reg-reply-user",
       "name": "Reply to Applicant",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1400, 260],
-      "credentials": { "telegramApi": { "id": "REPLACE", "name": "Telegram Bot" } },
+      "position": [
+        1400,
+        260
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
       "parameters": {
         "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
         "text": "✅ ได้รับคำขอแล้วครับ กรุณารอการอนุมัติจาก Jeff"
-      }
+      },
+      "webhookId": "b35a1b80-4e15-4172-9d3b-f7394b8b91fc"
     },
     {
       "id": "approval-parse",
       "name": "Parse Approval",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1160, 400],
+      "position": [
+        1160,
+        400
+      ],
       "parameters": {
         "jsCode": "const text = $('L1-A Preprocessor').item.json.text.toUpperCase();\nconst parts = text.split(' ');\nconst action = parts[0];\nconst targetId = parseInt(parts[1]);\nconst newStatus = action === 'APPROVE' ? 'approved' : 'rejected';\nreturn [{ json: { action, targetId, newStatus } }];"
       }
@@ -101,8 +199,16 @@
       "name": "Update User Status",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1400, 400],
-      "credentials": { "postgres": { "id": "REPLACE", "name": "Postgres COPREM" } },
+      "position": [
+        1400,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "226PbeVgki0neEi4",
+          "name": "Postgres COPREM"
+        }
+      },
       "parameters": {
         "operation": "executeQuery",
         "query": "UPDATE users SET status='{{ $json.newStatus }}', approved_at=NOW() WHERE chat_id={{ $json.targetId }}; SELECT chat_id, first_name, status FROM users WHERE chat_id={{ $json.targetId }};"
@@ -113,20 +219,37 @@
       "name": "Notify User of Decision",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1640, 400],
-      "credentials": { "telegramApi": { "id": "REPLACE", "name": "Telegram Bot" } },
+      "position": [
+        1640,
+        400
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
       "parameters": {
         "chatId": "={{ $json.chat_id }}",
         "text": "={{ $json.status === 'approved' ? '✅ ได้รับอนุมัติแล้วครับ! ส่งข้อความมาได้เลย' : '❌ ขออภัย คำขอถูกปฏิเสธครับ' }}"
-      }
+      },
+      "webhookId": "703db362-648a-472a-b324-a032c7c33c88"
     },
     {
       "id": "check-approved",
       "name": "Check User Approved",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1160, 600],
-      "credentials": { "postgres": { "id": "REPLACE", "name": "Postgres COPREM" } },
+      "position": [
+        1160,
+        600
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "226PbeVgki0neEi4",
+          "name": "Postgres COPREM"
+        }
+      },
       "parameters": {
         "operation": "executeQuery",
         "query": "SELECT status FROM users WHERE chat_id={{ $('L1-A Preprocessor').item.json.chatId }} LIMIT 1;"
@@ -137,11 +260,26 @@
       "name": "Approved?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1400, 600],
+      "position": [
+        1400,
+        600
+      ],
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true },
-          "conditions": [{ "id": "c1", "leftValue": "={{ $json.status }}", "rightValue": "approved", "operator": { "type": "string", "operation": "equals" } }]
+          "options": {
+            "caseSensitive": true
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
         }
       }
     },
@@ -150,15 +288,24 @@
       "name": "Dify Smart Router",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1640, 520],
+      "position": [
+        1640,
+        520
+      ],
       "parameters": {
         "method": "POST",
         "url": "https://api.dify.ai/v1/chat-messages",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "Bearer app-EeCD0rYnH9eTTxWKdYxbXD2Q" },
-            { "name": "Content-Type", "value": "application/json" }
+            {
+              "name": "Authorization",
+              "value": "Bearer app-EeCD0rYnH9eTTxWKdYxbXD2Q"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
@@ -172,7 +319,10 @@
       "name": "L2.5 Normalize Output",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1880, 520],
+      "position": [
+        1880,
+        520
+      ],
       "parameters": {
         "jsCode": "const data = $input.first().json;\nlet reply = data.answer || data.text || 'ขออภัย ไม่สามารถตอบได้ตอนนี้ครับ';\nif (reply.length > 4096) reply = reply.substring(0, 4090) + '...[ต่อ]';\nconst agent = data.metadata?.usage ? 'dify' : 'unknown';\nreturn [{ json: { reply, agent } }];"
       }
@@ -182,20 +332,37 @@
       "name": "Send Reply",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [2120, 520],
-      "credentials": { "telegramApi": { "id": "REPLACE", "name": "Telegram Bot" } },
+      "position": [
+        2120,
+        520
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
       "parameters": {
         "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
         "text": "={{ $json.reply }}"
-      }
+      },
+      "webhookId": "b2ecc497-eaf3-4834-af1d-7cf06132f6ca"
     },
     {
       "id": "log-inbox",
       "name": "Log to Inbox",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [2360, 520],
-      "credentials": { "postgres": { "id": "REPLACE", "name": "Postgres COPREM" } },
+      "position": [
+        2360,
+        520
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "226PbeVgki0neEi4",
+          "name": "Postgres COPREM"
+        }
+      },
       "parameters": {
         "operation": "executeQuery",
         "query": "INSERT INTO inbox_log (user_id, content_raw, content_clean, lang_detected, msg_hash, agent, status) VALUES ({{ $('L1-A Preprocessor').item.json.userId }}, '{{ $('L1-A Preprocessor').item.json.text }}', '{{ $('L1-A Preprocessor').item.json.text }}', '{{ $('L1-A Preprocessor').item.json.isThai ? 'th' : 'en' }}', '{{ $('L1-A Preprocessor').item.json.hash }}', '{{ $('L2.5 Normalize Output').item.json.agent }}', 'ok');"
@@ -206,32 +373,781 @@
       "name": "Not Approved Reply",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1640, 700],
-      "credentials": { "telegramApi": { "id": "REPLACE", "name": "Telegram Bot" } },
+      "position": [
+        1640,
+        700
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
       "parameters": {
         "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
         "text": "❌ คุณยังไม่ได้รับอนุมัติครับ กรุณาส่ง /start เพื่อสมัครก่อน"
-      }
+      },
+      "webhookId": "6d11859e-5938-4aa4-9946-f72d5e3efdd8"
     }
   ],
   "connections": {
-    "Telegram Trigger":       { "main": [[{ "node": "L1-A Preprocessor",    "type": "main", "index": 0 }]] },
-    "L1-A Preprocessor":      { "main": [[{ "node": "Dedup Check",           "type": "main", "index": 0 }]] },
-    "Dedup Check":            { "main": [[{ "node": "Route by Type",          "type": "main", "index": 0 }]] },
-    "Route by Type":          {
+    "Telegram Trigger": {
       "main": [
-        [{ "node": "Check Existing User",   "type": "main", "index": 0 }],
-        [{ "node": "Parse Approval",        "type": "main", "index": 0 }],
-        [{ "node": "Check User Approved",   "type": "main", "index": 0 }]
+        [
+          {
+            "node": "L1-A Preprocessor",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Check Existing User":    { "main": [[{ "node": "Notify Jeff",           "type": "main", "index": 0 }, { "node": "Reply to Applicant", "type": "main", "index": 0 }]] },
-    "Parse Approval":         { "main": [[{ "node": "Update User Status",    "type": "main", "index": 0 }]] },
-    "Update User Status":     { "main": [[{ "node": "Notify User of Decision","type": "main", "index": 0 }]] },
-    "Check User Approved":    { "main": [[{ "node": "Approved?",             "type": "main", "index": 0 }]] },
-    "Approved?":              { "main": [[{ "node": "Dify Smart Router",     "type": "main", "index": 0 }], [{ "node": "Not Approved Reply", "type": "main", "index": 0 }]] },
-    "Dify Smart Router":      { "main": [[{ "node": "L2.5 Normalize Output", "type": "main", "index": 0 }]] },
-    "L2.5 Normalize Output":  { "main": [[{ "node": "Send Reply",            "type": "main", "index": 0 }]] },
-    "Send Reply":             { "main": [[{ "node": "Log to Inbox",          "type": "main", "index": 0 }]] }
-  }
+    "L1-A Preprocessor": {
+      "main": [
+        [
+          {
+            "node": "Dedup Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dedup Check": {
+      "main": [
+        [
+          {
+            "node": "Route by Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Type": {
+      "main": [
+        [
+          {
+            "node": "Check Existing User",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse Approval",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check User Approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Existing User": {
+      "main": [
+        [
+          {
+            "node": "Notify Jeff",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Reply to Applicant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Approval": {
+      "main": [
+        [
+          {
+            "node": "Update User Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update User Status": {
+      "main": [
+        [
+          {
+            "node": "Notify User of Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check User Approved": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Dify Smart Router",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Not Approved Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dify Smart Router": {
+      "main": [
+        [
+          {
+            "node": "L2.5 Normalize Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2.5 Normalize Output": {
+      "main": [
+        [
+          {
+            "node": "Send Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Reply": {
+      "main": [
+        [
+          {
+            "node": "Log to Inbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": null,
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "fa007fa0-13aa-466c-95d6-e95b647f0b87",
+  "activeVersionId": "fa007fa0-13aa-466c-95d6-e95b647f0b87",
+  "versionCounter": 1,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-30T22:25:22.775Z",
+      "createdAt": "2026-05-30T22:25:22.775Z",
+      "role": "workflow:owner",
+      "workflowId": "OTZhayuBBmCOO2CA",
+      "projectId": "zcgfC5I8AUAr3U8J",
+      "project": {
+        "updatedAt": "2026-05-30T20:55:56.474Z",
+        "createdAt": "2026-05-30T20:51:13.491Z",
+        "id": "zcgfC5I8AUAr3U8J",
+        "name": "Jeff COPREM <jooshdathumlong@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      }
+    }
+  ],
+  "tags": [],
+  "parentFolder": null,
+  "activeVersion": {
+    "updatedAt": "2026-05-30T22:25:22.775Z",
+    "createdAt": "2026-05-30T22:25:22.775Z",
+    "versionId": "fa007fa0-13aa-466c-95d6-e95b647f0b87",
+    "workflowId": "OTZhayuBBmCOO2CA",
+    "nodes": [
+      {
+        "id": "tg-trigger",
+        "name": "Telegram Trigger",
+        "type": "n8n-nodes-base.telegramTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          200,
+          400
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "updates": [
+            "message"
+          ],
+          "additionalFields": {}
+        },
+        "webhookId": "7ffa1b5c-6a97-4620-96d7-ab323a89a9c3"
+      },
+      {
+        "id": "l1a-preprocess",
+        "name": "L1-A Preprocessor",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          440,
+          400
+        ],
+        "parameters": {
+          "jsCode": "const msg = $input.first().json.message;\nconst text = (msg.text || '').replace(/\\u200b/g,'').trim();\nconst userId = msg.from.id;\nconst chatId = msg.chat.id;\nconst hash = require('crypto').createHash('md5').update(userId+'|'+text).digest('hex');\nconst isStart = text === '/start';\nconst isApproval = /^(APPROVE|REJECT)\\s+\\d+/i.test(text);\nconst isThai = /[\\u0E00-\\u0E7F]/.test(text);\nreturn [{ json: { text, userId, chatId, hash, isStart, isApproval, isThai, firstName: msg.from.first_name || '', username: msg.from.username || '' } }];"
+        }
+      },
+      {
+        "id": "check-dedup",
+        "name": "Dedup Check",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          680,
+          400
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "226PbeVgki0neEi4",
+            "name": "Postgres COPREM"
+          }
+        },
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO dedup_cache (hash) VALUES ('{{ $json.hash }}') ON CONFLICT DO NOTHING; SELECT COUNT(*) as is_new FROM dedup_cache WHERE hash='{{ $json.hash }}' AND created_at > NOW() - INTERVAL '60 seconds';"
+        }
+      },
+      {
+        "id": "route-type",
+        "name": "Route by Type",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3,
+        "position": [
+          920,
+          400
+        ],
+        "parameters": {
+          "mode": "rules",
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $('L1-A Preprocessor').item.json.isStart }}",
+                      "rightValue": true,
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "equals"
+                      }
+                    }
+                  ]
+                },
+                "renameOutput": true,
+                "outputKey": "registration"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $('L1-A Preprocessor').item.json.isApproval }}",
+                      "rightValue": true,
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "equals"
+                      }
+                    }
+                  ]
+                },
+                "renameOutput": true,
+                "outputKey": "approval"
+              }
+            ]
+          },
+          "fallbackOutput": "extra"
+        }
+      },
+      {
+        "id": "reg-check",
+        "name": "Check Existing User",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          1160,
+          200
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "226PbeVgki0neEi4",
+            "name": "Postgres COPREM"
+          }
+        },
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO users (chat_id, first_name, username, status) VALUES ({{ $('L1-A Preprocessor').item.json.chatId }}, '{{ $('L1-A Preprocessor').item.json.firstName }}', '{{ $('L1-A Preprocessor').item.json.username }}', 'pending') ON CONFLICT (chat_id) DO NOTHING; SELECT status FROM users WHERE chat_id={{ $('L1-A Preprocessor').item.json.chatId }};"
+        }
+      },
+      {
+        "id": "reg-notify-jeff",
+        "name": "Notify Jeff",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1400,
+          120
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "7731591925",
+          "text": "=🔔 New Registration\n\nName: {{ $('L1-A Preprocessor').item.json.firstName }}\nUsername: @{{ $('L1-A Preprocessor').item.json.username }}\nChat ID: {{ $('L1-A Preprocessor').item.json.chatId }}\n\nReply:\nAPPROVE {{ $('L1-A Preprocessor').item.json.chatId }}\nor REJECT {{ $('L1-A Preprocessor').item.json.chatId }}"
+        },
+        "webhookId": "7015995c-8e4c-47bd-8a5e-12aab6bc71aa"
+      },
+      {
+        "id": "reg-reply-user",
+        "name": "Reply to Applicant",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1400,
+          260
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
+          "text": "✅ ได้รับคำขอแล้วครับ กรุณารอการอนุมัติจาก Jeff"
+        },
+        "webhookId": "b35a1b80-4e15-4172-9d3b-f7394b8b91fc"
+      },
+      {
+        "id": "approval-parse",
+        "name": "Parse Approval",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1160,
+          400
+        ],
+        "parameters": {
+          "jsCode": "const text = $('L1-A Preprocessor').item.json.text.toUpperCase();\nconst parts = text.split(' ');\nconst action = parts[0];\nconst targetId = parseInt(parts[1]);\nconst newStatus = action === 'APPROVE' ? 'approved' : 'rejected';\nreturn [{ json: { action, targetId, newStatus } }];"
+        }
+      },
+      {
+        "id": "approval-update",
+        "name": "Update User Status",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          1400,
+          400
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "226PbeVgki0neEi4",
+            "name": "Postgres COPREM"
+          }
+        },
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "UPDATE users SET status='{{ $json.newStatus }}', approved_at=NOW() WHERE chat_id={{ $json.targetId }}; SELECT chat_id, first_name, status FROM users WHERE chat_id={{ $json.targetId }};"
+        }
+      },
+      {
+        "id": "approval-notify",
+        "name": "Notify User of Decision",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1640,
+          400
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "={{ $json.chat_id }}",
+          "text": "={{ $json.status === 'approved' ? '✅ ได้รับอนุมัติแล้วครับ! ส่งข้อความมาได้เลย' : '❌ ขออภัย คำขอถูกปฏิเสธครับ' }}"
+        },
+        "webhookId": "703db362-648a-472a-b324-a032c7c33c88"
+      },
+      {
+        "id": "check-approved",
+        "name": "Check User Approved",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          1160,
+          600
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "226PbeVgki0neEi4",
+            "name": "Postgres COPREM"
+          }
+        },
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT status FROM users WHERE chat_id={{ $('L1-A Preprocessor').item.json.chatId }} LIMIT 1;"
+        }
+      },
+      {
+        "id": "is-approved",
+        "name": "Approved?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          1400,
+          600
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true
+            },
+            "conditions": [
+              {
+                "id": "c1",
+                "leftValue": "={{ $json.status }}",
+                "rightValue": "approved",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "dify-router",
+        "name": "Dify Smart Router",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1640,
+          520
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.dify.ai/v1/chat-messages",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "Bearer app-EeCD0rYnH9eTTxWKdYxbXD2Q"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={ \"inputs\": {}, \"query\": \"{{ $('L1-A Preprocessor').item.json.text }}\", \"response_mode\": \"blocking\", \"conversation_id\": \"\", \"user\": \"{{ $('L1-A Preprocessor').item.json.userId }}\" }",
+          "options": {}
+        }
+      },
+      {
+        "id": "l25-normalize",
+        "name": "L2.5 Normalize Output",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1880,
+          520
+        ],
+        "parameters": {
+          "jsCode": "const data = $input.first().json;\nlet reply = data.answer || data.text || 'ขออภัย ไม่สามารถตอบได้ตอนนี้ครับ';\nif (reply.length > 4096) reply = reply.substring(0, 4090) + '...[ต่อ]';\nconst agent = data.metadata?.usage ? 'dify' : 'unknown';\nreturn [{ json: { reply, agent } }];"
+        }
+      },
+      {
+        "id": "send-reply",
+        "name": "Send Reply",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          2120,
+          520
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
+          "text": "={{ $json.reply }}"
+        },
+        "webhookId": "b2ecc497-eaf3-4834-af1d-7cf06132f6ca"
+      },
+      {
+        "id": "log-inbox",
+        "name": "Log to Inbox",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2360,
+          520
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "226PbeVgki0neEi4",
+            "name": "Postgres COPREM"
+          }
+        },
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO inbox_log (user_id, content_raw, content_clean, lang_detected, msg_hash, agent, status) VALUES ({{ $('L1-A Preprocessor').item.json.userId }}, '{{ $('L1-A Preprocessor').item.json.text }}', '{{ $('L1-A Preprocessor').item.json.text }}', '{{ $('L1-A Preprocessor').item.json.isThai ? 'th' : 'en' }}', '{{ $('L1-A Preprocessor').item.json.hash }}', '{{ $('L2.5 Normalize Output').item.json.agent }}', 'ok');"
+        }
+      },
+      {
+        "id": "not-approved",
+        "name": "Not Approved Reply",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1640,
+          700
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
+          "text": "❌ คุณยังไม่ได้รับอนุมัติครับ กรุณาส่ง /start เพื่อสมัครก่อน"
+        },
+        "webhookId": "6d11859e-5938-4aa4-9946-f72d5e3efdd8"
+      }
+    ],
+    "connections": {
+      "Telegram Trigger": {
+        "main": [
+          [
+            {
+              "node": "L1-A Preprocessor",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "L1-A Preprocessor": {
+        "main": [
+          [
+            {
+              "node": "Dedup Check",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Dedup Check": {
+        "main": [
+          [
+            {
+              "node": "Route by Type",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Route by Type": {
+        "main": [
+          [
+            {
+              "node": "Check Existing User",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Parse Approval",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Check User Approved",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Existing User": {
+        "main": [
+          [
+            {
+              "node": "Notify Jeff",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Reply to Applicant",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Approval": {
+        "main": [
+          [
+            {
+              "node": "Update User Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update User Status": {
+        "main": [
+          [
+            {
+              "node": "Notify User of Decision",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check User Approved": {
+        "main": [
+          [
+            {
+              "node": "Approved?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Approved?": {
+        "main": [
+          [
+            {
+              "node": "Dify Smart Router",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Not Approved Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Dify Smart Router": {
+        "main": [
+          [
+            {
+              "node": "L2.5 Normalize Output",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "L2.5 Normalize Output": {
+        "main": [
+          [
+            {
+              "node": "Send Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send Reply": {
+        "main": [
+          [
+            {
+              "node": "Log to Inbox",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Jeff COPREM",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": []
+  },
+  "scopes": [
+    "workflow:create",
+    "workflow:delete",
+    "workflow:execute",
+    "workflow:execute-chat",
+    "workflow:list",
+    "workflow:move",
+    "workflow:publish",
+    "workflow:read",
+    "workflow:share",
+    "workflow:unpublish",
+    "workflow:unshare",
+    "workflow:update",
+    "workflow:updateRedactionSetting"
+  ],
+  "checksum": "dab39248241d81625293324100b402c59a8b4203f1b8cb060d83b8f9724e5e64"
 }
