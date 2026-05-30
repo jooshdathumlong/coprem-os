@@ -8,7 +8,7 @@ version: 0.1.5
 model_config:
   model:
     provider: google
-    name: gemini-2.0-flash
+    name: gemini-2.5-flash
     mode: chat
     completion_params:
       temperature: 0.3
