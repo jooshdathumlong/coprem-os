@@ -14,3 +14,4 @@
 - Prefer Bash(python3) over multiple API calls
 - Cache session cookies in /tmp, reuse across calls
 - One curl call with python3 pipe > multiple curl calls
+- NEVER read COPREM_OS_Master_Blueprint_v8.2.md unless Prem explicitly says "อ่าน Blueprint" — use INDEX.md instead
