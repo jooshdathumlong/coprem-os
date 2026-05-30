@@ -87,9 +87,11 @@ coprem.killswitch()        # emergency stop
 - **No inline scripting:** Never use `python3 -c`, `cat << EOF`, or large curl payloads
 - **File-first:** Write to `scripts/temp_*.py`, run, delete after
 - **Command batching:** Chain with `&&` — never one command per turn
-- **Pre-flight plan:** Before complex/multi-step action → output `<plan>` block first
+- **Pre-flight plan:** Before complex/multi-step action → output `<plan>` block first; if state-changing (DB migration, file delete, overwrite) → plan MUST include explicit ROLLBACK command. No rollback = no execution.
 - **3-Strikes:** Fails 3 times → STOP, output `## Summary: Escalation`, ask เปรม. No 4th attempt.
 - **Pre-mortem:** Before destructive action or DB migration → state #1 risk + mitigation
+- **Dependency check:** Before any script using external CLI tools (psql, docker, jq, etc.) → verify with `which <tool>` batched first. Missing tool = STOP and report.
+- **Silent mode:** All CLI commands must suppress stdout — use `-q`, `--silent`, `-s`, or `> /dev/null` on every applicable tool to prevent token flooding.
 - **n8n:** เปรม says "you do" → FILE-FIRST script | "manual" → generate `.json` for UI import
 - **Session end:** update STATUS.md + append Blueprint Part 15 + git commit
 
