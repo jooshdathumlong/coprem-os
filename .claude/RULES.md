@@ -25,3 +25,9 @@
 - No template placeholders like [topic], no empty sections
 - Each section must have real content (min 2 lines)
 - No horizontal rules (---) between every section
+
+## Dify.ai KB Settings Standard
+- Index Method: Economical (not High Quality — no embedding model needed)
+- Retrieval: Inverted Index
+- Top K: 3
+- Apply to ALL KB-01 through KB-05
