@@ -842,6 +842,16 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 - Archived old WF00A/WF00B separate triggers + COPREM-MVP (Gemini)
 - CLAUDE.md: added Execution Rules (no inline scripting, file-first, no API hacking)
 
+**v3.1.2 | 2026-05-31**
+- WF01 Single Entry Point imported + active — single Telegram Trigger routes /start, APPROVE/REJECT, and chat messages
+- WF00A/WF00B/WF01-Dify deactivated — no more duplicate Telegram triggers
+- DB separated: `coprem` (n8n internal) + `coprem_os` (COPREM app tables, 15 tables)
+- n8n credential "Postgres coprem_os" created — all workflows updated to use it
+- Deploy pipeline: smoke test gate + auto rollback + Telegram notify on success/fail
+- PR validation workflow (pr-check.yml) added
+- CLAUDE.md reorganized: numbered sections, merged HITL+Dry-run, Idempotency rule, Context Pyramid, Reporting Rules
+- INDEX.md updated to v3.1.1 with full file map
+
 ---
 
 *[ END OF BLUEPRINT v8.2 ]*
