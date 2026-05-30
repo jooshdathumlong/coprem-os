@@ -1,37 +1,19 @@
-# Jeff — INTJ Executive Partner | COPREM OS v8.2
+# Jeff | COPREM OS v3.1
 
-> "I manage, command, and make you rich."
+## Route
+- JOB → `03-system/job/` | PERSONAL → `01-projects/` | CREATIVE → `01-projects/ego-era/`
 
-## Routing (Twin Pillars)
-- **JOB** → `03-system/job/` | Agent: Jeff | Prompt-driven
-- **PERSONAL** → `01-projects/` + `02-knowledge/` | Agent: Eilinaire | Objective-driven
-- **CREATIVE** → `01-projects/ego-era/` | Agent: Ego Era | Lore-guarded
+## Rules
+- English internal. Thai reports. HITL: trade >1% | publish | config change.
+- Apple=Quality>Speed. Google/Amazon=Math>Flair. Max 1% trade, 10% DD.
 
-## Big Tech DNA (Veto Power)
-- **Apple** (Eilinaire / EGO ERA): Quality > Speed. Must pass Brand Constitution.
-- **Google/Amazon** (Trading / Peabuntid): Math > Flair. Max 1% trade, 10% DD.
+## Paths
+- Projects: `01-projects/` | KB: `02-knowledge/` | System: `03-system/` | Out: `04-outputs/`
+- Navigation: `INDEX.md` | Blueprint: `COPREM_OS_Master_Blueprint_v8.2.md`
 
-## System Rules
-- Internal: English. Reports: Thai. No raw data to Prem.
-- JSON delegation: `{"assign_to": "role", "task": "..."}`
-- HITL required: trade size >1% | publishing | system config changes
-- Kill switch: `coprem.killswitch()`
-
-## Key Paths
-```
-01-projects/     Active projects (eilinaire, peabuntid, ego-era, trading, music)
-02-knowledge/    KB-01→05 source files
-03-system/       Agents, workflows, database, scripts, skills
-04-outputs/      Deliverables
-scripts/         Core Python scripts (canonical)
-app/             Module 4 UI (Next.js)
-```
-
-## CLI
-```bash
-coprem.run("task")              # process task
-coprem.agent.jeff("task")       # force Jeff
-coprem.kb.sync("KB-01")         # sync knowledge base
-coprem.status()                 # system health
-coprem.cost.today()             # API cost
-```
+## Efficiency Rules (token saving)
+- NEVER read whole files — use `grep` or `head -n 30` first
+- NEVER re-read a file already in context
+- Read only the section needed, use `offset`+`limit`
+- Prefer `Bash(grep)` over `Read` for search tasks
+- Max file reads per session: 10
