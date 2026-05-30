@@ -2,6 +2,22 @@
 
 All notable changes to the Coprem project will be documented in this file.
 
+## [3.0.3] - 2026-05-30
+
+### Telegram Integration Live
+- **Platform switched:** Discord → Telegram as primary messaging platform
+- **@Coprem_Bot** created and live — Prem sends message → Jeff replies in Thai
+- **Workflow updated:** Telegram Trigger + Gemini + Code + Telegram Send a text message
+- **COPREM-MVP.json** re-exported with Telegram nodes
+- **Workflow-01 spec** fully updated with Telegram node chain
+- **Blueprint Part 6** updated — Telegram primary, Discord secondary
+
+### n8n Setup Note
+- n8n must start with `WEBHOOK_URL=https://[ngrok] N8N_SECURE_COOKIE=false n8n start`
+- ngrok required for Telegram webhook registration
+
+---
+
 ## [3.0.2] - 2026-05-30
 
 ### Platform

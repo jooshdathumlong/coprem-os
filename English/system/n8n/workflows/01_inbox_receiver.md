@@ -1,36 +1,35 @@
 # Workflow 01 — Inbox Receiver (COPREM-MVP)
 
-> **Live deployment:** Google Gemini (gemini-flash-latest) — 2026-05-30
-> Upgrade to Claude Sonnet when Anthropic API key available.
+> **Live deployment:** Telegram + Google Gemini (gemini-flash-latest) — 2026-05-30
+> **Status:** Live ✅ — tested and working
 > **Export:** `English/system/n8n/exports/COPREM-MVP.json`
 
-**Trigger:** Webhook POST
-**Path:** `/webhook/coprem`
-**Schedule:** On demand
-**Status:** Live ✅ — tested 2026-05-30
+**Trigger:** Telegram Trigger (On message)
+**Bot:** @Coprem_Bot
+**Platform:** Telegram
 
 ---
 
-## MVP Node Chain (Current — 4 nodes)
+## Node Chain (Current — 4 nodes)
 
 ```
-[Webhook]
-  POST /webhook/coprem
-  Respond: Using Respond to Webhook Node
+[Telegram Trigger]
+  Event: On message
+  Bot: @Coprem_Bot
       ↓
 [Google Gemini — Message a Model]
-  Model: models/gemini-flash-latest
+  Model: gemini-flash-latest
   Messages:
-    [1] Role: User  → {{ $json.body.message }}
+    [1] Role: User  → {{ $json.message.text }}
     [2] Role: Model → Jeff system prompt
       ↓
-[Code — Extract Reply]
+[Code in JavaScript — Extract Reply]
   Extracts text from Gemini parts array
-  Handles variable thoughtSignature output
   Output: { reply: "..." }
       ↓
-[Respond to Webhook]
-  JSON: { "reply": "{{ $json.reply }}" }
+[Telegram — Send a text message]
+  Chat ID: {{ $('Telegram Trigger').item.json.message.chat.id }}
+  Text:    {{ $json.reply }}
 ```
 
 ## Code Node — Extract Reply
@@ -49,7 +48,7 @@ if (data.text) {
 return [{ json: { reply: text } }];
 ```
 
-## Jeff System Prompt (Message a Model — Role: Model)
+## Jeff System Prompt (Role: Model)
 
 ```
 You are Jeff, INTJ Executive Partner for COPREM OS.
@@ -58,28 +57,21 @@ Answer concisely in Thai. Be decisive.
 
 ## Test
 
+Send any message to **@Coprem_Bot** on Telegram → Jeff replies in Thai
+
+## Credentials Required
+- Google Gemini (PaLM) API — Gemini API key
+- Telegram API — Bot token (@Coprem_Bot)
+
+## n8n Setup
 ```bash
-curl -X POST http://localhost:5678/webhook/coprem \
-  -H "Content-Type: application/json" \
-  -d '{"message": "สวัสดี วันนี้ต้องทำอะไรบ้าง"}'
+# Start n8n with Telegram support
+WEBHOOK_URL=https://[ngrok-url] N8N_SECURE_COOKIE=false n8n start
 ```
 
-Expected:
-```json
-{ "reply": "สวัสดีครับ..." }
+## Future Pipeline (v8.2 complete)
 ```
-
-## Full Pipeline (Future — v8.2 complete)
-
+[Telegram Trigger] → [L1-A Preprocessor] → [L1-B Classifier]
+→ [L1.5 Session Manager] → [HITL Gate] → [L1-C Provider Router]
+→ [L2 Agent] → [L2.5 Output Normalizer] → [Telegram Send]
 ```
-[Webhook] → [L7 Sig Validator] → [L1-A Preprocessor]
-→ [L1-B Classifier] → [L1.5 Session Manager]
-→ [HITL Gate] → [L1-C Provider Router]
-→ [L2 Agent] → [L2.5 Output Normalizer]
-→ [Log to Inbox_Log] → [Respond]
-```
-
-## Guardrails
-1. Signature invalid → 401, never reaches L0
-2. Duplicate hash (60s window) → silent drop
-3. Timeout > 30s → route to Failed_Tasks_DB

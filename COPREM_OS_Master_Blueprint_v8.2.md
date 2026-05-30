@@ -558,23 +558,39 @@ coprem.killswitch()                     # Emergency stop — all automation halt
 
 ---
 
-## PART 6 — DISCORD INTEGRATION
+## PART 6 — MESSAGING INTEGRATION
 
-> **Platform decision (2026-05-30):** Discord selected over LINE/Telegram.
-> Reason: Mac-primary usage, Blueprint channel structure, HITL reactions support.
+> **Platform decision (2026-05-30):** Telegram selected as primary messaging platform.
+> Reason: Native n8n Telegram Trigger node, simple bot setup, no signature verification complexity.
+> Discord Server "Coprem" remains for team/monitoring use.
+
+### Telegram (Primary — Live ✅)
+
+**Bot:** @Coprem_Bot
+**Usage:** Prem sends messages to @Coprem_Bot → Jeff replies in Thai
+
+| Feature | Status |
+|---------|--------|
+| Receive messages | ✅ Telegram Trigger node |
+| Send replies | ✅ Telegram Send a text message node |
+| HITL (future) | Inline keyboard buttons |
+
+**n8n startup required:**
+```bash
+WEBHOOK_URL=https://[ngrok-url] N8N_SECURE_COOKIE=false n8n start
+```
+
+### Discord (Secondary — Server ready)
 
 **Server:** Coprem
 
-| Channel | Blueprint Name | Purpose |
-|---------|---------------|---------|
-| #universal-inbox | #coprem-inbox | Main task input — Prem types commands here |
-| #system-alerts | #coprem-alerts | Critical errors, cost spikes, HITL pending |
-| #hitl-gate | #coprem-alerts | Approve / Reject pending decisions |
-| #executive-dashboard | — | System overview + OKR status |
-| #daily-checklist | — | Daily task tracking |
-
-**Bot:** Jeff
-**Bot permissions required:** `Send Messages`, `Read Message History`, `Add Reactions`, `Message Content Intent: ON`
+| Channel | Purpose |
+|---------|---------|
+| #universal-inbox | Monitoring + alerts |
+| #hitl-gate | Future HITL approve/reject |
+| #system-alerts | Critical errors, cost spikes |
+| #executive-dashboard | OKR status |
+| #daily-checklist | Daily task tracking |
 
 ---
 

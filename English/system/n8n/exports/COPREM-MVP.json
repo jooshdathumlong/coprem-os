@@ -3,23 +3,6 @@
   "nodes": [
     {
       "parameters": {
-        "httpMethod": "POST",
-        "path": "coprem",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        208,
-        224
-      ],
-      "id": "4458c1e7-21b6-4a2a-9e0c-8c72969529a7",
-      "name": "Webhook",
-      "webhookId": "b69db847-9288-456d-b673-bf8a19955cd7"
-    },
-    {
-      "parameters": {
         "modelId": {
           "__rl": true,
           "value": "models/gemini-flash-latest",
@@ -29,7 +12,7 @@
         "messages": {
           "values": [
             {
-              "content": "={{ $json.body.message }}"
+              "content": "={{ $json.message.text }}"
             },
             {
               "content": "You are Jeff, INTJ Executive Partner. Answer concisely in Thai. Be decisive.",
@@ -43,32 +26,17 @@
       "type": "@n8n/n8n-nodes-langchain.googleGemini",
       "typeVersion": 1.2,
       "position": [
-        416,
-        224
+        -128,
+        -176
       ],
-      "id": "3040a095-dce2-49d4-8370-a927e4136cdd",
+      "id": "ed7bbe1b-b059-49f0-96c5-8c608da81ee6",
       "name": "Message a model",
       "credentials": {
         "googlePalmApi": {
-          "id": "YHAMFCjx9fAy1uUx",
+          "id": "9FJ51Lat8pnJ2qAc",
           "name": "Google Gemini(PaLM) Api account"
         }
       }
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={ \"reply\": \"{{ $json.reply }}\" }",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        944,
-        224
-      ],
-      "id": "b7427cc7-bae2-47c6-9a1f-3488a9c41944",
-      "name": "Respond to Webhook"
     },
     {
       "parameters": {
@@ -77,31 +45,79 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        720,
-        224
+        176,
+        -176
       ],
-      "id": "ad5250d9-2853-4f5c-bdb5-e77a9224c810",
+      "id": "60554761-1c97-4467-93b6-0169718d5eb1",
       "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "*"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -368,
+        -176
+      ],
+      "id": "fbb1b2c7-1147-488e-a6ad-dc013b41f2a7",
+      "name": "Telegram Trigger",
+      "webhookId": "f101f08c-430f-49f9-a94c-605d498b6410",
+      "credentials": {
+        "telegramApi": {
+          "id": "TPn8Dgp7NrhSD6Az",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.reply }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        -176
+      ],
+      "id": "501d4a43-4b2c-4fc4-8c06-0722fc7d06b1",
+      "name": "Send a text message",
+      "webhookId": "9dfea075-4f1d-4f61-8f00-71e98d838a37",
+      "credentials": {
+        "telegramApi": {
+          "id": "TPn8Dgp7NrhSD6Az",
+          "name": "Telegram account"
+        }
+      }
     }
   ],
   "pinData": {
-    "Webhook": [
+    "Telegram Trigger": [
       {
         "json": {
-          "headers": {
-            "host": "localhost:5678",
-            "user-agent": "curl/8.7.1",
-            "accept": "*/*",
-            "content-type": "application/json",
-            "content-length": "94"
-          },
-          "params": {},
-          "query": {},
-          "body": {
-            "message": "สวัสดี วันนี้ต้องทำอะไรบ้าง"
-          },
-          "webhookUrl": "http://localhost:5678/webhook/coprem",
-          "executionMode": "production"
+          "update_id": 99049903,
+          "message": {
+            "message_id": 8,
+            "from": {
+              "id": 7731591925,
+              "is_bot": false,
+              "first_name": "Domino",
+              "language_code": "en"
+            },
+            "chat": {
+              "id": 7731591925,
+              "first_name": "Domino",
+              "type": "private"
+            },
+            "date": 1780149698,
+            "text": "Hello"
+          }
         },
         "pairedItem": {
           "item": 0
@@ -110,17 +126,6 @@
     ]
   },
   "connections": {
-    "Webhook": {
-      "main": [
-        [
-          {
-            "node": "Message a model",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Message a model": {
       "main": [
         [
@@ -136,7 +141,18 @@
       "main": [
         [
           {
-            "node": "Respond to Webhook",
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
             "type": "main",
             "index": 0
           }
@@ -149,11 +165,11 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "cb43bdf8-79bb-4a3f-a52c-d57da981cba0",
+  "versionId": "a4f33e3f-c633-4ea2-b5db-aa96649994ea",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "95f24d42583cdb19974a78904cea1c6edeb9aa70d604832761d7593aa9dd6b2b"
+    "instanceId": "0bddf04c3d6860525db09b10288f80c0632cf1ab09b153f16cc9abed27bb5a41"
   },
-  "id": "ydcKgAQJo01nudAg",
+  "id": "Zcwm5tslSCMeCnhM",
   "tags": []
 }
