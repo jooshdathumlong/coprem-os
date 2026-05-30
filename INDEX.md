@@ -87,3 +87,4 @@ Next.js dashboard (localhost:3000) — not yet built.
 | `03-system/database/schemas.sql` | All 15 DB table definitions |
 | `03-system/docker-compose.yml` | Docker stack config |
 | `.env` | API keys (never commit secrets) |
+| `03-system/skills/SRE_Master_Playbook.md` | Advanced tactical rules 16–25 (DB, API, security, ops) |
