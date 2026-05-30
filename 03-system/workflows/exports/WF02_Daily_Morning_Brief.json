@@ -44,7 +44,7 @@
       },
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT * FROM users WHERE status='pending';"
+        "query": "SELECT (SELECT COUNT(*) FROM task_board WHERE status='pending') AS pending_tasks, (SELECT COUNT(*) FROM task_board WHERE status='in_progress') AS active_tasks, (SELECT COUNT(*) FROM inbox_log WHERE created_at > NOW() - INTERVAL '24 hours') AS msgs_today, ROUND((SELECT COALESCE(AVG(pct_complete),0) FROM okr_scoreboard WHERE period=TO_CHAR(NOW(),'YYYY-\"Q\"Q')),1) AS avg_okr_pct;"
       }
     },
     {
