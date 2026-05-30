@@ -1,6 +1,15 @@
 _archive
-app/node_modules
-.git
+app
+data
 scripts
 Thai
 English
+.git
+.env
+.env.vault
+.env.example
+.claude
+node_modules
+docker-compose.yml
+VERSION.md
+CHANGELOG.md
