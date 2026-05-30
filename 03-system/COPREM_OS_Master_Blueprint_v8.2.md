@@ -821,6 +821,29 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 
 ---
 
+## PART 15 — BUILD LOG
+
+> Rule: Jeff appends one entry per session — version, date, what was implemented. Keep each entry under 10 lines. Do not duplicate spec content here.
+
+---
+
+**v3.1.0 | 2026-05-30**
+- Docker stack live: n8n + Postgres + Redis + Cloudflared
+- Telegram @Coprem_Bot + Cloudflare tunnel (n8n.peabuntid.com)
+- Dify.ai: KB-01–05 + 4 Agents (Smart Router, Jeff, Eilinaire, Ego Era)
+- Multi-user registration: WF00A (Telegram /start → Postgres) + WF00B (Jeff approve/reject)
+- Mac auto-start via launchd
+
+**v3.1.1 | 2026-05-31**
+- GitHub Actions: self-hosted runner (coprem-mac) + deploy/health/backup workflows
+- DB schema: 15 tables created in Postgres (all Blueprint v8.2 tables)
+- WF01 redesigned as single Telegram entry point (L1-A → Route → Registration/Approval/Chat → Dify → L2.5 → Log) — JSON ready for import
+- WF02/03/04/06 active in n8n (cron-based, placeholder data until tables populated)
+- Archived old WF00A/WF00B separate triggers + COPREM-MVP (Gemini)
+- CLAUDE.md: added Execution Rules (no inline scripting, file-first, no API hacking)
+
+---
+
 *[ END OF BLUEPRINT v8.2 ]*
 
 *Maintained by Jeff | Owner: Prem | Next version: v8.3 (post Month-2 audit)*
