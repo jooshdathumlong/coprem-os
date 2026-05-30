@@ -17,3 +17,8 @@
 - Read only the section needed, use `offset`+`limit`
 - Prefer `Bash(grep)` over `Read` for search tasks
 - Max file reads per session: 10
+
+## Execution Rules (CRITICAL)
+- NO INLINE SCRIPTING: Never use `python3 -c`, `cat << EOF`, or huge curl payloads in the terminal.
+- FILE-FIRST: If a script is needed, write it to `/scripts/temp.py`, run it, and delete it.
+- NO API HACKING: Do not extract local n8n cookies. For complex n8n updates, generate `.json` export files for Prem to import manually via UI.
