@@ -18,6 +18,8 @@ jobs:
       - name: Restart Docker Stack
         run: |
           cd /Users/eilinaire/Desktop/Coprem
+          # Kill any container holding port 5678 (prevents stale stack conflicts)
+          docker ps -q --filter "publish=5678" | xargs -r docker stop | xargs -r docker rm || true
           docker compose --env-file .env -f 03-system/docker-compose.yml down --remove-orphans
           docker compose --env-file .env -f 03-system/docker-compose.yml up -d
 
