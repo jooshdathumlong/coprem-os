@@ -17,8 +17,7 @@ jobs:
 
       - name: Restart Docker Stack
         run: |
-          cd ${{ github.workspace }}
-          docker compose -f 03-system/docker-compose.yml pull
+          cd /Users/eilinaire/Desktop/Coprem
           docker compose -f 03-system/docker-compose.yml up -d --force-recreate
 
       - name: Health Check
