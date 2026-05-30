@@ -92,4 +92,4 @@ coprem.killswitch()        # emergency stop
 ## 12. Idempotency Rule (inspired by Stripe)
 - Before creating any resource (workflow, DB table, credential): check if it exists first
 - DB: always use `CREATE TABLE IF NOT EXISTS` / `ON CONFLICT DO NOTHING`
-- n8n: query existing workflows before importing — skip if name already exists
+- n8n: query existing workflows before importing — skip if name already existstest: สวัสดี
