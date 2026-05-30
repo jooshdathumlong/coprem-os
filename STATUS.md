@@ -33,7 +33,7 @@
 ## ⏳ Next Session
 
 - [ ] Test WF01 full flow: /start → approve → chat → Dify reply (after 08:00 Gemini)
-- [ ] Update WF02/WF03/WF04 queries → use real tables in coprem_os
+- [x] Update WF02/WF03/WF04 queries → use real tables in coprem_os
 - [ ] Add `validate` status check to Branch Protection (after pr-check runs)
 - [ ] WF05 HITL Decision Saver
 - [ ] WF11 DLQ Processor
