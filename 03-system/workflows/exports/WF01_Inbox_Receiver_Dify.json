@@ -1,0 +1,551 @@
+{
+  "updatedAt": "2026-05-30T21:19:05.678Z",
+  "createdAt": "2026-05-30T21:16:55.043Z",
+  "id": "0fuEy5ZRv0qrjLEt",
+  "name": "WF01 — Inbox Receiver (Dify)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "tg-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        300
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "webhookId": "28becf19-ef4a-4530-9b09-792fdd56f3d8"
+    },
+    {
+      "id": "check-user",
+      "name": "Check Approved User",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        440,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "226PbeVgki0neEi4",
+          "name": "Postgres COPREM"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT status FROM users WHERE chat_id={{ .message.chat.id }} LIMIT 1;"
+      }
+    },
+    {
+      "id": "is-approved",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ .status }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dify-router",
+      "name": "Dify Smart Router",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        920,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.dify.ai/v1/chat-messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer app-EeCD0rYnH9eTTxWKdYxbXD2Q"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "inputs",
+              "value": "{}"
+            },
+            {
+              "name": "query",
+              "value": "={{ .item.json.message.text }}"
+            },
+            {
+              "name": "response_mode",
+              "value": "blocking"
+            },
+            {
+              "name": "conversation_id",
+              "value": ""
+            },
+            {
+              "name": "user",
+              "value": "={{ .item.json.message.chat.id }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "extract-reply",
+      "name": "Extract Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        200
+      ],
+      "parameters": {
+        "jsCode": "const data = .first().json;\nconst reply = data.answer || data.text || 'ขออภัย ไม่สามารถตอบได้ตอนนี้';\nreturn [{ json: { reply } }];"
+      }
+    },
+    {
+      "id": "tg-reply",
+      "name": "Send Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1400,
+        200
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "chatId": "={{ .item.json.message.chat.id }}",
+        "text": "={{ .reply }}"
+      },
+      "webhookId": "f1649696-2ba4-411a-99ed-f0b3562b1b1b"
+    },
+    {
+      "id": "tg-deny",
+      "name": "Not Approved",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        920,
+        400
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "chatId": "={{ .item.json.message.chat.id }}",
+        "text": "❌ คุณยังไม่ได้รับอนุมัติ กรุณาส่ง /start เพื่อสมัครก่อนครับ"
+      },
+      "webhookId": "68bf9ca0-cc1f-4c9b-a4a3-40bb9fe6d50d"
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Approved User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Approved User": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Dify Smart Router",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Not Approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dify Smart Router": {
+      "main": [
+        [
+          {
+            "node": "Extract Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Reply": {
+      "main": [
+        [
+          {
+            "node": "Send Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": null,
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "06c580a1-ac51-428e-b104-05cadb0ef7f4",
+  "activeVersionId": "06c580a1-ac51-428e-b104-05cadb0ef7f4",
+  "versionCounter": 1,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-30T21:16:55.043Z",
+      "createdAt": "2026-05-30T21:16:55.043Z",
+      "role": "workflow:owner",
+      "workflowId": "0fuEy5ZRv0qrjLEt",
+      "projectId": "zcgfC5I8AUAr3U8J",
+      "project": {
+        "updatedAt": "2026-05-30T20:55:56.474Z",
+        "createdAt": "2026-05-30T20:51:13.491Z",
+        "id": "zcgfC5I8AUAr3U8J",
+        "name": "Jeff COPREM <jooshdathumlong@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      }
+    }
+  ],
+  "tags": [],
+  "parentFolder": null,
+  "activeVersion": {
+    "updatedAt": "2026-05-30T21:16:55.043Z",
+    "createdAt": "2026-05-30T21:16:55.043Z",
+    "versionId": "06c580a1-ac51-428e-b104-05cadb0ef7f4",
+    "workflowId": "0fuEy5ZRv0qrjLEt",
+    "nodes": [
+      {
+        "id": "tg-trigger",
+        "name": "Telegram Trigger",
+        "type": "n8n-nodes-base.telegramTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          200,
+          300
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "updates": [
+            "message"
+          ],
+          "additionalFields": {}
+        },
+        "webhookId": "28becf19-ef4a-4530-9b09-792fdd56f3d8"
+      },
+      {
+        "id": "check-user",
+        "name": "Check Approved User",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          440,
+          300
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "226PbeVgki0neEi4",
+            "name": "Postgres COPREM"
+          }
+        },
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT status FROM users WHERE chat_id={{ .message.chat.id }} LIMIT 1;"
+        }
+      },
+      {
+        "id": "is-approved",
+        "name": "Approved?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          680,
+          300
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true
+            },
+            "conditions": [
+              {
+                "id": "c1",
+                "leftValue": "={{ .status }}",
+                "rightValue": "approved",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "dify-router",
+        "name": "Dify Smart Router",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          920,
+          200
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.dify.ai/v1/chat-messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "Bearer app-EeCD0rYnH9eTTxWKdYxbXD2Q"
+              }
+            ]
+          },
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "inputs",
+                "value": "{}"
+              },
+              {
+                "name": "query",
+                "value": "={{ .item.json.message.text }}"
+              },
+              {
+                "name": "response_mode",
+                "value": "blocking"
+              },
+              {
+                "name": "conversation_id",
+                "value": ""
+              },
+              {
+                "name": "user",
+                "value": "={{ .item.json.message.chat.id }}"
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "extract-reply",
+        "name": "Extract Reply",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1160,
+          200
+        ],
+        "parameters": {
+          "jsCode": "const data = .first().json;\nconst reply = data.answer || data.text || 'ขออภัย ไม่สามารถตอบได้ตอนนี้';\nreturn [{ json: { reply } }];"
+        }
+      },
+      {
+        "id": "tg-reply",
+        "name": "Send Reply",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1400,
+          200
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "={{ .item.json.message.chat.id }}",
+          "text": "={{ .reply }}"
+        },
+        "webhookId": "f1649696-2ba4-411a-99ed-f0b3562b1b1b"
+      },
+      {
+        "id": "tg-deny",
+        "name": "Not Approved",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          920,
+          400
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "={{ .item.json.message.chat.id }}",
+          "text": "❌ คุณยังไม่ได้รับอนุมัติ กรุณาส่ง /start เพื่อสมัครก่อนครับ"
+        },
+        "webhookId": "68bf9ca0-cc1f-4c9b-a4a3-40bb9fe6d50d"
+      }
+    ],
+    "connections": {
+      "Telegram Trigger": {
+        "main": [
+          [
+            {
+              "node": "Check Approved User",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Approved User": {
+        "main": [
+          [
+            {
+              "node": "Approved?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Approved?": {
+        "main": [
+          [
+            {
+              "node": "Dify Smart Router",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Not Approved",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Dify Smart Router": {
+        "main": [
+          [
+            {
+              "node": "Extract Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract Reply": {
+        "main": [
+          [
+            {
+              "node": "Send Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Jeff COPREM",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": []
+  },
+  "scopes": [
+    "workflow:create",
+    "workflow:delete",
+    "workflow:execute",
+    "workflow:execute-chat",
+    "workflow:list",
+    "workflow:move",
+    "workflow:publish",
+    "workflow:read",
+    "workflow:share",
+    "workflow:unpublish",
+    "workflow:unshare",
+    "workflow:update",
+    "workflow:updateRedactionSetting"
+  ],
+  "checksum": "3efff07a6a734d80e00ffe276c747e88536bc3d32ddaba8cfc4d1b66b2288045"
+}
