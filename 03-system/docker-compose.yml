@@ -29,7 +29,9 @@ services:
     networks:
       - coprem-internal
 
-  # ── PostgreSQL: Persistent DB (6 COPREM schemas) ────────────
+  # ── PostgreSQL: Two databases ─────────────────────────────────
+  # coprem    → n8n internal tables
+  # coprem_os → COPREM application tables (users, inbox_log, etc.)
   postgres:
     image: pgvector/pgvector:pg16
     restart: unless-stopped
@@ -39,7 +41,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - ./data/db:/var/lib/postgresql/data
-      - ./03-system/database/schemas.sql:/docker-entrypoint-initdb.d/01_schemas.sql:ro
+      - ./03-system/database/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U coprem -d coprem"]
       interval: 10s
