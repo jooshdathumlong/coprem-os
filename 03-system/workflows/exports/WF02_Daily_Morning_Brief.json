@@ -1,0 +1,21 @@
+{
+  "updatedAt": "2026-05-30T21:05:32.903Z",
+  "createdAt": "2026-05-30T21:03:39.035Z",
+  "id": "sou01B1RK3u5HZDV",
+  "name": "WF02 — Daily Morning Brief",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "settings": null,
+  "versionId": "80d0985f-7d80-4e3d-95b1-b3d76e2e6f34",
+  "activeVersionId": "80d0985f-7d80-4e3d-95b1-b3d76e2e6f34",
+  "parentFolder": null,
+  "tags": [],
+  "homeProject": {
+    "id": "zcgfC5I8AUAr3U8J",
+    "type": "personal",
+    "name": "Jeff COPREM <jooshdathumlong@gmail.com>",
+    "icon": null
+  },
+  "sharedWithProjects": []
+}

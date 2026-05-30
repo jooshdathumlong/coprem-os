@@ -1,0 +1,21 @@
+{
+  "updatedAt": "2026-05-30T21:05:34.873Z",
+  "createdAt": "2026-05-30T21:03:39.087Z",
+  "id": "3cGfyp4wgNEXKkFu",
+  "name": "WF04 — Weekly OKR Review",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "settings": null,
+  "versionId": "d28c45e0-5a1c-4105-9232-84c2179d7db7",
+  "activeVersionId": "d28c45e0-5a1c-4105-9232-84c2179d7db7",
+  "parentFolder": null,
+  "tags": [],
+  "homeProject": {
+    "id": "zcgfC5I8AUAr3U8J",
+    "type": "personal",
+    "name": "Jeff COPREM <jooshdathumlong@gmail.com>",
+    "icon": null
+  },
+  "sharedWithProjects": []
+}
