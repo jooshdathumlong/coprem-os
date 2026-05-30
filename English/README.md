@@ -37,7 +37,7 @@ L7  Security            →  L8  Monitoring
 | `system/job/` | JOB Pillar | dept_marketing, dept_ops, agents schema |
 | `system/personal/` | PERSONAL Pillar | 10-pillar matrix, Grace HR |
 | `system/skills/` | All agents | Playbook DB for agent learning |
-| `system/scripts/` | Ops | Python scripts: sync_daemon, line_oa, etc. |
+| `system/scripts/` | Ops | Python scripts: sync_daemon, start_coprem, register_telegram_webhook, etc. |
 
 ### Knowledge Base (`knowledge/`)
 - `knowledge/job/` — corporate context

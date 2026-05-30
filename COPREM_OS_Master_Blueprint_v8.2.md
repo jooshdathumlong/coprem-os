@@ -23,7 +23,7 @@
 ### 1.2 Full Layer Map (v8.2)
 
 ```
-L0   — Universal Inbox          LINE / Discord / CLI / Web
+L0   — Universal Inbox          Telegram (primary) / CLI / Discord (future)
 L1   — Routing Engine           L1-A Preprocessor → L1-B Classifier → L1-C Provider Router
 L1.5 — Session Context Manager  Multi-turn state per channel [NEW]
 L2   — Hybrid Agent Roster      Cloud (Jeff / Eilinaire / Ego Era) + Local (Ollama) [MERGED]
@@ -157,7 +157,7 @@ Runs on every agent output before delivery to user.
 ```
 1. Language Gate       Confirm Thai output present (if reporting mode)
 2. Format Validator    JSON schema check for structured responses
-3. Length Enforcer     If > 2000 chars → truncate + append "[ต่อ...]" (Discord limit)
+3. Length Enforcer     If > 4096 chars → truncate + append "[ต่อ...]" (Telegram limit)
 4. Brand Tone Check    Flag responses that violate brand voice (Eilinaire: calm/decisive | EGO ERA: immersive)
 5. HITL Check          If hitl_required = true → hold output, post to #coprem-alerts for approval
 ```
@@ -317,7 +317,7 @@ LINE:
 
 **API Key Management:**
 - Store encrypted in n8n Credentials — never plaintext
-- Providers: Anthropic, OpenAI, Google, Supabase, Discord Bot, LINE
+- Providers: Anthropic, OpenAI, Google, Supabase, Telegram Bot
 - Rotation: quarterly or on breach detection
 
 **Rate Limit Protection:**
@@ -655,7 +655,7 @@ Expected:
 ```
 
 **MVP upgrade path:**
-1. Connect LINE / Discord webhook to same endpoint
+1. Get static ngrok domain (or deploy to VPS) for persistent Telegram webhook
 2. Add Google Sheets log node after Respond node
 3. Swap Gemini → Claude Sonnet (Anthropic node in n8n) when API key ready
 4. Add Dify.ai agent layer for KB access
@@ -724,9 +724,8 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 
 ```
 [ ] DISCORD_PUBLIC_KEY set in n8n credentials
-[ ] LINE_CHANNEL_SECRET set in n8n credentials
-[ ] Ed25519 validator node added as first node in Workflow-01
-[ ] HMAC-SHA256 validator node added for LINE branch
+[ ] Telegram Bot Token set in n8n credentials (Coprem Bot)
+[ ] Telegram webhook registered via register_telegram_webhook.sh
 [ ] audit_log table created in Supabase
 [ ] blocked_ips table created in Supabase
 [ ] dedup_cache table + pg_cron job created in Supabase
@@ -783,7 +782,7 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 
 **Week 1:** Setup Dify + n8n + 5 KBs → Build 3 Agents → Workflow-01 (Inbox)
 **Week 2:** Workflows 02–06 → Cost Circuit Breaker → Tiered Degradation
-**Week 3:** Supabase Vector DB → Discord Bot → Workflow-09 (Backup) → Workflow-11 (DLQ)
+**Week 3:** Supabase Vector DB → Workflow-09 (Backup) → Workflow-11 (DLQ) → ngrok → static domain
 **Week 4:** Feedback Loop (Workflows 07–08) → Prompt Shadow Testing → Production launch
 **Month 2:** P0 security hardening (GAP-07 + L1 split) → Session Context Manager
 **Month 3:** Web Dashboard (Next.js) → WebSocket live status → Ollama Local tuning

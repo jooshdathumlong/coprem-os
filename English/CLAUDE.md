@@ -14,7 +14,7 @@
 ## System Architecture (v8.2 — 9 Layers)
 
 ```
-L0   Universal Inbox          LINE / Discord / CLI / Web
+L0   Universal Inbox          Telegram (primary) / CLI / Discord (future)
 L1   Routing Engine           L1-A Preprocessor → L1-B Classifier → L1-C Provider Router
 L1.5 Session Context Manager  Multi-turn state per channel
 L2   Hybrid Agent Roster      Cloud (Jeff / Eilinaire / Ego Era) + Local (Ollama)

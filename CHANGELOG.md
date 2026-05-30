@@ -2,6 +2,25 @@
 
 All notable changes to the Coprem project will be documented in this file.
 
+## [3.0.4] - 2026-05-30
+
+### Housekeeping
+- Remove all stale LINE/Discord references across active docs — Telegram is now primary platform
+- Update L0 description: Telegram (primary) / CLI / Discord (future)
+- Fix L2.5 length limit: Discord 2000 → Telegram 4096 chars
+- Update security/webhook_validation.md: Telegram active, Discord/LINE marked as future
+- Update CLAUDE.md, README.md, Blueprint, Workflow-05 spec
+- Prem's Telegram Chat ID captured: 7731591925
+- Workflows 02–04, 06 imported to n8n (Morning Brief, Market Scanner, OKR Review, Health Ping)
+- start_coprem.sh script created — one command to start all services
+
+### Known Issues
+- Gemini API daily quota exhausted — switch model to gemini-2.0-flash or wait for reset
+- Workflows 02–06 show Active: False in n8n API — activate manually in UI
+- ngrok URL changes on restart — need static domain for production
+
+---
+
 ## [3.0.3] - 2026-05-30
 
 ### Telegram Integration Live

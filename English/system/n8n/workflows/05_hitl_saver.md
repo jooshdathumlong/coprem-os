@@ -1,6 +1,6 @@
 # Workflow 05 — HITL Decision Saver
 
-**Trigger:** Webhook (Discord button / LINE quick reply)  
+**Trigger:** Webhook (Telegram inline keyboard button)  
 **Output:** KB-05 (decision_memory) + Inbox_Log status update
 
 ## Flow
