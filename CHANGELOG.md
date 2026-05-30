@@ -2,6 +2,16 @@
 
 All notable changes to the Coprem project will be documented in this file.
 
+## [3.0.2] - 2026-05-30
+
+### Platform
+- **Discord selected** as primary messaging platform (replaced LINE)
+- Discord Server "Coprem" created with 5 channels: #universal-inbox, #executive-dashboard, #hitl-gate, #system-alerts, #daily-checklist
+- Jeff Bot created and authorized to Coprem server
+- Blueprint Part 6 updated with actual channel names
+
+---
+
 ## [3.0.1] - 2026-05-30
 
 ### MVP Live
