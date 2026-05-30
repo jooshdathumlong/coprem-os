@@ -29,10 +29,10 @@ def main():
     base_dir = "/Users/eilinaire/Desktop/Coprem"
     
     files_to_include = [
-        "English/GEMINI.md",
+        "English/CLAUD.md",
         "English/README.md",
         "English/prem_profile.md",
-        "Thai/GEMINI.md",
+        "Thai/CLAUD.md",
         "Thai/README.md",
         "Thai/prem_profile.md",
         "Thai/DASHBOARD.md",

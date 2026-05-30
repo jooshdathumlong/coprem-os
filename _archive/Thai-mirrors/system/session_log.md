@@ -31,9 +31,9 @@
 - **New content integrated:**
   - Core Psychology section (Id / Superego / Ego framework)
   - Ego Medium Law
-  - Power Behavior Law (Power Behavior Law)
-  - Character Function Law (Character Function Law — 1 Anchor + 1 Scar + 1 Role)
-  - Final Story Law (Final Story Law)
+  - Power Behavior Law (กฎพฤติกรรมพลัง)
+  - Character Function Law (กฎบทบาทตัวละคร — 1 Anchor + 1 Scar + 1 Role)
+  - Final Story Law (กฎจบตอน)
   - Narrative Function Groups (Core Duo / Mirrors / Stabilizers)
   - Life Progression Arc (6-stage cycle)
   - Writer OS Mode expanded (11 rules: Real-Time Filter, Sanctuary Priority, Character Voice, Writer State, Hard Exit Rule)
@@ -41,9 +41,9 @@
 - **Knowledge Base Entry:** Created `knowledge/personal/novel/core_rules.md` as quick-reference summary.
 - **Project Restructuring (EGO ERA):** 
   - Renamed `projects/novel` to `projects/ego_era` and `knowledge/personal/novel` to `knowledge/personal/ego_era`.
-  - Created `awakenings/` for chapters, and extracted Chapter 1 into `ch01_the_day_the_world_stopped_looking_back.md`.
+  - Created `awakenings/` for chapters, and extracted Chapter 1 into `ch01_วันที่โลกไม่มองกลับ.md`.
   - Created `character/` structure with subfolders for all 12 characters (rin, jin, ray, ken, pie, guy, ann, jean, so, bomb, pao, nay).
-  - Updated all internal OS links in `README.md`, `Prem_profile.md`, and `knowledge/personal/README.md`.
+  - Updated all internal OS links in `README.md`, `เปรม_profile.md`, and `knowledge/personal/README.md`.
 
 ### Learnings / Decisions
 - **Decision:** Bible structure reorganized into 8 sections (I-VIII) for clearer navigation: Core Laws → Core Psychology → Character Matrix → System Mechanics → Scene Structure → Writer OS → Validator → Chapter Sandbox.
@@ -99,11 +99,11 @@
   - Configured COPREM to run in an **Objective-Driven Autonomous framework** exclusively for the Personal Empire, keeping Pillar 1 (Corporate Job) manual and prompt-driven.
   - Created the OKR Engine file: [okrs.md](file://./system/db/okrs.md) and migrated the SQLite schema to introduce the `okrs` database table with 9 baseline key results seeded.
   - Deployed **Grace (Chief People & Performance Officer)** at [grace.md](file://./system/personal/ops/grace.md) to audit agent performance and align outputs with OKRs. Registered Grace in [dept_ops.md](file://./system/personal/dept_ops.md).
-  - Updated the operating rules in [GEMINI.md](file://./GEMINI.md) and [jeff.md](file://./system/jeff.md) to govern autonomous execution and dashboard generation.
+  - Updated the operating rules in [CLAUD.md](file://./CLAUD.md) and [jeff.md](file://./system/jeff.md) to govern autonomous execution and dashboard generation.
   - Added the [reporting.md](file://./system/skills/reporting.md) playbook and generated the first **Executive OKR Dashboard Report**.
 
 ### Learnings / Decisions
-- **Boundaries:** Keeping the Day-Job Pillar prompt-driven ensures no unwanted autonomous task generation happens in corporate workflows, while the Personal Empire can run autonomously to relieve Prem's mental load.
+- **Boundaries:** Keeping the Day-Job Pillar prompt-driven ensures no unwanted autonomous task generation happens in corporate workflows, while the Personal Empire can run autonomously to relieve เปรม's mental load.
 - **Auditing:** Grace's HR role provides a necessary auditing layer to guarantee that autonomous agents are operating correctly.
 
 ---
@@ -129,7 +129,7 @@
 - **Goal-Cascading & Minimalist Daily Execution Integration:**
   - Expanded the database schema inside [sqlite_io.py](file://./system/scripts/sqlite_io.py) to introduce `policies`, `milestones`, and `daily_checklist` tables under `Coprem.db`.
   - Created the strategic cascading ledger [goals_cascade.md](file://./system/db/goals_cascade.md) as the Annual-to-Daily planning schema template.
-  - Updated [GEMINI.md](file://./GEMINI.md) and [jeff.md](file://./system/jeff.md) to govern the strict **Single-Agent Activation** protocol and quiet background task execution.
+  - Updated [CLAUD.md](file://./CLAUD.md) and [jeff.md](file://./system/jeff.md) to govern the strict **Single-Agent Activation** protocol and quiet background task execution.
   - Refined [grace.md](file://./system/personal/hr/grace.md) to audit checklist efficiency and cascade alignment.
   - Refined the task pipeline in [personal_matrix.md](file://./system/personal/personal_matrix.md) to match the single-agent pipeline.
   - Executed a DB seed verification script to insert and validate mock records under the new schema.
@@ -141,13 +141,13 @@
 ## 2026-05-29 (Master OS Update)
 
 ### Actions Taken
-- **Phase 1: Safe Root Renaming:** Renamed `praem-os-ui` -> `app`, `shared_scripts` -> `scripts`, and `Coprem_All_Data_Context.md` -> `master_context.md` for extreme conciseness.
-- **Link Updating:** Executed a global search and replace across all `.md` and `.py` files to ensure zero broken internal links.
-- **Phase 2: Global Naming Protocol:** Established rules for tech-standard naming (short, lowercase, snake/kebab-case) and banned bulk file renaming without S&R plans.
+- **Phase 1: Safe Root Renaming:** เปลี่ยนชื่อ `praem-os-ui` -> `app`, `shared_scripts` -> `scripts`, และ `Coprem_All_Data_Context.md` -> `master_context.md` เพื่อความสั้นกระชับที่สุด
+- **Link Updating:** รัน Global Search & Replace ทั่วทั้งโปรเจกต์ (`.md` และ `.py`) ป้องกันปัญหาลิงก์ภายในพัง
+- **Phase 2: Global Naming Protocol:** บังคับใช้มาตรฐานการตั้งชื่อ (สั้น, ตัวพิมพ์เล็ก, snake/kebab-case) และห้ามเปลี่ยนชื่อไฟล์จำนวนมากโดยไม่มีแผน S&R
 - **Phase 3: 3-Tier Systemic Memory Activation:**
-  - Created `naming_and_memory_protocol.md` in `system/skills/`.
-  - Upgraded Grace's HR auditing protocol (`system/personal/hr/grace.md`) to enforce HITL and token efficiency.
+  - สร้างกฎถาวร `naming_and_memory_protocol.md` ใน `system/skills/`
+  - อัปเกรดระบบตรวจสอบของ Grace (`system/personal/hr/grace.md`) ควบคุมความถูกต้องและ HITL
 
 ### Learnings / Decisions
-- **Error Acknowledgment:** Bulk renaming files without considering internal Markdown links causes regressions and dead links.
-- **Systemic Rule:** Any future renaming MUST include an explicit Search & Replace phase. Global standards apply from root to leaf directories.
+- **Error Acknowledgment:** การเปลี่ยนชื่อไฟล์โดยไม่เช็กลิงก์อ้างอิงทำให้ระบบมีปัญหาช่องโหว่
+- **Systemic Rule:** การเปลี่ยนชื่อใดๆ ในอนาคต "ต้องมี" ขั้นตอน Search & Replace เสมอ และต้องยึดมาตรฐานการตั้งชื่อสากล

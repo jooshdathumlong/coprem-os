@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import os
 CORE_FILES = {
-    "English/GEMINI.md",
+    "English/CLAUD.md",
     "English/prem_profile.md",
     "English/README.md",
-    "Thai/GEMINI.md",
+    "Thai/CLAUD.md",
     "Thai/prem_profile.md",
     "Thai/README.md",
     "Thai/คุมบังเหียน.md"

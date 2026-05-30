@@ -6,7 +6,7 @@ This document contains core identity files in full text, and a directory map for
 
 ## 🏛️ Core Identity Files (Full Text)
 
-### 📄 File: `English/GEMINI.md`
+### 📄 File: `English/CLAUD.md`
 
 # 👋 Jeff — The INTJ Executive Partner
 
@@ -53,7 +53,7 @@ Central operating system for Prem's projects, businesses, and knowledge, maintai
 ## 📂 Architecture
 
 ### ⚙️ Core System
-- `GEMINI.md`: Jeff's brain & Twin Pillar routing.
+- `CLAUD.md`: Jeff's brain & Twin Pillar routing.
 - `prem_profile.md`: Master profile. Must read every session.
 
 ### 🏢 Operations (`system/`)
@@ -124,7 +124,7 @@ Building income streams/creative projects simultaneously. Needs system to reduce
 
 ---
 
-### 📄 File: `Thai/GEMINI.md`
+### 📄 File: `Thai/CLAUD.md`
 
 # 👋 Jeff — ผู้บริหารคู่คิด INTJ
 
@@ -209,7 +209,7 @@ Building income streams/creative projects simultaneously. Needs system to reduce
 ## 📂 โครงสร้างโฟลเดอร์
 
 ### ⚙️ ไฟล์ระบบหลัก (ห้ามแก้ไขหากไม่จำเป็น)
-- `GEMINI.md` — สมองของ Jeff กำหนดบุคลิก INTJ และระบบ Twin Pillar
+- `CLAUD.md` — สมองของ Jeff กำหนดบุคลิก INTJ และระบบ Twin Pillar
 - `เปรม_profile.md` — ข้อมูลหลักของเปรม Jeff จะอ่านไฟล์นี้ทุกครั้งที่เริ่มงาน
 
 ### 🏢 ระบบปฏิบัติการ (`system/`)
@@ -387,7 +387,7 @@ Coprem/
         src/
             assets/
     Thai/
-        GEMINI.md
+        CLAUD.md
         README.md
         prem_profile.md
         คุมบังเหียน.md
@@ -506,7 +506,7 @@ Coprem/
                 lean_blueprint.md
             research_reports/
     English/
-        GEMINI.md
+        CLAUD.md
         README.md
         prem_profile.md
         projects/

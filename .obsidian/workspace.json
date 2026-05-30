@@ -11,10 +11,10 @@
             "id": "1385682ace4e6862",
             "type": "leaf",
             "state": {
-              "type": "empty",
+              "type": "graph",
               "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
             }
           }
         ]
@@ -176,8 +176,15 @@
       "bases:Create new base": false
     }
   },
-  "active": "3fe60d3aa2ffcee3",
+  "active": "1385682ace4e6862",
   "lastOpenFiles": [
+    "_archive/v8.2-cleanup/praem_os.db",
+    "_archive/v8.2-cleanup/lean_blueprint.md",
+    "_archive/v8.2-cleanup/English/system/scripts/line_oa_broadcast.py",
+    "_archive/v8.2-cleanup/English/system/scripts/google_apps_trigger.py",
+    "_archive/v8.2-cleanup/English/system/scripts/social_broadcast.py",
+    "_archive/v8.2-cleanup/English/system/scripts/obsidian_io.py",
+    "_archive/v8.2-cleanup/CLAUD.md",
     "English/knowledge/personal/tech/claude_use_cases.md",
     "English/knowledge/personal/tech/claude_plugins.md",
     "English/knowledge/personal/tech/claude_connectors.md",
@@ -196,8 +203,6 @@
     "NewKnowledge/Claude/Claude Connectors.md",
     "NewKnowledge/Claude",
     "NewKnowledge/การลงทุน.md",
-    "NewKnowledge",
-    "untitled folder",
     "app/node_modules/ms/license.md"
   ]
 }
