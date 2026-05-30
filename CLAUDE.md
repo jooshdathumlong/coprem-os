@@ -54,6 +54,10 @@ coprem.killswitch()             # emergency stop
 - Prefer `Bash(grep)` over `Read` for search
 - Max file reads per session: 10
 
+## Reporting Rules (CRITICAL)
+- ทุกครั้งที่รายงานผล ต้องขึ้นต้นด้วย `## สรุป [หัวข้อ]` เสมอ
+- หัวข้อสรุป = งานที่ทำ + สถานะ + ขั้นตอนต่อไป (ถ้ามี)
+
 ## Execution Rules (CRITICAL)
 - NO INLINE SCRIPTING: Never use `python3 -c`, `cat << EOF`, or huge curl payloads
 - FILE-FIRST: Scripts → write to file, run, delete
