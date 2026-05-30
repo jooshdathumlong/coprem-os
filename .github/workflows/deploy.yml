@@ -9,40 +9,72 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  # ── Step 1: Smoke Test (before touching production) ──────────
+  smoke-test:
     runs-on: self-hosted
+    outputs:
+      passed: ${{ steps.test.outputs.passed }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Restart Docker Stack
+      - name: Smoke Test
+        id: test
+        run: |
+          echo "=== Smoke Tests ==="
+
+          # 1. docker-compose.yml valid syntax
+          docker compose -f 03-system/docker-compose.yml config --quiet \
+            && echo "✅ docker-compose syntax OK" || { echo "❌ docker-compose syntax error"; exit 1; }
+
+          # 2. .env has required keys
+          for KEY in POSTGRES_PASSWORD N8N_ENCRYPTION_KEY TELEGRAM_BOT_TOKEN CLOUDFLARE_TUNNEL_TOKEN; do
+            grep -q "^${KEY}=" /Users/eilinaire/Desktop/Coprem/.env \
+              && echo "✅ $KEY present" || { echo "❌ $KEY missing in .env"; exit 1; }
+          done
+
+          # 3. n8n currently healthy (pre-deploy baseline)
+          curl -sf http://localhost:5678/healthz \
+            && echo "✅ n8n pre-deploy healthy" || echo "⚠️ n8n not running (cold start)"
+
+          echo "passed=true" >> $GITHUB_OUTPUT
+
+  # ── Step 2: Deploy (only if smoke test passed) ───────────────
+  deploy:
+    runs-on: self-hosted
+    needs: smoke-test
+    if: needs.smoke-test.outputs.passed == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy Docker Stack
         run: |
           cd /Users/eilinaire/Desktop/Coprem
           docker ps -q --filter "publish=5678" | xargs -r docker stop | xargs -r docker rm || true
           docker compose --env-file .env -f 03-system/docker-compose.yml up -d
 
-      - name: Health Check
+      - name: Health Check (post-deploy)
         id: health
         run: |
           sleep 15
-          curl -f http://localhost:5678/healthz || exit 1
-          echo "✅ COPREM deployed successfully"
+          curl -f http://localhost:5678/healthz \
+            && echo "✅ COPREM deployed successfully" || exit 1
 
       - name: Notify Success
         if: success()
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d "chat_id=${{ secrets.PREM_CHAT_ID }}" \
-            -d "text=✅ Deploy สำเร็จ | $(git log -1 --format='%s')"
+            -d "text=✅ Deploy สำเร็จ%0A$(git log -1 --format='%s')"
 
       - name: Rollback on Failure
         if: failure()
         run: |
           cd /Users/eilinaire/Desktop/Coprem
-          echo "⚠️ Deploy failed — rolling back to previous commit"
           git checkout HEAD~1 -- 03-system/docker-compose.yml
           docker compose --env-file .env -f 03-system/docker-compose.yml up -d
           sleep 15
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d "chat_id=${{ secrets.PREM_CHAT_ID }}" \
-            -d "text=🔴 Deploy ล้มเหลว — Rollback to previous version แล้ว | $(git log -1 --format='%s')"
+            -d "text=🔴 Deploy ล้มเหลว — Rollback แล้ว%0A$(git log -1 --format='%s')"
