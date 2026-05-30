@@ -1,4 +1,7 @@
-# Workflow 01 — Inbox Receiver
+# Workflow 01 — Inbox Receiver (COPREM-MVP)
+
+> **Live deployment:** Google Gemini (gemini-flash-latest) — 2026-05-30
+> Upgrade to Claude Sonnet when Anthropic API key available.
 
 **Trigger:** Webhook POST  
 **Path:** `/webhook/coprem`  

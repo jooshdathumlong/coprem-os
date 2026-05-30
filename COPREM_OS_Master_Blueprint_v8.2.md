@@ -576,9 +576,15 @@ coprem.killswitch()                     # Emergency stop — all automation halt
 
 Minimal working system — 3 nodes, runs locally, under 10 minutes.
 
+> **Current deployment (2026-05-30):** Using Google Gemini (gemini-flash-latest) as primary model.
+> Swap to Claude Sonnet when Anthropic API key is available.
+
 **Step 1 — Install and start n8n**
 ```bash
-npm install -g n8n
+mkdir -p ~/.npm-global
+npm config set prefix ~/.npm-global
+npm install -g n8n --cache /tmp/npm-cache-fresh
+export PATH="$HOME/.npm-global/bin:$PATH"
 n8n start
 # Open: http://localhost:5678
 ```
@@ -589,25 +595,32 @@ Node 1: **Webhook**
 ```
 HTTP Method:    POST
 Path:           coprem
-Response Mode:  Last Node
+Response Mode:  When Last Node Finishes
 ```
 
-Node 2: **OpenAI** (after Webhook)
+Node 2: **Google Gemini → Message a Model** (after Webhook)
 ```
-Resource:       Chat
-Operation:      Complete
-Model:          gpt-4o-mini
-Prompt (User):  {{ $json.body.message }}
-Max Tokens:     500
+Operation:      Message a Model
+Model:          models/gemini-flash-latest
+Messages:
+  [1] Role: User   | Prompt: {{ $json.body.message }}
+  [2] Role: Model  | Prompt: You are Jeff, INTJ Executive Partner.
+                             Answer concisely in Thai. Be decisive.
+Simplify Output: ON
 ```
+Credential: Google Gemini (PaLM) API → Gemini API key
 
-Node 3: **Respond to Webhook** (after OpenAI)
+Node 3: **Respond to Webhook** (after Google Gemini)
 ```
 Respond With:   JSON
-Response Body:  { "reply": "{{ $json.choices[0].message.content }}" }
+Response Body:  { "reply": "{{ $json.text }}" }
 ```
 
-**Step 3 — Activate and test**
+**Step 3 — Publish + Activate**
+- Click **Publish** → Version name: `v1.0 MVP`
+- Toggle **Active** → ON
+
+**Step 4 — Test**
 ```bash
 curl -X POST http://localhost:5678/webhook/coprem \
   -H "Content-Type: application/json" \
@@ -620,10 +633,10 @@ Expected:
 ```
 
 **MVP upgrade path:**
-1. Add system prompt (Jeff persona) to OpenAI node
-2. Connect LINE / Discord webhook to same endpoint
-3. Add Google Sheets log node after Respond node
-4. Swap OpenAI node → Claude (Anthropic node in n8n)
+1. Connect LINE / Discord webhook to same endpoint
+2. Add Google Sheets log node after Respond node
+3. Swap Gemini → Claude Sonnet (Anthropic node in n8n) when API key ready
+4. Add Dify.ai agent layer for KB access
 5. Graduate to full Workflow-01 when ready
 
 ---
