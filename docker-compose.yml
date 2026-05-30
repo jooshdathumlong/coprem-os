@@ -8,7 +8,7 @@ services:
       - "5678:5678"
     environment:
       - N8N_SECURE_COOKIE=false
-      - WEBHOOK_URL=http://cloudflared:8080
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://localhost:5678}
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=postgres
       - DB_POSTGRESDB_PORT=5432
@@ -63,7 +63,7 @@ services:
     networks:
       - coprem-internal
 
-  # ── Cloudflared: Secure Telegram Webhook Tunnel ──────────────
+  # ── Cloudflared: Named Tunnel (Cloudflare Zero Trust) ───────
   cloudflared:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
