@@ -18,11 +18,17 @@
 - Prefer `Bash(grep)` over `Read` for search tasks
 - Max file reads per session: 10
 
-## Reading Rules (Token Saving)
-- STATUS.md = session start only (already in context via hook)
-- Blueprint = NEVER read full — use `grep -n "keyword"` or `tail -30` for Build Log only
-- If need spec detail: grep the section header, then `Read` with offset+limit
-- Never read Blueprint to answer general questions — use STATUS.md + memory
+## Context Pyramid (Token Budget)
+- L1 Auto-loaded: `CLAUDE.md` + `STATUS.md` — never re-read these
+- L2 Grep first: `INDEX.md` (map), `Blueprint tail -30` (build log)
+- L3 Section only: all other files — grep header → Read offset+limit, never full file
+- Blueprint spec (Part 1–14): grep only, never read full
+- New file rule: must have `## SECTION` headers + entry in INDEX.md + max 200 lines
+
+## File Standards (all new files)
+- Add `## SECTION` headers so grep gives TOC instantly
+- Register in INDEX.md (1 line entry)
+- Split when file exceeds 200 lines
 
 ## Execution Rules (CRITICAL)
 - NO INLINE SCRIPTING: Never use `python3 -c`, `cat << EOF`, or huge curl payloads in the terminal.
