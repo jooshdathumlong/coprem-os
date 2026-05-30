@@ -34,3 +34,7 @@ package-lock.json
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+
+# Docker local data
+data/
+.env

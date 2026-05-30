@@ -1,0 +1,83 @@
+services:
+
+  # ── n8n: Workflow Orchestration (Module 3) ──────────────────
+  n8n:
+    image: n8nio/n8n:latest
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_SECURE_COOKIE=false
+      - WEBHOOK_URL=http://cloudflared:8080
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=coprem
+      - DB_POSTGRESDB_USER=coprem
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+    volumes:
+      - ./data/n8n:/home/node/.n8n
+      - ./03-system/workflows/exports:/home/node/exports:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - coprem-internal
+
+  # ── PostgreSQL: Persistent DB (6 COPREM schemas) ────────────
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=coprem
+      - POSTGRES_USER=coprem
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+      - ./03-system/database/schemas.sql:/docker-entrypoint-initdb.d/01_schemas.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coprem -d coprem"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - coprem-internal
+
+  # ── Redis: L1.5 Session Context Manager ─────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - ./data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - coprem-internal
+
+  # ── Cloudflared: Secure Telegram Webhook Tunnel ──────────────
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - n8n
+    networks:
+      - coprem-internal
+
+networks:
+  coprem-internal:
+    driver: bridge
+
+volumes:
+  data:
