@@ -1,0 +1,159 @@
+{
+  "name": "COPREM-MVP",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "coprem",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        224
+      ],
+      "id": "4458c1e7-21b6-4a2a-9e0c-8c72969529a7",
+      "name": "Webhook",
+      "webhookId": "b69db847-9288-456d-b673-bf8a19955cd7"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-flash-latest",
+          "mode": "list",
+          "cachedResultName": "models/gemini-flash-latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.body.message }}"
+            },
+            {
+              "content": "You are Jeff, INTJ Executive Partner. Answer concisely in Thai. Be decisive.",
+              "role": "model"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        224
+      ],
+      "id": "3040a095-dce2-49d4-8370-a927e4136cdd",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YHAMFCjx9fAy1uUx",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"reply\": \"{{ $json.reply }}\" }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        944,
+        224
+      ],
+      "id": "b7427cc7-bae2-47c6-9a1f-3488a9c41944",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n  let text = '';\n  if (data.text) {\n    text = data.text;\n  } else if (data.content && data.content.parts)\n  {\n    text = data.content.parts\n      .map(p => p.text || '')\n      .join('')\n      .trim();\n  }\n  return [{ json: { reply: text } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        224
+      ],
+      "id": "ad5250d9-2853-4f5c-bdb5-e77a9224c810",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "localhost:5678",
+            "user-agent": "curl/8.7.1",
+            "accept": "*/*",
+            "content-type": "application/json",
+            "content-length": "94"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "message": "สวัสดี วันนี้ต้องทำอะไรบ้าง"
+          },
+          "webhookUrl": "http://localhost:5678/webhook/coprem",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "cb43bdf8-79bb-4a3f-a52c-d57da981cba0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "95f24d42583cdb19974a78904cea1c6edeb9aa70d604832761d7593aa9dd6b2b"
+  },
+  "id": "ydcKgAQJo01nudAg",
+  "tags": []
+}
