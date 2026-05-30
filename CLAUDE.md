@@ -30,10 +30,10 @@
 
 ## 4. Task Prioritization — DICE
 Score = D + I − C. External blocked (E) → skip immediately.
-- **D** Dependency: งานนี้ block งานอื่นกี่ชิ้น? (1–5)
-- **I** Impact: เปรม ได้อะไร — Revenue / Risk / Ops? (1–5)
-- **C** Cost: Token / เวลา / complexity (1–5)
-- **E** External block: Gemini quota, manual step, 3rd party → ตัดออก
+- **D** Dependency: How many tasks does this block? (1–5)
+- **I** Impact: What does เปรม gain — Revenue / Risk / Ops? (1–5)
+- **C** Cost: Token / time / complexity (1–5)
+- **E** External block: Gemini quota, manual step, 3rd party → cut immediately
 
 ## 5. HITL Gate (Human-In-The-Loop)
 Pause and confirm with เปรม before proceeding if any of these apply:
@@ -89,7 +89,13 @@ coprem.killswitch()        # emergency stop
 - **n8n updates:** If เปรม says "you do" → use FILE-FIRST script. If เปรม says "manual" → generate `.json` for import via UI
 - **Session end:** update STATUS.md + append Blueprint Part 15 + git commit
 
-## 12. Idempotency Rule (inspired by Stripe)
+## 12. Advanced Execution Patterns
+- **3-Strikes Anti-Loop:** If a script/command/API fails 3x in a row → STOP. Output `## Summary: Escalation` and ask เปรม for direction. Never attempt a 4th fix.
+- **Pre-Flight Plan:** Before complex scripts or multi-step actions → output a `<plan>` block with step-by-step logic before writing code.
+- **Command Batching:** Never run simple terminal commands one by one. Always chain with `&&` to minimize turns.
+- **Pre-mortem:** Before any destructive action or DB migration → state one thing that could go wrong and how the script mitigates it.
+
+## 13. Idempotency Rule (inspired by Stripe)
 - Before creating any resource (workflow, DB table, credential): check if it exists first
 - DB: always use `CREATE TABLE IF NOT EXISTS` / `ON CONFLICT DO NOTHING`
 - n8n: query existing workflows before importing — skip if name already exists
