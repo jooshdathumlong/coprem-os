@@ -40,3 +40,17 @@ Outcome: Folders are now 01-projects, 02-knowledge, 03-system, 04-outputs.
 Selected Dify.ai as the agent platform.
 Reason: Dify.ai is a no-code agent platform with knowledge base integration and a free tier.
 Outcome: 5 knowledge bases created covering Brand, Ego Era, Trading, Job, and Decisions.
+
+## 2026-05-31
+
+### Dify.ai as Agent Platform
+Reason: No-code agent builder with KB integration, free tier, supports Gemini models.
+Outcome: 4 agents created (Smart Router, Jeff, Eilinaire, Ego Era) with 5 KBs connected.
+
+### Gemini Model Selection per Agent
+Reason: Match model capability to task complexity to optimize quota usage.
+Outcome: Smart Router=Flash-Lite, Jeff=2.5 Flash, Eilinaire=2.5 Flash, Ego Era=3.5 Flash.
+
+### Dify KB Settings: Economical + Inverted Index + Top K=3
+Reason: High Quality mode requires embedding model (incompatible with free tier).
+Outcome: All 5 KBs use Economical mode — no embedding cost, reliable retrieval.
