@@ -1,0 +1,46 @@
+{
+  "name": "00B — User Approval",
+  "nodes": [
+    {
+      "parameters": {"updates": ["message"]},
+      "id": "tg-approve-trigger", "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger", "typeVersion": 1.1, "position": [180, 300],
+      "webhookId": "coprem-approval-001",
+      "credentials": {"telegramApi": {"id": "GurqCkf7bspE33VZ", "name": "Coprem Bot"}}
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const msg = $input.first().json.message;\nconst from_id = msg.from.id;\nconst text = (msg.text || '').trim().toUpperCase();\nconst PREM_ID = 7731591925;\n\nif (from_id !== PREM_ID) return [];\n\nconst parts = text.split(' ');\nif (parts.length !== 2) return [];\nconst action = parts[0]; // APPROVE or REJECT\nconst target_id = parseInt(parts[1]);\n\nif (!['APPROVE','REJECT'].includes(action) || isNaN(target_id)) return [];\n\nreturn [{ json: { action, target_id, from_id } }];"
+      },
+      "id": "parse-command", "name": "Parse Command",
+      "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.action === 'APPROVE' ? 'UPDATE users SET status=\\'approved\\', approved_at=NOW() WHERE chat_id=' + $json.target_id : 'UPDATE users SET status=\\'rejected\\' WHERE chat_id=' + $json.target_id }}",
+        "additionalFields": {}
+      },
+      "id": "update-db", "name": "Update DB",
+      "type": "n8n-nodes-base.postgres", "typeVersion": 2.5, "position": [660, 300],
+      "credentials": {"postgres": {"id": "coprem-postgres", "name": "COPREM Postgres"}}
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Parse Command').item.json.target_id }}",
+        "text": "={{ $('Parse Command').item.json.action === 'APPROVE' ? '✅ ยินดีต้อนรับครับ! ตอนนี้ใช้งาน COPREM ได้แล้ว' : '❌ ขออภัย ไม่ได้รับอนุญาตใช้งาน COPREM ครับ' }}",
+        "additionalFields": {}
+      },
+      "id": "notify-user", "name": "Notify User",
+      "type": "n8n-nodes-base.telegram", "typeVersion": 1.2, "position": [900, 300],
+      "credentials": {"telegramApi": {"id": "GurqCkf7bspE33VZ", "name": "Coprem Bot"}}
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {"main": [[{"node": "Parse Command", "type": "main", "index": 0}]]},
+    "Parse Command": {"main": [[{"node": "Update DB", "type": "main", "index": 0}]]},
+    "Update DB": {"main": [[{"node": "Notify User", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"}, "staticData": null, "tags": []
+}

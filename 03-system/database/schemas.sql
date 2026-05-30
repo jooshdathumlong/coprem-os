@@ -90,3 +90,19 @@ SELECT cron.schedule(
   '0 * * * *',
   $$DELETE FROM blocked_ips WHERE expires_at < NOW()$$
 );
+
+-- ============================================================
+-- 7. USERS (Multi-user access control)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS users (
+  chat_id     BIGINT PRIMARY KEY,
+  first_name  TEXT NOT NULL,
+  username    TEXT,
+  role        TEXT DEFAULT 'member',
+  status      TEXT DEFAULT 'pending',  -- pending | approved | rejected
+  registered_at TIMESTAMPTZ DEFAULT NOW(),
+  approved_at   TIMESTAMPTZ
+);
+INSERT INTO users (chat_id, first_name, role, status, approved_at)
+VALUES (7731591925, 'Prem', 'owner', 'approved', NOW())
+ON CONFLICT (chat_id) DO NOTHING;
