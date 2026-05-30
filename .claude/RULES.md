@@ -17,3 +17,11 @@
 - NEVER read COPREM_OS_Master_Blueprint_v8.2.md unless Prem explicitly says "อ่าน Blueprint" — use INDEX.md instead
 - READ STATUS.md at session START — update at session END with what was done and what is pending
 - After EVERY session: append decisions to 03-system/decisions.md (date | topic | reason | outcome)
+
+## KB File Standard (Dify.ai compatibility)
+- Use ## 1. ## 2. ## 3. numbered sections
+- Use ### for subsections
+- English only — no Thai in KB source files
+- No template placeholders like [topic], no empty sections
+- Each section must have real content (min 2 lines)
+- No horizontal rules (---) between every section
