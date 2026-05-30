@@ -24,7 +24,6 @@
 - Internal language: English. Reports to เปรม: Thai.
 - No raw data or tool chatter exposed to เปรม.
 - JSON delegation: `{"assign_to": "role", "task": "..."}`
-- Kill switch: `coprem.killswitch()`
 
 ## 4. Task Prioritization — DICE
 Score = D + I − C. External blocked (E) → skip immediately.
@@ -32,6 +31,8 @@ Score = D + I − C. External blocked (E) → skip immediately.
 - **I** Impact: What does เปรม gain — Revenue / Risk / Ops? (1–5)
 - **C** Cost: Token / time / complexity (1–5)
 - **E** External block: Gemini quota, manual step, 3rd party → cut immediately
+
+**Threshold:** Score ≥ 4 = execute now | 2–3 = queue | <2 = defer
 
 ## 5. HITL Gate (Human-In-The-Loop)
 Pause and confirm with เปรม before proceeding if any of these apply:
@@ -69,7 +70,7 @@ coprem.killswitch()        # emergency stop
 - Header: English. Body to เปรม: Thai.
 
 ## 9. Context Pyramid (Token Budget)
-- **L1 Auto-loaded:** `CLAUDE.md` + `STATUS.md` — never re-read
+- **L1 Auto-loaded:** `CLAUDE.md` + `STATUS.md` — never re-read mid-session, even if เปรม references them
 - **L2 Grep first:** `INDEX.md` | `Blueprint tail -30` (build log only)
 - **L3 Section only:** all other files — grep header → Read offset+limit, never full file
 - Blueprint Part 1–14: grep only, **never Read** — violation = wasted session
@@ -83,18 +84,16 @@ coprem.killswitch()        # emergency stop
 - Split any file that exceeds 200 lines
 
 ## 11. Execution Rules
-- **NO INLINE SCRIPTING:** Never use `python3 -c`, `cat << EOF`, or large curl payloads
-- **FILE-FIRST:** Write script to `scripts/temp_*.py`, run it, delete it after
-- **n8n updates:** If เปรม says "you do" → use FILE-FIRST script. If เปรม says "manual" → generate `.json` for import via UI
+- **No inline scripting:** Never use `python3 -c`, `cat << EOF`, or large curl payloads
+- **File-first:** Write to `scripts/temp_*.py`, run, delete after
+- **Command batching:** Chain with `&&` — never one command per turn
+- **Pre-flight plan:** Before complex/multi-step action → output `<plan>` block first
+- **3-Strikes:** Fails 3 times → STOP, output `## Summary: Escalation`, ask เปรม. No 4th attempt.
+- **Pre-mortem:** Before destructive action or DB migration → state #1 risk + mitigation
+- **n8n:** เปรม says "you do" → FILE-FIRST script | "manual" → generate `.json` for UI import
 - **Session end:** update STATUS.md + append Blueprint Part 15 + git commit
 
-## 12. Advanced Execution Patterns
-- **3-Strikes:** Script/command/API fails 3 times → STOP, output `## Summary: Escalation`, ask เปรม. No 4th attempt.
-- **Pre-Flight Plan:** Before any complex or multi-step action → output `<plan>` block first, then execute.
-- **Command Batching:** Chain terminal commands with `&&`. Never one-by-one.
-- **Pre-mortem:** Before destructive action or DB migration → state the #1 risk and how the script mitigates it.
-
-## 13. Idempotency Rule (inspired by Stripe)
+## 12. Idempotency Rule (inspired by Stripe)
 - Before creating any resource (workflow, DB table, credential): check if it exists first
 - DB: always use `CREATE TABLE IF NOT EXISTS` / `ON CONFLICT DO NOTHING`
 - n8n: query existing workflows before importing — skip if name already exists
