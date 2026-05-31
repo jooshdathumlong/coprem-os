@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-31T03:00:16.062Z",
+  "updatedAt": "2026-05-31T03:04:06.170Z",
   "createdAt": "2026-05-30T22:25:22.775Z",
   "id": "OTZhayuBBmCOO2CA",
   "name": "WF01 \u2014 Inbox Receiver (Single Entry)",
@@ -456,6 +456,97 @@
         2300,
         520
       ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO audit_log (event_type, source_ip, source, payload, timestamp) VALUES ('WEBHOOK_RECEIVED', NULL, 'telegram', '{{ JSON.stringify({user_id: $json.message.from.id, chat_id: $json.message.chat.id, msg: $json.message.text}) }}'::jsonb, NOW()) ON CONFLICT DO NOTHING;"
+      },
+      "id": "l7-audit-received",
+      "name": "L7 \u2014 Audit WEBHOOK_RECEIVED",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        320,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) as blocked FROM blocked_ips WHERE ip = '{{ $('Telegram Trigger').item.json.message.from.id.toString() }}' AND (expires_at IS NULL OR expires_at > NOW());"
+      },
+      "id": "l7-blocked-check",
+      "name": "L7 \u2014 Check Blocked User",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        560,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "blocked-check",
+              "leftValue": "={{ $json.blocked }}",
+              "rightValue": "0",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "l7-blocked-gate",
+      "name": "L7 \u2014 Blocked Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        800,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO audit_log (event_type, source_ip, source, payload, timestamp) VALUES ('AGENT_OUTPUT', NULL, 'telegram', '{{ JSON.stringify({user_id: $('Telegram Trigger').item.json.message.from.id, reply: $json.reply_text?.substring(0,200)}) }}'::jsonb, NOW());"
+      },
+      "id": "l7-audit-output",
+      "name": "L7 \u2014 Audit AGENT_OUTPUT",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2000,
+        520
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
+        }
+      }
     }
   ],
   "connections": {
@@ -463,7 +554,7 @@
       "main": [
         [
           {
-            "node": "L1-A Preprocessor",
+            "node": "L7 \u2014 Audit WEBHOOK_RECEIVED",
             "type": "main",
             "index": 0
           }
@@ -599,7 +690,7 @@
       "main": [
         [
           {
-            "node": "Send Reply",
+            "node": "L7 \u2014 Audit AGENT_OUTPUT",
             "type": "main",
             "index": 0
           }
@@ -638,6 +729,51 @@
           }
         ]
       ]
+    },
+    "L7 \u2014 Audit WEBHOOK_RECEIVED": {
+      "main": [
+        [
+          {
+            "node": "L7 \u2014 Check Blocked User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L7 \u2014 Check Blocked User": {
+      "main": [
+        [
+          {
+            "node": "L7 \u2014 Blocked Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L7 \u2014 Blocked Gate": {
+      "main": [
+        [
+          {
+            "node": "L1-A Preprocessor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "L7 \u2014 Audit AGENT_OUTPUT": {
+      "main": [
+        [
+          {
+            "node": "Send Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -646,9 +782,9 @@
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "6d751ec1-3bfe-40f0-9038-d91ec01f1782",
-  "activeVersionId": "6d751ec1-3bfe-40f0-9038-d91ec01f1782",
-  "versionCounter": 3,
+  "versionId": "092185ae-fcd0-4f0f-8a6a-d2dc7a6bffa1",
+  "activeVersionId": "092185ae-fcd0-4f0f-8a6a-d2dc7a6bffa1",
+  "versionCounter": 4,
   "triggerCount": 1,
   "shared": [
     {
@@ -671,9 +807,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-05-31T03:00:16.064Z",
-    "createdAt": "2026-05-31T03:00:16.064Z",
-    "versionId": "6d751ec1-3bfe-40f0-9038-d91ec01f1782",
+    "updatedAt": "2026-05-31T03:04:06.171Z",
+    "createdAt": "2026-05-31T03:04:06.171Z",
+    "versionId": "092185ae-fcd0-4f0f-8a6a-d2dc7a6bffa1",
     "workflowId": "OTZhayuBBmCOO2CA",
     "nodes": [
       {
@@ -1125,6 +1261,97 @@
           2300,
           520
         ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO audit_log (event_type, source_ip, source, payload, timestamp) VALUES ('WEBHOOK_RECEIVED', NULL, 'telegram', '{{ JSON.stringify({user_id: $json.message.from.id, chat_id: $json.message.chat.id, msg: $json.message.text}) }}'::jsonb, NOW()) ON CONFLICT DO NOTHING;"
+        },
+        "id": "l7-audit-received",
+        "name": "L7 \u2014 Audit WEBHOOK_RECEIVED",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          320,
+          400
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT COUNT(*) as blocked FROM blocked_ips WHERE ip = '{{ $('Telegram Trigger').item.json.message.from.id.toString() }}' AND (expires_at IS NULL OR expires_at > NOW());"
+        },
+        "id": "l7-blocked-check",
+        "name": "L7 \u2014 Check Blocked User",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          560,
+          400
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "blocked-check",
+                "leftValue": "={{ $json.blocked }}",
+                "rightValue": "0",
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          }
+        },
+        "id": "l7-blocked-gate",
+        "name": "L7 \u2014 Blocked Gate",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          800,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO audit_log (event_type, source_ip, source, payload, timestamp) VALUES ('AGENT_OUTPUT', NULL, 'telegram', '{{ JSON.stringify({user_id: $('Telegram Trigger').item.json.message.from.id, reply: $json.reply_text?.substring(0,200)}) }}'::jsonb, NOW());"
+        },
+        "id": "l7-audit-output",
+        "name": "L7 \u2014 Audit AGENT_OUTPUT",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2000,
+          520
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
+          }
+        }
       }
     ],
     "connections": {
@@ -1132,7 +1359,7 @@
         "main": [
           [
             {
-              "node": "L1-A Preprocessor",
+              "node": "L7 \u2014 Audit WEBHOOK_RECEIVED",
               "type": "main",
               "index": 0
             }
@@ -1268,7 +1495,7 @@
         "main": [
           [
             {
-              "node": "Send Reply",
+              "node": "L7 \u2014 Audit AGENT_OUTPUT",
               "type": "main",
               "index": 0
             }
@@ -1307,6 +1534,51 @@
             }
           ]
         ]
+      },
+      "L7 \u2014 Audit WEBHOOK_RECEIVED": {
+        "main": [
+          [
+            {
+              "node": "L7 \u2014 Check Blocked User",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "L7 \u2014 Check Blocked User": {
+        "main": [
+          [
+            {
+              "node": "L7 \u2014 Blocked Gate",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "L7 \u2014 Blocked Gate": {
+        "main": [
+          [
+            {
+              "node": "L1-A Preprocessor",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          []
+        ]
+      },
+      "L7 \u2014 Audit AGENT_OUTPUT": {
+        "main": [
+          [
+            {
+              "node": "Send Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "authors": "Jeff COPREM",
@@ -1315,18 +1587,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-31T03:00:16.780Z",
-        "id": 8,
+        "createdAt": "2026-05-31T03:04:06.836Z",
+        "id": 10,
         "workflowId": "OTZhayuBBmCOO2CA",
-        "versionId": "6d751ec1-3bfe-40f0-9038-d91ec01f1782",
+        "versionId": "092185ae-fcd0-4f0f-8a6a-d2dc7a6bffa1",
         "event": "deactivated",
         "userId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
       },
       {
-        "createdAt": "2026-05-31T03:00:18.067Z",
-        "id": 9,
+        "createdAt": "2026-05-31T03:04:08.099Z",
+        "id": 11,
         "workflowId": "OTZhayuBBmCOO2CA",
-        "versionId": "6d751ec1-3bfe-40f0-9038-d91ec01f1782",
+        "versionId": "092185ae-fcd0-4f0f-8a6a-d2dc7a6bffa1",
         "event": "activated",
         "userId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
       }
