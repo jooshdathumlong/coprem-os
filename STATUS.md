@@ -1,6 +1,18 @@
 # COPREM OS — Current Status
 
-> Last Updated: 2026-05-31 | Session: v3.2.1 — COPREM OS v8.3 + 24 Frameworks v1.1
+> Last Updated: 2026-05-31 | Session: v3.2.2 — v8.3 Compliance Gaps Closed (5/5)
+
+---
+
+## ✅ Done (v3.2.2)
+
+**v8.3 Compliance Gaps — All 5 Closed**
+- `db/migrations/` created — 001 core tables, 002 event_type CHECK, 003 query_log, 004 system_log (§12 IaC)
+- `.env.example` added + `.gitignore` negation rule (§11 Config as Code)
+- `pr-check.yml` upgraded — secrets scan + .env.example key check (§11 Shift-Left Security)
+- `SRE_Master_Playbook.md` Rule 26 — P1–P5 RTO/RPO table (§11 Recovery Targets NIST CSF)
+- `03-system/agents/prompts.md` — DDD domain boundary added to all 4 agents (§1 DDD)
+- commits: `feat(system)` + `feat(agents)`
 
 ---
 

@@ -882,6 +882,33 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 
 ---
 
+## Part 15 — Build Log v3.2.2 (2026-05-31)
+
+### Session Summary
+- **Gap analysis:** scanned all system files for v8.3 compliance — found 5 gaps
+- **`db/migrations/`** created with 4 numbered idempotent migrations:
+  - `001_init_core_tables.sql` — all 15 tables from schemas.sql
+  - `002_add_event_type_check.sql` — CHECK constraint with 13-type taxonomy (Framework 13)
+  - `003_add_query_log.sql` — CQRS retrieval quality tracking (Framework 12)
+  - `004_add_system_log_json_sink.sql` — structured n8n log sink (Framework 05 Factor XI)
+- **`.env.example`** added — all env keys with placeholder values; `.gitignore` negation `!.env.example`
+- **`pr-check.yml`** upgraded — secrets pattern scan + .env.example completeness check
+- **`SRE_Master_Playbook.md`** Rule 26 added — P1–P5 RTO/RPO table (NIST CSF)
+- **`03-system/agents/prompts.md`** — DDD domain boundary rule added to Smart Router, Jeff, Eilinaire, Ego Era; version bumped jeff-v2.1
+
+### Decisions
+- `audit_log.event_type` remains TEXT + CHECK constraint (vs full ENUM) — avoids costly ALTER TYPE for future additions
+- `.env.example` whitelisted in `.gitignore` via negation — no secrets, safe to commit
+- Secrets scan in CI uses grep pattern (no git-secrets binary dependency) — runs on self-hosted runner without extra install
+
+### Next
+- Apply migrations 002–004 to live DB (manual step — เปรม runs via psql or n8n script)
+- Import WF03/05/10/11/L1-C into n8n + set credentials
+- Test WF01 full flow (post Gemini quota reset)
+- Month 2 backlog: agent eval script, SLO tracking, Dependabot, log integrity hash chain
+
+---
+
 ## Part 15 — Build Log v3.2.1 (2026-05-31)
 
 ### Session Summary
