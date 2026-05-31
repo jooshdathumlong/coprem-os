@@ -1,6 +1,16 @@
 # COPREM OS — Current Status
 
-> Last Updated: 2026-05-31 | Session: v3.2.0 — Workflows + SRE Playbook + CLAUDE.md Upgrade
+> Last Updated: 2026-05-31 | Session: v3.2.1 — COPREM OS v8.3 + 24 Frameworks v1.1
+
+---
+
+## ✅ Done (v3.2.1)
+
+**System Upgrade**
+- `CLAUDE.md` upgraded v8.2 → v8.3 (§1 DDD, §4 DICE pre-scoring + Reliability Budget, §11 Blast Radius/Shift-Left/ZeroTrust/CQRS/IaC/RTO, §12 migrations, §13 Event Log)
+- `02-knowledge/COPREM_OS_24_Frameworks_v1_1.md` added — 24 framework mappings, Priority Matrix, Framework Interaction Map
+- `INDEX.md` updated — frameworks file registered as L3 grep-only
+- commit: `docs(system): upgrade COPREM OS v8.2 → v8.3 + 24 Frameworks v1.1`
 
 ---
 
