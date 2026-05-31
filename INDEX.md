@@ -100,4 +100,7 @@ Next.js dashboard (localhost:3000) — not yet built.
 | `db/migrations/` | Numbered idempotent DB migrations (001–006) — source of truth for schema |
 | `db/migrations/006_enable_pgvector.sql` | PGVector extension + memory_embeddings table (L3 semantic search) |
 | `scripts/coprem` | CLI wrapper — coprem status, cost.today, kb.sync, killswitch, etc. |
-| `.env.example` | Env var template for new machine setup — all keys, no real values |
+| `.env.example` | Env var template for new machine setup — all keys, no real values || `scripts/fix_credentials.py` | Sync n8n Postgres credentials with .env password — run after every restart |
+| `scripts/post_restart.sh` | Self-healing after n8n restart: credentials + zombie cleanup + Telegram webhook |
+| `scripts/gemini_router.py` | Gemini 6-key rotation script (CLI) — daily/RPM quota detection |
+| `03-system/litellm/config.yaml` | LiteLLM proxy config — 6 Gemini keys + Groq fallback |

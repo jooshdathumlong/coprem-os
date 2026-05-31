@@ -1,6 +1,6 @@
 #!/bin/bash
 # post_restart.sh — Run after every n8n restart.
-# Fixes credentials, verifies webhook, deactivates/activates WF01.
+# Fixes credentials, verifies webhook, ensures system state.
 
 set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -26,35 +26,34 @@ done
 log "Syncing Postgres credentials..."
 python3 "$SCRIPT_DIR/fix_credentials.py"
 
-# 3. Check for zombie containers (wrong network)
-ZOMBIE=$(docker ps --format "{{.Names}}" | grep "^coprem-" | grep -v "03-system")
+# 3. Stop zombie containers (wrong network prefix)
+ZOMBIE=$(docker ps --format "{{.Names}}" | grep "^coprem-" | grep -v "03-system" || true)
 if [ -n "$ZOMBIE" ]; then
-  log "⚠️  Zombie containers found: $ZOMBIE"
-  log "Stopping zombie containers..."
+  log "⚠️  Zombie containers: $ZOMBIE — stopping..."
   echo "$ZOMBIE" | xargs docker stop
   log "Zombie containers stopped ✅"
 fi
 
-# 4. Deactivate + reactivate WF01 to refresh Telegram webhook secret
-log "Refreshing WF01 Telegram webhook..."
+# 4. Activate WF01 (plain Webhook node — no secret refresh needed)
+log "Activating WF01..."
 N8N_API_KEY_VAL=$(grep "^N8N_API_KEY=" "$ENV" | cut -d= -f2)
-WF01_ID="OTZhayuBBmCOO2CA"
-
+WF01_ID="jFq7aSFJQ7ElHoLZ"
 curl -sf -X POST -H "X-N8N-API-KEY: $N8N_API_KEY_VAL" \
-  "http://localhost:5678/api/v1/workflows/$WF01_ID/deactivate" > /dev/null
-sleep 2
-curl -sf -X POST -H "X-N8N-API-KEY: $N8N_API_KEY_VAL" \
-  "http://localhost:5678/api/v1/workflows/$WF01_ID/activate" > /dev/null
-log "WF01 webhook refreshed ✅"
+  "http://localhost:5678/api/v1/workflows/$WF01_ID/activate" > /dev/null 2>&1 || true
+log "WF01 activated ✅"
 
-# 5. Verify Telegram webhook registered
-sleep 3
+# 5. Verify Telegram webhook points to fixed path
 BOT_TOKEN=$(grep "^TELEGRAM_BOT_TOKEN=" "$ENV" | cut -d= -f2)
-WH_URL=$(curl -s "https://api.telegram.org/bot$BOT_TOKEN/getWebhookInfo" | python3 -c "import json,sys; print(json.load(sys.stdin)['result'].get('url','EMPTY'))")
-if [[ "$WH_URL" == *"n8n.peabuntid.com"* ]]; then
+sleep 2
+WH_URL=$(curl -s "https://api.telegram.org/bot$BOT_TOKEN/getWebhookInfo" | \
+  python3 -c "import json,sys; print(json.load(sys.stdin)['result'].get('url','EMPTY'))")
+
+if [[ "$WH_URL" == *"telegram-coprem"* ]]; then
   log "Telegram webhook: ✅ $WH_URL"
 else
-  log "Telegram webhook: ❌ $WH_URL"
+  log "Telegram webhook missing — re-registering..."
+  curl -sf "https://api.telegram.org/bot$BOT_TOKEN/setWebhook?url=https://n8n.peabuntid.com/webhook/telegram-coprem" > /dev/null
+  log "Telegram webhook: ✅ registered"
 fi
 
 # 6. Ensure Prem is in users table
