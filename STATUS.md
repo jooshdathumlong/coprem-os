@@ -1,6 +1,19 @@
 # COPREM OS — Current Status
 
-> Last Updated: 2026-05-31 | Session: v3.2.4 — WF01 Full Flow Confirmed ✅
+> Last Updated: 2026-05-31 | Session: v3.2.9 — Reset to v3.2.4 + 24 Frameworks direction set
+
+---
+
+## ✅ Done (v3.2.9)
+
+**Session Direction + Reset**
+- ตัดสินใจ: `COPREM_OS_24_Frameworks.md` คือ system blueprint ใหม่สำหรับสร้าง COPREM
+- ตัดสินใจ: ไม่ใช้ Blueprint v8.x อีกต่อไป — Framework เป็น source of truth
+- Hard reset กลับไป `27e9b0f` (v3.2.4) เพื่อเริ่มต้นใหม่อย่างถูกต้อง
+- DB migrations 001–004 ยังอยู่ใน live DB (ไม่ได้ revert)
+- 12/13 n8n workflows ยัง active
+
+**Next: สร้าง COPREM ใหม่โดยใช้ `COPREM_OS_24_Frameworks.md` เป็น guide**
 
 ---
 
