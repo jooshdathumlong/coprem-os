@@ -50,7 +50,7 @@
 | L0 Telegram Inbox | ✅ |
 | L1-A Preprocessor | ✅ live in WF01 |
 | L1-B Smart Router | ✅ Dify connected |
-| L1-C Provider Router | ❌ |
+| L1-C Provider Router | ✅ |
 | L1.5 Session Manager | ❌ |
 | L2 Agents (Dify) | ✅ |
 | L2.5 Normalizer | ✅ live in WF01 |
