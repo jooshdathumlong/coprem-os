@@ -36,7 +36,7 @@
 - [x] Update WF02/WF03/WF04 queries → use real tables in coprem_os
 - [x] Add `validate` status check to Branch Protection
 - [x] WF05 HITL Decision Saver
-- [ ] WF11 DLQ Processor
+- [x] WF11 DLQ Processor
 - [ ] L1.5 Session Context Manager (Redis)
 
 ## 🚫 Blocked
