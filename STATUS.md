@@ -232,3 +232,13 @@ GitHub CI  → coprem-mac runner
 | 22:15 | WF09 Automated Backup | ✅ activated — cron Sunday 03:00 |
 | 22:20 | WF07 Feedback Collector | ✅ activated |
 | 22:20 | L5 Feedback Loop | ✅ fully live (WF07 + WF08 active) |
+
+## 2026-05-31 Session 2 — Jeff
+
+| Time | Action | Result |
+|---|---|---|
+| 23:00 | Dify cloud.dify.ai | ✅ UP (HTTP 200 confirmed) |
+| 23:00 | WF11 DLQ Processor | ✅ verified active via n8n API |
+| 23:00 | L6 Cron count | ✅ 11/11 complete (stale 10/11 corrected) |
+| 23:00 | N8N_API_KEY | ✅ extracted from DB + saved to .env |
+| 23:00 | health_check.sh n8n | ✅ working correctly (HTML issue was already fixed) |

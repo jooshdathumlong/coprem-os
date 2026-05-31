@@ -984,3 +984,19 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 ### Pending
 - health_check.sh fix (n8n returns HTML)
 - Dify cloud status verify
+
+---
+
+## Part 15 — Session 2026-05-31 (Session 2)
+
+### Done
+- Verified cloud.dify.ai UP (HTTP 200) — updated SYSTEM_STATE.md L2 ✅
+- Verified WF11 DLQ Processor active via n8n API — L6 now 11/11 ✅
+- Extracted N8N_API_KEY from coprem DB → saved to .env
+- health_check.sh n8n check confirmed working (HTML issue already resolved)
+- All pending items from previous session cleared
+
+### System State
+- All layers ✅ (L1–L8 fully operational)
+- 15 workflows active, 3 utility/draft
+- No pending items
