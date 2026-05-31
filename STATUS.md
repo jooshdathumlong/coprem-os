@@ -260,3 +260,43 @@ GitHub CI  → coprem-mac runner
 | 00:10 | CF_API_TOKEN | ✅ บันทึกใน .env |
 | — | Dify → LiteLLM | ⏳ HITL — เปรมตั้งค่าใน cloud.dify.ai |
 | — | ทดสอบ end-to-end | ⏳ รอ quota reset ตีสี่ |
+
+## 2026-06-01 Session (ต่อ) — Jeff
+
+| Time | Action | Result |
+|---|---|---|
+| 00:30 | Groq API key | ✅ เพิ่มใน LiteLLM — fallback เมื่อ Gemini quota หมด |
+| 00:35 | LiteLLM test | ✅ ตอบ OK ผ่าน Groq llama-3.3-70b |
+| 00:40 | WEBHOOK_URL=localhost | ✅ แก้เป็น https://n8n.peabuntid.com — WF01 Telegram activate ได้ |
+| 00:45 | users table | ✅ insert Prem chat_id=7731591925 status=approved |
+| 00:50 | Postgres credential | ✅ อัปเดตทั้ง 2 credentials (226PbeVgki0neEi4 + rdxzBrj9putuOkku) |
+| — | WF01 test | ⏳ รอผล — Prem ทดสอบ Telegram |
+
+## Lesson Learned (recurring issues)
+
+| ปัญหา | สาเหตุ | วิธีแก้ |
+|---|---|---|
+| Postgres auth fail หลัง restart | n8n credential encrypt ด้วย password เก่า | รัน encrypt script ทุกครั้ง |
+| WEBHOOK_URL=localhost | docker-compose ไม่มี N8N_WEBHOOK_URL ใน .env | hardcode เป็น https://n8n.peabuntid.com |
+| coprem-cloudflared-1 wrong network | container เก่า (coprem_ prefix) vs ใหม่ (03-system_) | ต้องหยุด container เก่าก่อน |
+| Telegram 403 secret invalid | n8n restart → secret เปลี่ยน แต่ URL เดิม | restart + deactivate/activate WF01 |
+
+## BUG LOG — 2026-06-01 (Instant Problem Log — ย้อนหลัง)
+
+| Time | BUG | ROOT CAUSE | FIX |
+|---|---|---|---|
+| 00:40 | WEBHOOK_URL=localhost | docker-compose ใช้ default localhost แทน public URL | hardcode `https://n8n.peabuntid.com` ใน docker-compose.yml |
+| 00:45 | Users table ว่าง | ไม่ได้ insert Prem ตอน setup ครั้งแรก | INSERT chat_id=7731591925 status=approved |
+| 00:50 | Postgres auth fail (ซ้ำ 4 ครั้ง) | n8n credential encrypt ด้วย password เก่า — ไม่มี sync script | สร้าง `scripts/fix_credentials.py` + รันใน health_check.sh |
+| 01:00 | coprem-cloudflared-1 wrong network | container เก่า (coprem_ prefix) อยู่คนละ network กับ 03-system_ | docker stop coprem-cloudflared-1 |
+| 01:10 | Telegram 403 secret invalid | n8n 2.22.5 Telegram Trigger มี bug — validate secret แม้ไม่ได้ set | เปลี่ยนจาก Telegram Trigger → plain Webhook node (`/webhook/telegram-coprem`) |
+| 01:10 | Telegram webhook UUID เปลี่ยนทุก restart | n8n re-register webhook ด้วย UUID ใหม่ทุกครั้ง | ใช้ fixed path `/telegram-coprem` แทน UUID |
+| 01:15 | n8n PUT API ไม่ create published version | n8n 2.22.5 ต้องใช้ DELETE+POST ไม่ใช่ PUT | ลบแล้วสร้างใหม่ทุกครั้งที่แก้ workflow |
+| 01:20 | LiteLLM volume path ผิด | `./03-system/litellm` resolve ผิดเมื่อรันจาก root | เปลี่ยนเป็น `./litellm` (relative to docker-compose.yml) |
+
+## RULE VIOLATION LOG
+
+| Rule | Violation | Consequence |
+|---|---|---|
+| Instant Problem Log Rule | ไม่ log ทันทีหลังแก้ปัญหาตลอด session | Prem ต้องถามถึงจะบันทึก |
+
