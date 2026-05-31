@@ -63,4 +63,16 @@ docker exec 03-system-postgres-1 psql -U coprem -d coprem_os -t -c \
    ON CONFLICT (chat_id) DO NOTHING;" > /dev/null 2>&1
 log "Prem user: ✅ ensured"
 
+# 7. Start Ollama (Tier 3 local fallback) if not running
+if ! pgrep -x ollama > /dev/null 2>&1; then
+  log "Starting Ollama..."
+  nohup ollama serve > /tmp/ollama.log 2>&1 &
+  sleep 3
+fi
+if curl -sf http://localhost:11434/api/tags > /dev/null 2>&1; then
+  log "Ollama: ✅ running (llama3.1:8b + qwen2.5:7b)"
+else
+  log "Ollama: ⚠️  not reachable"
+fi
+
 log "post_restart complete ✅"

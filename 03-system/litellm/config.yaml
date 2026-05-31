@@ -72,6 +72,17 @@ model_list:
       model: groq/llama-3.3-70b-versatile
       api_key: os.environ/GROQ_API_KEY
 
+  # ── Ollama Tier 3 — local Mac M5 ─────────────────────────────
+  - model_name: ollama/llama3.1
+    litellm_params:
+      model: ollama/llama3.1:8b
+      api_base: http://host.docker.internal:11434
+
+  - model_name: ollama/qwen
+    litellm_params:
+      model: ollama/qwen2.5:7b
+      api_base: http://host.docker.internal:11434
+
 router_settings:
   routing_strategy: least-busy
   retry_after: 60
