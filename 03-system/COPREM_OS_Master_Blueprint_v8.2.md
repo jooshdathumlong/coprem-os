@@ -953,3 +953,34 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 - Immediate (Week 5): Factor XI JSON log sink, event_type taxonomy migration, git-secrets CI, DB migration files
 - Month 2: Agent eval script, SLO tracking tab, Dependabot, log integrity hash chain
 - Month 3: Next.js dashboard (MVC), first Chaos experiment, Supabase Edge Functions for WF10
+
+## Part 15 — Build Log v3.2.3 (2026-05-31)
+
+### Session Summary
+**Agent:** Jeff | **Pillar:** JOB | **Time:** 21:50–22:20
+
+### Completed
+| # | Action | Result |
+|---|---|---|
+| 1 | Migration 006 pgvector | ✅ memory_embeddings table live in coprem_os |
+| 2 | WF09 Automated Backup | ✅ imported + fixed code node + activated (cron Sun 03:00) |
+| 3 | WF07 Feedback Collector | ✅ activated — L5 fully live |
+| 4 | .env updated | ✅ POSTGRES_PASSWORD, N8N_ENCRYPTION_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, CLOUDFLARE_TUNNEL_TOKEN, GEMINI_API_KEY |
+| 5 | temp_fix_all_creds.py | ✅ deleted |
+| 6 | SYSTEM_STATE.md | ✅ overwritten with clean state |
+
+### Fixes Applied
+- WF09 code node: `.first()` → `getRows()` with try/catch (empty result safety)
+- WF09 Log Backup: column names fixed to match system_log schema
+- WF09 Notify Backup Done: TELEGRAM_CHAT_ID hardcoded (7731591925)
+
+### State at Session End
+- All 15 main workflows active ✅
+- L3 pgvector live ✅
+- L5 fully live ✅
+- L6: 10/11 (WF09 added)
+- Dify: DOWN — monitor next session
+
+### Pending
+- health_check.sh fix (n8n returns HTML)
+- Dify cloud status verify
