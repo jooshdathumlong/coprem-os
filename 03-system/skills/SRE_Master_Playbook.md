@@ -104,3 +104,24 @@ Every new DB column must have an inline SQL comment on creation.
 ALTER TABLE inbox_log ADD COLUMN lang_detected TEXT; -- ISO 639-1 code: 'th', 'en'
 ```
 Future AI agents must be able to understand schema without external docs.
+
+---
+
+## SECTION Rule 26 — Recovery Targets (NIST CSF)
+Before starting any repair, identify the priority tier and its RTO/RPO.
+If repair time will exceed RTO → STOP immediately and escalate to เปรม. Do not attempt a 4th strike.
+
+| Priority | Failure Scenario | RTO | RPO | Recovery Path |
+|----------|-----------------|-----|-----|---------------|
+| P1 | L1 Router / n8n down | 5 min | 0 (stateless) | Tier 3 Ollama auto-activates |
+| P2 | Vector DB / Supabase down | 2 min | Last KB sync | Keyword fallback in L1-B |
+| P3 | Individual workflow failure | 10 min | Last STATUS.md entry | DLQ Processor auto-retry |
+| P4 | Dify.ai agent unavailable | 3 min | 0 | Model failover in Provider Router |
+| P5 | Data breach / key leak | 30 min | Last audit_log snapshot | Key rotation + blocked_ips update |
+
+NIST CSF mapping:
+- Identify: audit_log + asset inventory
+- Protect: API key vault + scoped SA + pre-commit hook
+- Detect: L8 error rate + Health Ping (WF-06) + cost alerts
+- Respond: DLQ escalation + coprem.killswitch()
+- Recover: coprem.rollback() + this table
