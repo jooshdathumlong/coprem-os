@@ -1,8 +1,8 @@
 {
-  "updatedAt": "2026-05-30T22:26:36.738Z",
+  "updatedAt": "2026-05-31T03:00:16.062Z",
   "createdAt": "2026-05-30T22:25:22.775Z",
   "id": "OTZhayuBBmCOO2CA",
-  "name": "WF01 — Inbox Receiver (Single Entry)",
+  "name": "WF01 \u2014 Inbox Receiver (Single Entry)",
   "description": null,
   "active": true,
   "isArchived": false,
@@ -54,8 +54,8 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "226PbeVgki0neEi4",
-          "name": "Postgres COPREM"
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
         }
       },
       "parameters": {
@@ -130,8 +130,8 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "226PbeVgki0neEi4",
-          "name": "Postgres COPREM"
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
         }
       },
       "parameters": {
@@ -156,7 +156,7 @@
       },
       "parameters": {
         "chatId": "7731591925",
-        "text": "=🔔 New Registration\n\nName: {{ $('L1-A Preprocessor').item.json.firstName }}\nUsername: @{{ $('L1-A Preprocessor').item.json.username }}\nChat ID: {{ $('L1-A Preprocessor').item.json.chatId }}\n\nReply:\nAPPROVE {{ $('L1-A Preprocessor').item.json.chatId }}\nor REJECT {{ $('L1-A Preprocessor').item.json.chatId }}"
+        "text": "=\ud83d\udd14 New Registration\n\nName: {{ $('L1-A Preprocessor').item.json.firstName }}\nUsername: @{{ $('L1-A Preprocessor').item.json.username }}\nChat ID: {{ $('L1-A Preprocessor').item.json.chatId }}\n\nReply:\nAPPROVE {{ $('L1-A Preprocessor').item.json.chatId }}\nor REJECT {{ $('L1-A Preprocessor').item.json.chatId }}"
       },
       "webhookId": "7015995c-8e4c-47bd-8a5e-12aab6bc71aa"
     },
@@ -177,7 +177,7 @@
       },
       "parameters": {
         "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
-        "text": "✅ ได้รับคำขอแล้วครับ กรุณารอการอนุมัติจาก Jeff"
+        "text": "\u2705 \u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e04\u0e33\u0e02\u0e2d\u0e41\u0e25\u0e49\u0e27\u0e04\u0e23\u0e31\u0e1a \u0e01\u0e23\u0e38\u0e13\u0e32\u0e23\u0e2d\u0e01\u0e32\u0e23\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e08\u0e32\u0e01 Jeff"
       },
       "webhookId": "b35a1b80-4e15-4172-9d3b-f7394b8b91fc"
     },
@@ -205,8 +205,8 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "226PbeVgki0neEi4",
-          "name": "Postgres COPREM"
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
         }
       },
       "parameters": {
@@ -231,7 +231,7 @@
       },
       "parameters": {
         "chatId": "={{ $json.chat_id }}",
-        "text": "={{ $json.status === 'approved' ? '✅ ได้รับอนุมัติแล้วครับ! ส่งข้อความมาได้เลย' : '❌ ขออภัย คำขอถูกปฏิเสธครับ' }}"
+        "text": "={{ $json.status === 'approved' ? '\u2705 \u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e41\u0e25\u0e49\u0e27\u0e04\u0e23\u0e31\u0e1a! \u0e2a\u0e48\u0e07\u0e02\u0e49\u0e2d\u0e04\u0e27\u0e32\u0e21\u0e21\u0e32\u0e44\u0e14\u0e49\u0e40\u0e25\u0e22' : '\u274c \u0e02\u0e2d\u0e2d\u0e20\u0e31\u0e22 \u0e04\u0e33\u0e02\u0e2d\u0e16\u0e39\u0e01\u0e1b\u0e0f\u0e34\u0e40\u0e2a\u0e18\u0e04\u0e23\u0e31\u0e1a' }}"
       },
       "webhookId": "703db362-648a-472a-b324-a032c7c33c88"
     },
@@ -246,8 +246,8 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "226PbeVgki0neEi4",
-          "name": "Postgres COPREM"
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
         }
       },
       "parameters": {
@@ -324,7 +324,7 @@
         520
       ],
       "parameters": {
-        "jsCode": "const data = $input.first().json;\nlet reply = data.answer || data.text || 'ขออภัย ไม่สามารถตอบได้ตอนนี้ครับ';\nif (reply.length > 4096) reply = reply.substring(0, 4090) + '...[ต่อ]';\nconst agent = data.metadata?.usage ? 'dify' : 'unknown';\nreturn [{ json: { reply, agent } }];"
+        "jsCode": "const data = $input.first().json;\nlet reply = data.answer || data.text || '\u0e02\u0e2d\u0e2d\u0e20\u0e31\u0e22 \u0e44\u0e21\u0e48\u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e15\u0e2d\u0e1a\u0e44\u0e14\u0e49\u0e15\u0e2d\u0e19\u0e19\u0e35\u0e49\u0e04\u0e23\u0e31\u0e1a';\nif (reply.length > 4096) reply = reply.substring(0, 4090) + '...[\u0e15\u0e48\u0e2d]';\nconst agent = data.metadata?.usage ? 'dify' : 'unknown';\nreturn [{ json: { reply, agent } }];"
       }
     },
     {
@@ -359,8 +359,8 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "226PbeVgki0neEi4",
-          "name": "Postgres COPREM"
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
         }
       },
       "parameters": {
@@ -385,9 +385,77 @@
       },
       "parameters": {
         "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
-        "text": "❌ คุณยังไม่ได้รับอนุมัติครับ กรุณาส่ง /start เพื่อสมัครก่อน"
+        "text": "\u274c \u0e04\u0e38\u0e13\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e04\u0e23\u0e31\u0e1a \u0e01\u0e23\u0e38\u0e13\u0e32\u0e2a\u0e48\u0e07 /start \u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e2a\u0e21\u0e31\u0e04\u0e23\u0e01\u0e48\u0e2d\u0e19"
       },
       "webhookId": "6d11859e-5938-4aa4-9946-f72d5e3efdd8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/session-read",
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "channel_type",
+              "value": "telegram"
+            },
+            {
+              "name": "channel_id",
+              "value": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ $('Telegram Trigger').item.json.message.from.id }}"
+            },
+            {
+              "name": "user_message",
+              "value": "={{ $('L1-A Preprocessor').item.json.content_clean }}"
+            }
+          ]
+        }
+      },
+      "id": "l15-read",
+      "name": "L1.5 \u2014 Read Session Context",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/session-write",
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "session_key",
+              "value": "=session:telegram:{{ $('Telegram Trigger').item.json.message.chat.id }}:{{ $('Telegram Trigger').item.json.message.from.id }}"
+            },
+            {
+              "name": "user_message",
+              "value": "={{ $('L1-A Preprocessor').item.json.content_clean }}"
+            },
+            {
+              "name": "agent_reply",
+              "value": "={{ $('L2.5 Normalize Output').item.json.reply_text }}"
+            }
+          ]
+        }
+      },
+      "id": "l15-write",
+      "name": "L1.5 \u2014 Write Session Turn",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2300,
+        520
+      ]
     }
   ],
   "connections": {
@@ -502,7 +570,7 @@
       "main": [
         [
           {
-            "node": "Dify Smart Router",
+            "node": "L1.5 \u2014 Read Session Context",
             "type": "main",
             "index": 0
           }
@@ -542,6 +610,28 @@
       "main": [
         [
           {
+            "node": "L1.5 \u2014 Write Session Turn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1.5 \u2014 Read Session Context": {
+      "main": [
+        [
+          {
+            "node": "Dify Smart Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1.5 \u2014 Write Session Turn": {
+      "main": [
+        [
+          {
             "node": "Log to Inbox",
             "type": "main",
             "index": 0
@@ -550,13 +640,15 @@
       ]
     }
   },
-  "settings": null,
+  "settings": {
+    "executionOrder": "v1"
+  },
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "fa007fa0-13aa-466c-95d6-e95b647f0b87",
-  "activeVersionId": "fa007fa0-13aa-466c-95d6-e95b647f0b87",
-  "versionCounter": 1,
+  "versionId": "6d751ec1-3bfe-40f0-9038-d91ec01f1782",
+  "activeVersionId": "6d751ec1-3bfe-40f0-9038-d91ec01f1782",
+  "versionCounter": 3,
   "triggerCount": 1,
   "shared": [
     {
@@ -578,11 +670,10 @@
     }
   ],
   "tags": [],
-  "parentFolder": null,
   "activeVersion": {
-    "updatedAt": "2026-05-30T22:25:22.775Z",
-    "createdAt": "2026-05-30T22:25:22.775Z",
-    "versionId": "fa007fa0-13aa-466c-95d6-e95b647f0b87",
+    "updatedAt": "2026-05-31T03:00:16.064Z",
+    "createdAt": "2026-05-31T03:00:16.064Z",
+    "versionId": "6d751ec1-3bfe-40f0-9038-d91ec01f1782",
     "workflowId": "OTZhayuBBmCOO2CA",
     "nodes": [
       {
@@ -632,8 +723,8 @@
         ],
         "credentials": {
           "postgres": {
-            "id": "226PbeVgki0neEi4",
-            "name": "Postgres COPREM"
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
           }
         },
         "parameters": {
@@ -708,8 +799,8 @@
         ],
         "credentials": {
           "postgres": {
-            "id": "226PbeVgki0neEi4",
-            "name": "Postgres COPREM"
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
           }
         },
         "parameters": {
@@ -734,7 +825,7 @@
         },
         "parameters": {
           "chatId": "7731591925",
-          "text": "=🔔 New Registration\n\nName: {{ $('L1-A Preprocessor').item.json.firstName }}\nUsername: @{{ $('L1-A Preprocessor').item.json.username }}\nChat ID: {{ $('L1-A Preprocessor').item.json.chatId }}\n\nReply:\nAPPROVE {{ $('L1-A Preprocessor').item.json.chatId }}\nor REJECT {{ $('L1-A Preprocessor').item.json.chatId }}"
+          "text": "=\ud83d\udd14 New Registration\n\nName: {{ $('L1-A Preprocessor').item.json.firstName }}\nUsername: @{{ $('L1-A Preprocessor').item.json.username }}\nChat ID: {{ $('L1-A Preprocessor').item.json.chatId }}\n\nReply:\nAPPROVE {{ $('L1-A Preprocessor').item.json.chatId }}\nor REJECT {{ $('L1-A Preprocessor').item.json.chatId }}"
         },
         "webhookId": "7015995c-8e4c-47bd-8a5e-12aab6bc71aa"
       },
@@ -755,7 +846,7 @@
         },
         "parameters": {
           "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
-          "text": "✅ ได้รับคำขอแล้วครับ กรุณารอการอนุมัติจาก Jeff"
+          "text": "\u2705 \u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e04\u0e33\u0e02\u0e2d\u0e41\u0e25\u0e49\u0e27\u0e04\u0e23\u0e31\u0e1a \u0e01\u0e23\u0e38\u0e13\u0e32\u0e23\u0e2d\u0e01\u0e32\u0e23\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e08\u0e32\u0e01 Jeff"
         },
         "webhookId": "b35a1b80-4e15-4172-9d3b-f7394b8b91fc"
       },
@@ -783,8 +874,8 @@
         ],
         "credentials": {
           "postgres": {
-            "id": "226PbeVgki0neEi4",
-            "name": "Postgres COPREM"
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
           }
         },
         "parameters": {
@@ -809,7 +900,7 @@
         },
         "parameters": {
           "chatId": "={{ $json.chat_id }}",
-          "text": "={{ $json.status === 'approved' ? '✅ ได้รับอนุมัติแล้วครับ! ส่งข้อความมาได้เลย' : '❌ ขออภัย คำขอถูกปฏิเสธครับ' }}"
+          "text": "={{ $json.status === 'approved' ? '\u2705 \u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e41\u0e25\u0e49\u0e27\u0e04\u0e23\u0e31\u0e1a! \u0e2a\u0e48\u0e07\u0e02\u0e49\u0e2d\u0e04\u0e27\u0e32\u0e21\u0e21\u0e32\u0e44\u0e14\u0e49\u0e40\u0e25\u0e22' : '\u274c \u0e02\u0e2d\u0e2d\u0e20\u0e31\u0e22 \u0e04\u0e33\u0e02\u0e2d\u0e16\u0e39\u0e01\u0e1b\u0e0f\u0e34\u0e40\u0e2a\u0e18\u0e04\u0e23\u0e31\u0e1a' }}"
         },
         "webhookId": "703db362-648a-472a-b324-a032c7c33c88"
       },
@@ -824,8 +915,8 @@
         ],
         "credentials": {
           "postgres": {
-            "id": "226PbeVgki0neEi4",
-            "name": "Postgres COPREM"
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
           }
         },
         "parameters": {
@@ -902,7 +993,7 @@
           520
         ],
         "parameters": {
-          "jsCode": "const data = $input.first().json;\nlet reply = data.answer || data.text || 'ขออภัย ไม่สามารถตอบได้ตอนนี้ครับ';\nif (reply.length > 4096) reply = reply.substring(0, 4090) + '...[ต่อ]';\nconst agent = data.metadata?.usage ? 'dify' : 'unknown';\nreturn [{ json: { reply, agent } }];"
+          "jsCode": "const data = $input.first().json;\nlet reply = data.answer || data.text || '\u0e02\u0e2d\u0e2d\u0e20\u0e31\u0e22 \u0e44\u0e21\u0e48\u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e15\u0e2d\u0e1a\u0e44\u0e14\u0e49\u0e15\u0e2d\u0e19\u0e19\u0e35\u0e49\u0e04\u0e23\u0e31\u0e1a';\nif (reply.length > 4096) reply = reply.substring(0, 4090) + '...[\u0e15\u0e48\u0e2d]';\nconst agent = data.metadata?.usage ? 'dify' : 'unknown';\nreturn [{ json: { reply, agent } }];"
         }
       },
       {
@@ -937,8 +1028,8 @@
         ],
         "credentials": {
           "postgres": {
-            "id": "226PbeVgki0neEi4",
-            "name": "Postgres COPREM"
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
           }
         },
         "parameters": {
@@ -963,9 +1054,77 @@
         },
         "parameters": {
           "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
-          "text": "❌ คุณยังไม่ได้รับอนุมัติครับ กรุณาส่ง /start เพื่อสมัครก่อน"
+          "text": "\u274c \u0e04\u0e38\u0e13\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e04\u0e23\u0e31\u0e1a \u0e01\u0e23\u0e38\u0e13\u0e32\u0e2a\u0e48\u0e07 /start \u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e2a\u0e21\u0e31\u0e04\u0e23\u0e01\u0e48\u0e2d\u0e19"
         },
         "webhookId": "6d11859e-5938-4aa4-9946-f72d5e3efdd8"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://localhost:5678/webhook/session-read",
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "channel_type",
+                "value": "telegram"
+              },
+              {
+                "name": "channel_id",
+                "value": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+              },
+              {
+                "name": "user_id",
+                "value": "={{ $('Telegram Trigger').item.json.message.from.id }}"
+              },
+              {
+                "name": "user_message",
+                "value": "={{ $('L1-A Preprocessor').item.json.content_clean }}"
+              }
+            ]
+          }
+        },
+        "id": "l15-read",
+        "name": "L1.5 \u2014 Read Session Context",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1520,
+          520
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://localhost:5678/webhook/session-write",
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "session_key",
+                "value": "=session:telegram:{{ $('Telegram Trigger').item.json.message.chat.id }}:{{ $('Telegram Trigger').item.json.message.from.id }}"
+              },
+              {
+                "name": "user_message",
+                "value": "={{ $('L1-A Preprocessor').item.json.content_clean }}"
+              },
+              {
+                "name": "agent_reply",
+                "value": "={{ $('L2.5 Normalize Output').item.json.reply_text }}"
+              }
+            ]
+          }
+        },
+        "id": "l15-write",
+        "name": "L1.5 \u2014 Write Session Turn",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          2300,
+          520
+        ]
       }
     ],
     "connections": {
@@ -1080,7 +1239,7 @@
         "main": [
           [
             {
-              "node": "Dify Smart Router",
+              "node": "L1.5 \u2014 Read Session Context",
               "type": "main",
               "index": 0
             }
@@ -1120,6 +1279,28 @@
         "main": [
           [
             {
+              "node": "L1.5 \u2014 Write Session Turn",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "L1.5 \u2014 Read Session Context": {
+        "main": [
+          [
+            {
+              "node": "Dify Smart Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "L1.5 \u2014 Write Session Turn": {
+        "main": [
+          [
+            {
               "node": "Log to Inbox",
               "type": "main",
               "index": 0
@@ -1132,22 +1313,23 @@
     "name": null,
     "description": null,
     "autosaved": false,
-    "workflowPublishHistory": []
-  },
-  "scopes": [
-    "workflow:create",
-    "workflow:delete",
-    "workflow:execute",
-    "workflow:execute-chat",
-    "workflow:list",
-    "workflow:move",
-    "workflow:publish",
-    "workflow:read",
-    "workflow:share",
-    "workflow:unpublish",
-    "workflow:unshare",
-    "workflow:update",
-    "workflow:updateRedactionSetting"
-  ],
-  "checksum": "dab39248241d81625293324100b402c59a8b4203f1b8cb060d83b8f9724e5e64"
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-31T03:00:16.780Z",
+        "id": 8,
+        "workflowId": "OTZhayuBBmCOO2CA",
+        "versionId": "6d751ec1-3bfe-40f0-9038-d91ec01f1782",
+        "event": "deactivated",
+        "userId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      },
+      {
+        "createdAt": "2026-05-31T03:00:18.067Z",
+        "id": 9,
+        "workflowId": "OTZhayuBBmCOO2CA",
+        "versionId": "6d751ec1-3bfe-40f0-9038-d91ec01f1782",
+        "event": "activated",
+        "userId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      }
+    ]
+  }
 }
