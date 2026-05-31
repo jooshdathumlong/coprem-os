@@ -244,3 +244,8 @@ GitHub CI  → coprem-mac runner
 | 23:00 | health_check.sh n8n | ✅ working correctly (HTML issue was already fixed) |
 | 23:30 | Gemini key rotation | ✅ 5 keys ใน .env + gemini_router.py (key+model rotation, daily/RPM detect) |
 | 23:30 | N8N_API_KEY | ✅ บันทึกใน .env แล้ว |
+
+| 23:50 | WF L1-C — ทดสอบ workflow | ✅ Select Model + Log to Audit ผ่าน — Dify หยุดที่ 405 (key placeholder) |
+| 23:50 | n8n credential fix | ✅ reset pg password + update encrypted credential |
+| 23:50 | N8N_BLOCK_ENV_ACCESS_IN_NODE | ✅ เพิ่มใน docker-compose เพื่อให้ $env ทำงานใน Code node |
+| 23:50 | WF L1-C new ID | ✅ 4kUNH6gYNQxg3VN1 (re-imported เพราะ n8n 2.22.5 publish version issue) |
