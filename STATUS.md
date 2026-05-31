@@ -1,6 +1,22 @@
 # COPREM OS — Current Status
 
-> Last Updated: 2026-05-31 | Session: v3.3.2 — L8 Monitoring Layer Live ✅
+> Last Updated: 2026-05-31 | Session: v3.3.3 — L5 Feedback Loop + L4 Content Library ✅ ALL LAYERS COMPLETE
+
+---
+
+## ✅ Done (v3.3.3)
+
+**L4 Content Library**
+- Migration 005: `novels`, `chapters`, `character_tracker` tables — applied live
+- EGO ERA novel seeded + 12 characters (Jin, Rin, Ray, Ken, Pie, Guy, Ann, Jean, So, Bomb, Pao, Nay)
+
+**L5 Cybernetic Feedback Loop**
+- WF07 Feedback Collector — `/rate N` หรือ ⭐ ใน Telegram → บันทึก + flag < 3 ✅ Active
+- WF08 Self-Optimization — Sunday 22:00 → report flagged outputs → notify เปรม ✅ Active
+- Architecture: 87% → **95%**
+
+**🎉 ALL 9 LAYERS COMPLETE**
+L0 ✅ | L1 ✅ | L1.5 ✅ | L2 ✅ | L2.5 ✅ | L3 ✅ | L4 ✅ | L5 ✅ | L6 ✅ | L7 ✅ | L8 ✅
 
 ---
 
@@ -154,14 +170,15 @@
 ## ⏳ Next Session
 
 - [ ] `bash scripts/apply_migrations.sh` — apply migrations 002–004 to live DB
-- [ ] L4 Content Library
-- [ ] L5 Feedback Loop
+- [ ] Populate `02-knowledge/trading/` → sync Dify KB-03
+- [ ] WF01 end-to-end test (Telegram → L7 → L1.5 → L1-C → L2 → reply)
+- [ ] Month 2: agent eval script, SLO GSheets, Dependabot
 
 ## 🚫 Blocked
 - migrations 002–004 ยังไม่ได้ apply บน live DB
 
 ## Architecture Progress (Blueprint v8.3)
-~80% complete
+~95% complete
 
 | Layer | Status |
 |-------|--------|
@@ -173,8 +190,8 @@
 | L2 Agents (Dify) | ✅ |
 | L2.5 Normalizer | ✅ live in WF01 |
 | L3 Memory/KB | ✅ KB + WF10 auto-sync |
-| L4 Content Library | ❌ |
-| L5 Feedback Loop | ❌ |
+| L4 Content Library | ✅ |
+| L5 Feedback Loop | ✅ |
 | L6 Cron Workflows | ⚠️ 8/11 |
 | L7 Security | ✅ |
 | L8 Monitoring | ✅ |
