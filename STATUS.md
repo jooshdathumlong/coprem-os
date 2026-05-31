@@ -1,15 +1,40 @@
 # COPREM OS — Current Status
 
-> Last Updated: 2026-05-31 | Session: v3.1.2 — Architecture + DB + CI/CD
+> Last Updated: 2026-05-31 | Session: v3.2.2 — v8.3 Compliance Gaps Closed (5/5)
 
 ---
 
-## ✅ Done (v3.1.2)
+## ✅ Done (v3.2.2)
+
+**v8.3 Compliance Gaps — All 5 Closed**
+- `db/migrations/` created — 001 core tables, 002 event_type CHECK, 003 query_log, 004 system_log (§12 IaC)
+- `.env.example` added + `.gitignore` negation rule (§11 Config as Code)
+- `pr-check.yml` upgraded — secrets scan + .env.example key check (§11 Shift-Left Security)
+- `SRE_Master_Playbook.md` Rule 26 — P1–P5 RTO/RPO table (§11 Recovery Targets NIST CSF)
+- `03-system/agents/prompts.md` — DDD domain boundary added to all 4 agents (§1 DDD)
+- commits: `feat(system)` + `feat(agents)`
+
+---
+
+## ✅ Done (v3.2.1)
+
+**System Upgrade**
+- `CLAUDE.md` upgraded v8.2 → v8.3 (§1 DDD, §4 DICE pre-scoring + Reliability Budget, §11 Blast Radius/Shift-Left/ZeroTrust/CQRS/IaC/RTO, §12 migrations, §13 Event Log)
+- `02-knowledge/COPREM_OS_24_Frameworks_v1_1.md` added — 24 framework mappings, Priority Matrix, Framework Interaction Map
+- `INDEX.md` updated — frameworks file registered as L3 grep-only
+- commit: `docs(system): upgrade COPREM OS v8.2 → v8.3 + 24 Frameworks v1.1`
+
+---
+
+## ✅ Done (v3.2.0)
 
 **Infrastructure**
 - Docker: n8n + Postgres (coprem + coprem_os) + Redis + Cloudflared
 - GitHub Actions: runner + deploy (smoke test + rollback) + health + backup + pr-check
 - Mac auto-start via launchd
+- Branch Protection: `validate` status check required on main
+- Pre-commit hook: portable via `scripts/hooks/` — blocks Thai in system files
+- New machine onboarding: `sh scripts/setup.sh`
 
 **Database**
 - `coprem` → n8n internal only
@@ -18,46 +43,52 @@
 **Dify.ai**
 - KB-01–05 + 4 Agents (Smart Router, Jeff, Eilinaire, Ego Era)
 
-**n8n Workflows (active)**
+**n8n Workflows (active / ready to import)**
 - WF01 — Inbox Receiver Single Entry (Telegram → L1-A → Route → Dify → L2.5 → Log)
-- WF02 — Morning Brief (07:00 daily)
-- WF03 — Market Pulse Scanner (every 6h, placeholder score)
-- WF04 — Weekly OKR Review (Sunday 20:00)
+- WF02 — Morning Brief (07:00 daily) — queries task_board + inbox_log + okr_scoreboard
+- WF03 — Market Pulse Scanner (every 6h) — logs to market_signal_log
+- WF04 — Weekly OKR Review (Sunday 20:00) — queries okr_scoreboard by quarter
+- WF05 — HITL Decision Saver (Webhook → DB → Telegram notify)
 - WF06 — Health Ping (every 6h)
+- WF10 — KB Sync Auto-Librarian (file → KB zone → Dify re-embed)
+- WF11 — DLQ Processor (every 4h → retry → quarantine → killswitch warning)
+- WF L1-C — Provider Router (model matrix + fallback chain + rate_limit_registry)
 
-**CLAUDE.md**
-- 11 numbered sections: Routing, DNA, Rules, HITL, Paths, CLI, Reporting, Context Pyramid, File Standards, Execution, Idempotency
+**CLAUDE.md v2**
+- 12 sections, 25 laws (Rule 11: 18 execution guards)
+- DICE prioritization framework with Score threshold
+- Skill Vault: `03-system/skills/SRE_Master_Playbook.md` (rules 16–25)
 
 ---
 
 ## ⏳ Next Session
 
 - [ ] Test WF01 full flow: /start → approve → chat → Dify reply (after 08:00 Gemini)
-- [ ] Update WF02/WF03/WF04 queries → use real tables in coprem_os
-- [ ] Add `validate` status check to Branch Protection (after pr-check runs)
-- [ ] WF05 HITL Decision Saver
-- [ ] WF11 DLQ Processor
+- [ ] Import WF03/05/10/11/L1-C into n8n + set credentials
 - [ ] L1.5 Session Context Manager (Redis)
+- [ ] L4 Content Library
+- [ ] L7 Security Layer
+- [ ] L8 Monitoring Layer
 
 ## 🚫 Blocked
 - Gemini quota resets 08:00 daily
 
 ## Architecture Progress (Blueprint v8.2)
-~35% complete
+~55% complete
 
 | Layer | Status |
 |-------|--------|
 | L0 Telegram Inbox | ✅ |
 | L1-A Preprocessor | ✅ live in WF01 |
 | L1-B Smart Router | ✅ Dify connected |
-| L1-C Provider Router | ❌ |
+| L1-C Provider Router | ✅ WF built |
 | L1.5 Session Manager | ❌ |
 | L2 Agents (Dify) | ✅ |
 | L2.5 Normalizer | ✅ live in WF01 |
-| L3 Memory/KB | ⚠️ KB only |
+| L3 Memory/KB | ✅ KB + WF10 auto-sync |
 | L4 Content Library | ❌ |
 | L5 Feedback Loop | ❌ |
-| L6 Cron Workflows | ⚠️ 5/11 |
+| L6 Cron Workflows | ⚠️ 8/11 |
 | L7 Security | ❌ |
 | L8 Monitoring | ❌ |
 

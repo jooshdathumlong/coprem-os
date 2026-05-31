@@ -1,0 +1,203 @@
+{
+  "name": "WF L1-C — Provider Router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "l1c-route",
+        "responseMode": "responseNode"
+      },
+      "id": "5bb24b5f-d1da-4950-a9b1-d6da2b109492",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT provider, is_throttled FROM rate_limit_registry WHERE is_throttled = true;"
+      },
+      "id": "3d81d0ea-98f7-4bd8-84c2-9433bbcfa267",
+      "name": "Check Rate Limits",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres COPREM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst MATRIX = {\n  'CREATIVE':       { primary: 'claude-sonnet-4-6',  fallback: 'gpt-4o' },\n  'PERSONAL':       { primary: 'claude-sonnet-4-6',  fallback: 'gpt-4o' },\n  'JOB.marketing':  { primary: 'gemini-1.5-flash',   fallback: 'gpt-4o-mini' },\n  'JOB.ops':        { primary: 'gemini-1.5-flash',   fallback: 'gpt-4o-mini' },\n  'Long-context':   { primary: 'gemini-1.5-pro',     fallback: 'claude-sonnet-4-6' },\n  'default':        { primary: 'gemini-1.5-flash',   fallback: 'ollama/llama3.1' }\n};\nconst FALLBACK_CHAIN = [\n  'claude-sonnet-4-6','gpt-4o','gemini-1.5-pro','gemini-1.5-flash','ollama/llama3.1'\n];\nconst AGENT_MAP = { JOB: 'jeff', PERSONAL: 'eilinaire', CREATIVE: 'ego_era' };\n\nconst input     = $input.first().json;\nconst pillar    = (input.pillar || 'default').toUpperCase();\nconst reduced   = input.reduced_mode === true;\nconst throttled = {};\n\n// Build throttle map from rate_limit_registry results\nfor (const row of $('Check Rate Limits').all()) {\n  if (row.json.is_throttled) throttled[row.json.provider] = true;\n}\n\nconst matrixKey = Object.keys(MATRIX).find(k => pillar.startsWith(k.toUpperCase())) || 'default';\nlet { primary, fallback } = MATRIX[matrixKey];\n\n// Walk fallback chain if throttled\nlet selectedModel = reduced ? 'gemini-1.5-flash' : primary;\nif (throttled[selectedModel]) {\n  selectedModel = FALLBACK_CHAIN.find(m => !throttled[m]) || 'ollama/llama3.1';\n}\n\nconst topPillar = pillar.split('.')[0];\nconst assignedAgent = AGENT_MAP[topPillar] || 'jeff';\n\nreturn [{ json: {\n  assigned_agent:  assignedAgent,\n  selected_model:  selectedModel,\n  pillar:          pillar,\n  reduced_mode:    reduced,\n  message:         input.message || '',\n  routed_at:       new Date().toISOString()\n}}];\n"
+      },
+      "id": "0bc9f5b9-56f5-4767-a8af-5ec101ec9961",
+      "name": "Select Model",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO audit_log (event_type, source, payload) VALUES ('MODEL_SELECT', 'L1-C', '{\"model\":\"{{ $json.selected_model }}\",\"agent\":\"{{ $json.assigned_agent }}\",\"pillar\":\"{{ $json.pillar }}\"}');"
+      },
+      "id": "b735952f-3f30-4390-973d-75f83e3bc5a4",
+      "name": "Log to Audit",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        720,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres COPREM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.dify.ai/v1/chat-messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.DIFY_API_KEY }}"
+            },
+            {
+              "name": "X-Model-Override",
+              "value": "={{ $json.selected_model }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "inputs",
+              "value": "={}"
+            },
+            {
+              "name": "query",
+              "value": "={{ $json.message }}"
+            },
+            {
+              "name": "response_mode",
+              "value": "blocking"
+            },
+            {
+              "name": "user",
+              "value": "={{ $json.assigned_agent }}"
+            }
+          ]
+        }
+      },
+      "id": "0c470e23-cba3-477b-861d-092f743d70dd",
+      "name": "Route to Dify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"assigned_agent\":\"{{ $('Select Model').item.json.assigned_agent }}\",\"selected_model\":\"{{ $('Select Model').item.json.selected_model }}\",\"routed_at\":\"{{ $('Select Model').item.json.routed_at }}\",\"dify_reply\":\"{{ $json.answer }}\"}"
+      },
+      "id": "94a82de0-c478-421c-a139-467c47d27b55",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Rate Limits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Rate Limits": {
+      "main": [
+        [
+          {
+            "node": "Select Model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Model": {
+      "main": [
+        [
+          {
+            "node": "Log to Audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to Audit": {
+      "main": [
+        [
+          {
+            "node": "Route to Dify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route to Dify": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "authors": "Jeff / COPREM OS v8.2"
+  }
+}

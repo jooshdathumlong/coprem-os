@@ -87,3 +87,7 @@ Next.js dashboard (localhost:3000) — not yet built.
 | `03-system/database/schemas.sql` | All 15 DB table definitions |
 | `03-system/docker-compose.yml` | Docker stack config |
 | `.env` | API keys (never commit secrets) |
+| `03-system/skills/SRE_Master_Playbook.md` | Advanced tactical rules 16–25 (DB, API, security, ops) |
+| `02-knowledge/COPREM_OS_24_Frameworks_v1_1.md` | Architecture backlog — 24 framework mappings, Priority Matrix, Framework Interaction Map | L3 grep-only |
+| `db/migrations/` | Numbered idempotent DB migrations (001–004) — source of truth for schema |
+| `.env.example` | Env var template for new machine setup — all keys, no real values |
