@@ -1,4 +1,4 @@
-## SYSTEM_STATE — 2026-06-01 04:01
+## SYSTEM_STATE — 2026-06-01 04:02
 | n8n | UP |  |
 | postgres | UP |  |
 | redis | UP | PONG |
@@ -6,4 +6,4 @@
 | dify | UP |  |
 | Postgres auth | OK |
 | WEBHOOK_URL | OK | https://n8n.peabuntid.com |
-| Telegram webhook | MISSING |
+| Telegram webhook | OK |
