@@ -144,6 +144,10 @@ case "${1:-help}" in
     ;;
 
   # ── Help ──────────────────────────────────
+  sync)
+    bash "$SCRIPT_DIR/sync_docs.sh"
+    ;;
+
   help|*)
     echo "COPREM OS CLI v8.2"
     echo ""
@@ -175,5 +179,9 @@ case "${1:-help}" in
     echo ""
     echo "Emergency:"
     echo "  coprem killswitch              HALT everything"
+    echo ""
+    echo "Docs:"
+    echo "  coprem sync                    Auto-sync all docs from live system"
     ;;
+
 esac
