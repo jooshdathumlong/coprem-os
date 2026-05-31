@@ -104,3 +104,11 @@ Next.js dashboard (localhost:3000) — not yet built.
 | `scripts/post_restart.sh` | Self-healing after n8n restart: credentials + zombie cleanup + Telegram webhook |
 | `scripts/gemini_router.py` | Gemini 6-key rotation script (CLI) — daily/RPM quota detection |
 | `03-system/litellm/config.yaml` | LiteLLM proxy config — 6 Gemini keys + Groq fallback |
+| `scripts/apply_migrations.sh` | (auto-registered 2026-06-01) |
+| `scripts/health_check.sh` | (auto-registered 2026-06-01) |
+| `scripts/setup.sh` | (auto-registered 2026-06-01) |
+| `scripts/sync_docs.sh` | (auto-registered 2026-06-01) |
+| `scripts/build_master_context.py` | (auto-registered 2026-06-01) |
+| `scripts/sqlite_io.py` | (auto-registered 2026-06-01) |
+| `scripts/sync_daemon.py` | (auto-registered 2026-06-01) |
+| `scripts/sync_validator.py` | (auto-registered 2026-06-01) |
