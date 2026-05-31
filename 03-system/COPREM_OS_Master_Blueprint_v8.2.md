@@ -854,6 +854,28 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 
 ---
 
+## Part 15 — Build Log v3.2.0 (2026-05-31)
+
+### Session Summary
+- **Workflows built:** WF05 HITL, WF10 KB Sync, WF11 DLQ, WF L1-C Provider Router
+- **Workflows updated:** WF02/03/04 queries → real coprem_os tables
+- **Infrastructure:** Branch Protection (validate check), portable pre-commit hook, scripts/setup.sh
+- **CLAUDE.md:** upgraded to 25 laws + Skill Vault architecture (SRE_Master_Playbook.md rules 16–25)
+- **Architecture:** 35% → 55% complete | L1-C ✅ | L3 ✅ | L6: 8/11 workflows
+
+### Decisions
+- DICE framework adopted for task prioritization (Score ≥ 4 = execute now)
+- Skill Vault / RAG pattern: CLAUDE.md stays lean, advanced rules in separate playbook
+- Pre-commit hook whitelists เปรม as proper noun, blocks all other Thai in system files
+
+### Next
+- Import WF03/05/10/11/L1-C into n8n + set credentials
+- Test WF01 full flow (post Gemini quota reset)
+- L1.5 Redis Session Manager
+- L4, L7, L8 layers
+
+---
+
 *[ END OF BLUEPRINT v8.2 ]*
 
 *Maintained by Jeff | Owner: Prem | Next version: v8.3 (post Month-2 audit)*
