@@ -30,6 +30,12 @@ model_list:
       model: gemini/gemini-2.0-flash
       api_key: os.environ/PEABANTID_GOOGLE_API_KEY
 
+  # ── Groq fallback — reset ทุกนาที ไม่มี daily limit ─────────
+  - model_name: gemini-2.0-flash
+    litellm_params:
+      model: groq/llama-3.3-70b-versatile
+      api_key: os.environ/GROQ_API_KEY
+
   # ── Gemini Flash Lite — fallback ─────────────────────────────
   - model_name: gemini-2.0-flash-lite
     litellm_params:
@@ -61,15 +67,20 @@ model_list:
       model: gemini/gemini-2.0-flash-lite
       api_key: os.environ/PEABANTID_GOOGLE_API_KEY
 
+  - model_name: gemini-2.0-flash-lite
+    litellm_params:
+      model: groq/llama-3.3-70b-versatile
+      api_key: os.environ/GROQ_API_KEY
+
 router_settings:
-  routing_strategy: least-busy        # กระจาย load ทั่วทุก key
-  retry_after: 60                     # รอ 60s ก่อน retry key เดิม
-  num_retries: 5                      # ลอง key ถัดไปถึง 5 ครั้ง
-  allowed_fails: 2                    # mark key ว่า fail หลังผิด 2 ครั้ง
-  cooldown_time: 60                   # พัก key ที่ fail ไป 60s
+  routing_strategy: least-busy
+  retry_after: 60
+  num_retries: 8
+  allowed_fails: 2
+  cooldown_time: 60
 
 litellm_settings:
-  drop_params: true                   # ignore params ที่ Gemini ไม่รู้จัก
+  drop_params: true
   success_callback: []
   failure_callback: []
 
