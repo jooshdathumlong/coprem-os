@@ -300,3 +300,31 @@ GitHub CI  → coprem-mac runner
 |---|---|---|
 | Instant Problem Log Rule | ไม่ log ทันทีหลังแก้ปัญหาตลอด session | Prem ต้องถามถึงจะบันทึก |
 
+
+## Session 2026-06-01 (WF01 End-to-End Fix)
+
+| Time | Action | Result |
+|---|---|---|
+| Session start | Health check + SYSTEM_STATE | All services UP |
+| Fix 1 | L7 Audit WEBHOOK_RECEIVED — add SELECT 1, fix queryReplacement path | ✅ |
+| Fix 2 | L7 Check Blocked User — .item.json → .body.message path | ✅ |
+| Fix 3 | L7 Audit AGENT_OUTPUT — SQL interpolation → $1::jsonb | ✅ |
+| Fix 4 | Global: .item.json → .first().json (pairedItem chain broken by Postgres nodes) | ✅ |
+| Fix 5 | L7 Blocked Gate — typeValidation strict→loose (COUNT(*) returns string) | ✅ |
+| Fix 6 | L1-A Preprocessor — $json.message → body.message; add isStart/isApproval/isChat/userId/chatId aliases | ✅ |
+| Fix 7 | Route by Type — add explicit 3rd rule isChat=true → output[2] (fallbackOutput: extra ไม่ work) | ✅ |
+| Fix 8 | Dify Smart Router — GPT-4 trial not supported → switch to LiteLLM gemini-2.0-flash | ✅ |
+| Fix 9 | LiteLLM URL — localhost:4000 → litellm:4000 (Docker network) | ✅ |
+| Fix 10 | L2.5 Normalize Output — handle OpenAI response format (choices[0].message.content) | ✅ |
+| Fix 11 | Send Reply — $json.reply → $('L2.5 Normalize Output').first().json.reply (prev node is L7 Audit) | ✅ |
+| RESULT | WF01 execution 93 = success, all 18 nodes pass, Telegram got real reply | ✅ END-TO-END |
+
+## BUG LOG — 2026-06-01 Session 2
+
+| Time | BUG | ROOT CAUSE | FIX |
+|---|---|---|---|
+| session | pairedItem chain broken | Postgres executeQuery เปลี่ยน item — .item.json ใช้ไม่ได้ข้ามสาย | เปลี่ยนเป็น .first().json ทุก node |
+| session | Route by Type fallbackOutput | fallbackOutput: extra ไม่สร้าง branch ใน execution data | เพิ่ม explicit rule ที่ 3 (isChat=true) |
+| session | Dify GPT-4 trial error | cloud.dify.ai trial ไม่รองรับ GPT-4 | เปลี่ยน Dify Smart Router → LiteLLM gemini-2.0-flash |
+| session | LiteLLM localhost not reachable | n8n ใน Docker container — localhost ไม่ใช่ host | ใช้ service name: litellm:4000 |
+| session | Send Reply text=undefined | $json = L7 Audit output {ok:1} ไม่ใช่ L2.5 output | เปลี่ยนเป็น $('L2.5 Normalize Output').first().json.reply |
