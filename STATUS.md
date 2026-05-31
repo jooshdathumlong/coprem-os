@@ -229,3 +229,4 @@ GitHub CI  → coprem-mac runner
 | 21:58 | temp_fix_all_creds.py | ✅ deleted |
 | — | WF09 Backup import | ⏳ HITL — manual n8n UI import |
 | — | Dify | ⚠️ DOWN (cloud) — monitor |
+| 22:15 | WF09 Automated Backup | ✅ activated — cron Sunday 03:00 |
