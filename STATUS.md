@@ -1,6 +1,23 @@
 # COPREM OS — Current Status
 
-> Last Updated: 2026-05-31 | Session: v3.3.1 — L7 Security Layer Live ✅
+> Last Updated: 2026-05-31 | Session: v3.3.2 — L8 Monitoring Layer Live ✅
+
+---
+
+## ✅ Done (v3.3.2)
+
+**L8 Monitoring Layer**
+- `WF L8 — Daily Monitor Report` — Cron 07:30 ทุกวัน ✅ Active (id=fVDJvPERCO23iM4M)
+- KPIs: success rate, API cost, latency, unique users
+- Security: audit events, rejected webhooks, HITL count
+- DLQ: pending tasks, quarantined count
+- SLO check: ≥95% success + ≤$0.50/day → Telegram report
+- system_log บันทึกทุก run
+- Architecture: 72% → **80%**
+
+| Layer | Status |
+|-------|--------|
+| L8 Monitoring | ✅ Live |
 
 ---
 
@@ -137,16 +154,14 @@
 ## ⏳ Next Session
 
 - [ ] `bash scripts/apply_migrations.sh` — apply migrations 002–004 to live DB
-- [ ] L1.5 Session Context Manager (Redis)
 - [ ] L4 Content Library
-- [ ] L7 Security Layer
-- [ ] L8 Monitoring Layer
+- [ ] L5 Feedback Loop
 
 ## 🚫 Blocked
 - migrations 002–004 ยังไม่ได้ apply บน live DB
 
 ## Architecture Progress (Blueprint v8.3)
-~72% complete
+~80% complete
 
 | Layer | Status |
 |-------|--------|
@@ -162,7 +177,7 @@
 | L5 Feedback Loop | ❌ |
 | L6 Cron Workflows | ⚠️ 8/11 |
 | L7 Security | ✅ |
-| L8 Monitoring | ❌ |
+| L8 Monitoring | ✅ |
 
 ## Stack
 ```
