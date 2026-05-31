@@ -1,6 +1,23 @@
 # COPREM OS — Current Status
 
-> Last Updated: 2026-05-31 | Session: v3.2.9 — Reset to v3.2.4 + 24 Frameworks direction set
+> Last Updated: 2026-05-31 | Session: v3.3.0 — L1.5 Session Context Manager Live ✅
+
+---
+
+## ✅ Done (v3.3.0)
+
+**L1.5 Session Context Manager**
+- Redis credential `Redis COPREM` สร้างแล้ว (host=redis, no-password, TTL 30min)
+- `WF L1.5 — Session Context Manager` — standalone read/write webhooks ✅ Active
+- WF01 อัปเดต 17 → 19 nodes:
+  - `Approved?` → **L1.5 Read** → `Dify Smart Router`
+  - `Send Reply` → **L1.5 Write** → `Log to Inbox`
+- Last 3 turns injected ต่อ message, archive to `session_store` (Postgres)
+- Architecture: 60% → **67%**
+
+| Layer | Status |
+|-------|--------|
+| L1.5 Session Manager | ✅ Live |
 
 ---
 
@@ -114,7 +131,7 @@
 - migrations 002–004 ยังไม่ได้ apply บน live DB
 
 ## Architecture Progress (Blueprint v8.3)
-~60% complete
+~67% complete
 
 | Layer | Status |
 |-------|--------|
@@ -122,7 +139,7 @@
 | L1-A Preprocessor | ✅ live in WF01 |
 | L1-B Smart Router | ✅ Dify connected |
 | L1-C Provider Router | ✅ WF built |
-| L1.5 Session Manager | ❌ |
+| L1.5 Session Manager | ✅ |
 | L2 Agents (Dify) | ✅ |
 | L2.5 Normalizer | ✅ live in WF01 |
 | L3 Memory/KB | ✅ KB + WF10 auto-sync |
