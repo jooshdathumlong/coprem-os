@@ -180,3 +180,42 @@ CREATE TABLE IF NOT EXISTS kb_sync_log (
   diff_summary TEXT,
   synced_at    TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- ── L4 Content Library (migration 005) ────────────────────────
+CREATE TABLE IF NOT EXISTS novels (
+  id         BIGSERIAL PRIMARY KEY,
+  title      TEXT NOT NULL,
+  genre      TEXT,
+  status     TEXT DEFAULT 'draft',
+  summary    TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS chapters (
+  id          BIGSERIAL PRIMARY KEY,
+  novel_id    BIGINT REFERENCES novels(id),
+  chapter_num INT NOT NULL,
+  title       TEXT,
+  content     TEXT,
+  lore_tags   TEXT[],
+  status      TEXT DEFAULT 'draft',
+  word_count  INT DEFAULT 0,
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(novel_id, chapter_num)
+);
+CREATE INDEX IF NOT EXISTS idx_chapters_novel ON chapters(novel_id, chapter_num);
+
+CREATE TABLE IF NOT EXISTS character_tracker (
+  id         BIGSERIAL PRIMARY KEY,
+  novel_id   BIGINT REFERENCES novels(id),
+  name       TEXT NOT NULL,
+  location   TEXT,
+  arc_state  TEXT,
+  key_event  TEXT,
+  ego_anchor TEXT,
+  power_desc TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(novel_id, name)
+);
