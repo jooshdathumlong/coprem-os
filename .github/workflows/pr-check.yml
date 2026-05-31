@@ -34,3 +34,21 @@ jobs:
         run: |
           docker exec 03-system-postgres-1 psql -U coprem -d coprem \
             --set ON_ERROR_STOP=1 -f /dev/null && echo "✅ Postgres reachable" || exit 1
+
+      - name: Secrets scan (Shift-Left Security)
+        run: |
+          PATTERNS='(sk-ant-[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{40,}|AIza[A-Za-z0-9_-]{35}|app-[A-Za-z0-9]{20,})'
+          if git diff origin/main...HEAD -- '*.py' '*.js' '*.ts' '*.json' '*.yml' '*.md' \
+            | grep -E "^\+" | grep -vE "^\+\+\+" | grep -qE "$PATTERNS"; then
+            echo "❌ Potential API key detected in diff — remove before merging"; exit 1
+          else
+            echo "✅ No API key patterns found"
+          fi
+
+      - name: Check .env.example is up to date
+        run: |
+          for KEY in POSTGRES_PASSWORD N8N_ENCRYPTION_KEY TELEGRAM_BOT_TOKEN CLOUDFLARE_TUNNEL_TOKEN \
+                     DIFY_API_KEY ANTHROPIC_API_KEY WEBHOOK_SECRET; do
+            grep -q "^${KEY}=" .env.example \
+              && echo "✅ $KEY in .env.example" || { echo "❌ $KEY missing from .env.example"; exit 1; }
+          done

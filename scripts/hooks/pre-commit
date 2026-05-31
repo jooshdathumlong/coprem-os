@@ -1,0 +1,28 @@
+#!/bin/sh
+# Block Thai characters in CLAUDE.md and agent config files only
+# Whitelist: เปรม (proper noun — owner's name)
+# Excludes: Blueprint, workflow exports, DB scripts (may contain Thai examples)
+
+CHECKER=$(mktemp /tmp/thai_check_XXXXXX.py)
+cat > "$CHECKER" << 'PYEOF'
+import sys
+text = sys.stdin.read().replace('เปรม', '')
+thai = [c for c in text if '฀' <= c <= '๿']
+sys.exit(1 if thai else 0)
+PYEOF
+
+FILES=$(git diff --cached --name-only | grep -E "CLAUDE\.md|03-system/skills/.*\.md|03-system/agents/.*\.md")
+
+for f in $FILES; do
+  if git show ":$f" | python3 "$CHECKER"; then
+    : # no thai
+  else
+    rm -f "$CHECKER"
+    echo "BLOCKED: Thai text found in $f"
+    echo "System files must be English only (CLAUDE.md Rule 3)"
+    exit 1
+  fi
+done
+
+rm -f "$CHECKER"
+exit 0

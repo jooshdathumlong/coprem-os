@@ -854,6 +854,82 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 
 ---
 
+## Part 15 — Build Log v3.2.0 (2026-05-31)
+
+### Session Summary
+- **Workflows built:** WF05 HITL, WF10 KB Sync, WF11 DLQ, WF L1-C Provider Router
+- **Workflows updated:** WF02/03/04 queries → real coprem_os tables
+- **Infrastructure:** Branch Protection (validate check), portable pre-commit hook, scripts/setup.sh
+- **CLAUDE.md:** upgraded to 25 laws + Skill Vault architecture (SRE_Master_Playbook.md rules 16–25)
+- **Architecture:** 35% → 55% complete | L1-C ✅ | L3 ✅ | L6: 8/11 workflows
+
+### Decisions
+- DICE framework adopted for task prioritization (Score ≥ 4 = execute now)
+- Skill Vault / RAG pattern: CLAUDE.md stays lean, advanced rules in separate playbook
+- Pre-commit hook whitelists เปรม as proper noun, blocks all other Thai in system files
+
+### Next
+- Import WF03/05/10/11/L1-C into n8n + set credentials
+- Test WF01 full flow (post Gemini quota reset)
+- L1.5 Redis Session Manager
+- L4, L7, L8 layers
+
+---
+
 *[ END OF BLUEPRINT v8.2 ]*
 
 *Maintained by Jeff | Owner: Prem | Next version: v8.3 (post Month-2 audit)*
+
+---
+
+## Part 15 — Build Log v3.2.2 (2026-05-31)
+
+### Session Summary
+- **Gap analysis:** scanned all system files for v8.3 compliance — found 5 gaps
+- **`db/migrations/`** created with 4 numbered idempotent migrations:
+  - `001_init_core_tables.sql` — all 15 tables from schemas.sql
+  - `002_add_event_type_check.sql` — CHECK constraint with 13-type taxonomy (Framework 13)
+  - `003_add_query_log.sql` — CQRS retrieval quality tracking (Framework 12)
+  - `004_add_system_log_json_sink.sql` — structured n8n log sink (Framework 05 Factor XI)
+- **`.env.example`** added — all env keys with placeholder values; `.gitignore` negation `!.env.example`
+- **`pr-check.yml`** upgraded — secrets pattern scan + .env.example completeness check
+- **`SRE_Master_Playbook.md`** Rule 26 added — P1–P5 RTO/RPO table (NIST CSF)
+- **`03-system/agents/prompts.md`** — DDD domain boundary rule added to Smart Router, Jeff, Eilinaire, Ego Era; version bumped jeff-v2.1
+
+### Decisions
+- `audit_log.event_type` remains TEXT + CHECK constraint (vs full ENUM) — avoids costly ALTER TYPE for future additions
+- `.env.example` whitelisted in `.gitignore` via negation — no secrets, safe to commit
+- Secrets scan in CI uses grep pattern (no git-secrets binary dependency) — runs on self-hosted runner without extra install
+
+### Next
+- Apply migrations 002–004 to live DB (manual step — เปรม runs via psql or n8n script)
+- Import WF03/05/10/11/L1-C into n8n + set credentials
+- Test WF01 full flow (post Gemini quota reset)
+- Month 2 backlog: agent eval script, SLO tracking, Dependabot, log integrity hash chain
+
+---
+
+## Part 15 — Build Log v3.2.1 (2026-05-31)
+
+### Session Summary
+- **CLAUDE.md** upgraded v8.2 → v8.3
+  - §1 DDD Domain Boundary rule added
+  - §4 DICE: Pre-scoring shortcut (grep Frameworks file) + Reliability Budget (SRE)
+  - §6 Architecture backlog path to `COPREM_OS_24_Frameworks_v1_1.md`
+  - §9 L3 rule: Frameworks file grep-only
+  - §11 New rules: Blast Radius Check, Shift-Left Security, Zero Trust Credentials, CQRS Write/Read Segregation, Config as Code (IaC), Recovery Targets (NIST CSF), GitOps commit format
+  - §12 Migration files idempotency rule added
+  - §13 Event Log — new section (append-only, audit trail, event_type taxonomy)
+- **`02-knowledge/COPREM_OS_24_Frameworks_v1_1.md`** added — 24 enterprise framework mappings, Implementation Priority Matrix, Framework Interaction Map
+- **`INDEX.md`** updated — frameworks file registered (L3 grep-only)
+- **`STATUS.md`** updated to v3.2.1
+
+### Decisions
+- 24 Frameworks file is L3 grep-only — never read in full (token budget)
+- DICE pre-scoring: grep Priority Matrix before re-deriving scores
+- Framework Interaction Map defines highest blast-radius triad: EDA ↔ CQRS ↔ Zero Trust
+
+### Next
+- Immediate (Week 5): Factor XI JSON log sink, event_type taxonomy migration, git-secrets CI, DB migration files
+- Month 2: Agent eval script, SLO tracking tab, Dependabot, log integrity hash chain
+- Month 3: Next.js dashboard (MVC), first Chaos experiment, Supabase Edge Functions for WF10

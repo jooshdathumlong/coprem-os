@@ -88,6 +88,26 @@
         "text": "=🔴 Market Alert! Score: {{ $json.score }}/100"
       },
       "webhookId": "c0fe23d3-2047-4cf2-b02f-6840101f810c"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO market_signal_log (keyword, trend_score, source, signal_type, notes) VALUES ('COPREM_PULSE', {{ $json.score }}, 'scheduled', '{{ $json.score >= 70 ? \"alert\" : \"normal\" }}', 'Auto scan {{ $now.format(\"YYYY-MM-DD HH:mm\") }}') RETURNING id, timestamp, signal_type;"
+      },
+      "id": "pg-market-log-001",
+      "name": "Log to market_signal_log",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres COPREM"
+        }
+      }
     }
   ],
   "connections": {
@@ -106,7 +126,7 @@
       "main": [
         [
           {
-            "node": "Alert?",
+            "node": "Log to market_signal_log",
             "type": "main",
             "index": 0
           }
@@ -123,6 +143,17 @@
           }
         ],
         []
+      ]
+    },
+    "Log to market_signal_log": {
+      "main": [
+        [
+          {
+            "node": "Alert?",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },

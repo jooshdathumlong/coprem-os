@@ -1,0 +1,202 @@
+{
+  "name": "WF05 — HITL Decision Saver",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hitl-decision",
+        "responseMode": "responseNode"
+      },
+      "id": "11c7a3f5-9589-41fc-bacb-63e275d2d4ca",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst body = $input.first().json.body || $input.first().json;\nconst action   = (body.action || '').toUpperCase();   // APPROVED | REJECTED\nconst inboxId  = body.inbox_id;\nconst taskDesc = body.task_desc || '';\nconst pillar   = body.pillar   || 'general';\nconst context  = body.context  || '';\n\nif (!['APPROVED','REJECTED'].includes(action)) throw new Error('Invalid action: ' + action);\nif (!inboxId) throw new Error('inbox_id required');\n\nreturn [{ json: { action, inboxId, taskDesc, pillar, context } }];\n"
+      },
+      "id": "90c4f39a-60f1-4180-8696-d2637743ad1d",
+      "name": "Parse Decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE inbox_log SET status='{{ $json.action }}' WHERE id={{ $json.inboxId }} RETURNING id, status;"
+      },
+      "id": "69e7bc4f-c039-4561-9610-893174b56b88",
+      "name": "Update Inbox Log",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres COPREM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO decision_memory_log (decision, context, outcome, pillar) VALUES ('{{ $json.taskDesc }}', '{{ $json.context }}', '{{ $json.action }}', '{{ $json.pillar }}') RETURNING id;"
+      },
+      "id": "cf08724a-6865-44e1-8f8c-4bc3e46b2a94",
+      "name": "Save Decision Memory",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        720,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres COPREM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO audit_log (event_type, source, payload) VALUES ('HITL_DECISION', 'WF05', '{\"action\":\"{{ $('Parse Decision').item.json.action }}\",\"inbox_id\":{{ $('Parse Decision').item.json.inboxId }}}');"
+      },
+      "id": "1435c846-45e0-4308-a9bf-94fc23d4a962",
+      "name": "Log to Audit",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres COPREM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Parse Decision').item.json.inboxId }}",
+        "text": "=✅ Decision saved: {{ $('Parse Decision').item.json.action }}\nTask: {{ $('Parse Decision').item.json.taskDesc }}"
+      },
+      "id": "32e7f197-925c-48c8-9e64-c95dc6e7a97a",
+      "name": "Notify เปรม",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        0
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"ok\", \"action\": \"{{ $('Parse Decision').item.json.action }}\" }"
+      },
+      "id": "d42eaa65-2e27-4f69-993a-7e159caa09b1",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Decision": {
+      "main": [
+        [
+          {
+            "node": "Update Inbox Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Inbox Log": {
+      "main": [
+        [
+          {
+            "node": "Save Decision Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Decision Memory": {
+      "main": [
+        [
+          {
+            "node": "Log to Audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to Audit": {
+      "main": [
+        [
+          {
+            "node": "Notify เปรม",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify เปรม": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "authors": "Jeff / COPREM OS v8.2"
+  }
+}

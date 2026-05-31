@@ -44,7 +44,7 @@
       },
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT status, COUNT(*) as count FROM users GROUP BY status;"
+        "query": "SELECT pillar, objective, key_result, target, current, pct_complete, updated_at FROM okr_scoreboard WHERE period = TO_CHAR(NOW(), 'YYYY-\"Q\"Q') ORDER BY pillar, pct_complete DESC;"
       }
     },
     {
