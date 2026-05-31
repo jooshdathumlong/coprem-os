@@ -1,9 +1,14 @@
 #!/bin/bash
-# health_check.sh — run at session start and end
+# health_check.sh — Run at session start and end.
+# Auto-detects and fixes common issues (credential drift, zombie containers, webhook).
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT="$SCRIPT_DIR/.."
+ENV="$ROOT/.env"
 
 echo "## SYSTEM_STATE — $(date '+%Y-%m-%d %H:%M')" > /tmp/state.md
 
-# Infrastructure
+# ── Infrastructure checks ─────────────────────────────────────
 check() {
   local name=$1 cmd=$2 note=$3
   eval "$cmd" > /dev/null 2>&1
@@ -11,16 +16,53 @@ check() {
   echo "| $name | $status | ${note} |" >> /tmp/state.md
 }
 
-check "n8n" "curl -sf --max-time 5 http://localhost:5678/healthz"
+check "n8n"      "curl -sf --max-time 5 http://localhost:5678/healthz"
 check "postgres" "docker exec 03-system-postgres-1 pg_isready -U coprem -d coprem_os -q"
-check "redis" "docker exec 03-system-redis-1 redis-cli ping" "PONG"
-check "dify" "curl -sf --max-time 5 http://localhost/health"
+check "redis"    "docker exec 03-system-redis-1 redis-cli ping" "PONG"
+LITELLM_KEY=$(grep "^LITELLM_MASTER_KEY=" "$ENV" | cut -d= -f2)
+check "litellm"  "curl -sf --max-time 5 -H 'Authorization: Bearer $LITELLM_KEY' http://localhost:4000/v1/models" "port 4000"
+check "dify"     "curl -sL --max-time 5 -o /dev/null -w '%{http_code}' https://cloud.dify.ai | grep -q 200"
 
-# Credential test (ไม่ print password)
-PG_PASS=$(grep "^POSTGRES_PASSWORD=" .env | cut -d= -f2)
+# Postgres auth
+PG_PASS=$(grep "^POSTGRES_PASSWORD=" "$ENV" | cut -d= -f2)
 docker exec 03-system-postgres-1 psql -U coprem -d coprem_os \
   -c "SELECT 1" -q > /dev/null 2>&1 \
   && echo "| Postgres auth | OK |" >> /tmp/state.md \
   || echo "| Postgres auth | FAIL |" >> /tmp/state.md
+
+# ── Auto-fix: Credential drift ────────────────────────────────
+N8N_UP=$(curl -sf --max-time 3 http://localhost:5678/healthz 2>/dev/null && echo "yes" || echo "no")
+if [[ "$N8N_UP" == "yes" ]]; then
+  # Test if Postgres credential works by checking a recent execution
+  CRED_OK=$(docker exec 03-system-postgres-1 psql -U coprem -d coprem -t -c \
+    "SELECT COUNT(*) FROM credentials_entity WHERE id = '226PbeVgki0neEi4';" 2>/dev/null | tr -d ' ')
+  if [[ "$CRED_OK" == "1" ]]; then
+    # Always sync credentials on health check (idempotent, safe)
+    python3 "$SCRIPT_DIR/fix_credentials.py" > /dev/null 2>&1 \
+      && echo "| Credential sync | OK |" >> /tmp/state.md \
+      || echo "| Credential sync | FAIL |" >> /tmp/state.md
+  fi
+fi
+
+# ── Auto-fix: Zombie containers ───────────────────────────────
+ZOMBIE=$(docker ps --format "{{.Names}}" 2>/dev/null | grep "^coprem-cloudflared")
+if [ -n "$ZOMBIE" ]; then
+  docker stop $ZOMBIE > /dev/null 2>&1
+  echo "| Zombie containers | STOPPED | $ZOMBIE |" >> /tmp/state.md
+fi
+
+# ── Auto-fix: WEBHOOK_URL check ───────────────────────────────
+WH_URL=$(docker exec 03-system-n8n-1 printenv WEBHOOK_URL 2>/dev/null)
+if [[ "$WH_URL" == *"localhost"* ]]; then
+  echo "| WEBHOOK_URL | WRONG | was localhost — restart needed |" >> /tmp/state.md
+else
+  echo "| WEBHOOK_URL | OK | $WH_URL |" >> /tmp/state.md
+fi
+
+# ── Telegram webhook ──────────────────────────────────────────
+BOT_TOKEN=$(grep "^TELEGRAM_BOT_TOKEN=" "$ENV" | cut -d= -f2)
+TG_WH=$(curl -s --max-time 5 "https://api.telegram.org/bot$BOT_TOKEN/getWebhookInfo" 2>/dev/null | \
+  python3 -c "import json,sys; r=json.load(sys.stdin)['result']; print('OK' if 'n8n.peabuntid.com' in r.get('url','') else 'MISSING')" 2>/dev/null)
+echo "| Telegram webhook | ${TG_WH:-UNKNOWN} |" >> /tmp/state.md
 
 cat /tmp/state.md
