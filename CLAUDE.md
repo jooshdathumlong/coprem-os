@@ -172,6 +172,13 @@ New machine: `sh scripts/setup.sh`
 - Blueprint Part 15 appends every session = immutable audit trail.
 - Prem asks "what happened last session?" → grep STATUS.md + Part 15 only. Never reconstruct from memory.
 
+**Instant Problem Log Rule (NEW):**
+- Every time a bug is fixed → log immediately (do not wait for session end):
+  1. Append to `STATUS.md`: `| [time] | BUG: [description] | ROOT: [cause] | FIX: [solution] |`
+  2. If recurring (same bug 2+ times) → write/update `memory/feedback_*.md` immediately
+  3. If fix required a new script/command → add it to `scripts/post_restart.sh` or `health_check.sh`
+- Goal: next session Jeff reads STATUS.md → already knows the fix → zero repeated debugging
+
 ---
 
 ## 11. Cost Thresholds (updated 2026-05-31)
