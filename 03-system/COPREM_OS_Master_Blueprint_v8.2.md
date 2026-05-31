@@ -879,3 +879,30 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 *[ END OF BLUEPRINT v8.2 ]*
 
 *Maintained by Jeff | Owner: Prem | Next version: v8.3 (post Month-2 audit)*
+
+---
+
+## Part 15 — Build Log v3.2.1 (2026-05-31)
+
+### Session Summary
+- **CLAUDE.md** upgraded v8.2 → v8.3
+  - §1 DDD Domain Boundary rule added
+  - §4 DICE: Pre-scoring shortcut (grep Frameworks file) + Reliability Budget (SRE)
+  - §6 Architecture backlog path to `COPREM_OS_24_Frameworks_v1_1.md`
+  - §9 L3 rule: Frameworks file grep-only
+  - §11 New rules: Blast Radius Check, Shift-Left Security, Zero Trust Credentials, CQRS Write/Read Segregation, Config as Code (IaC), Recovery Targets (NIST CSF), GitOps commit format
+  - §12 Migration files idempotency rule added
+  - §13 Event Log — new section (append-only, audit trail, event_type taxonomy)
+- **`02-knowledge/COPREM_OS_24_Frameworks_v1_1.md`** added — 24 enterprise framework mappings, Implementation Priority Matrix, Framework Interaction Map
+- **`INDEX.md`** updated — frameworks file registered (L3 grep-only)
+- **`STATUS.md`** updated to v3.2.1
+
+### Decisions
+- 24 Frameworks file is L3 grep-only — never read in full (token budget)
+- DICE pre-scoring: grep Priority Matrix before re-deriving scores
+- Framework Interaction Map defines highest blast-radius triad: EDA ↔ CQRS ↔ Zero Trust
+
+### Next
+- Immediate (Week 5): Factor XI JSON log sink, event_type taxonomy migration, git-secrets CI, DB migration files
+- Month 2: Agent eval script, SLO tracking tab, Dependabot, log integrity hash chain
+- Month 3: Next.js dashboard (MVC), first Chaos experiment, Supabase Edge Functions for WF10
