@@ -21,6 +21,7 @@ KEYS = {
     "mahittisak":     os.environ.get("MAHITTISAK_GOOGLE_API_KEY", ""),
     "sunsetsol":      os.environ.get("SUNSETSOL_GOOGLE_API_KEY", ""),
     "rlie":           os.environ.get("RLIE_GOOGLE_API_KEY", ""),
+    "peabantid":      os.environ.get("PEABANTID_GOOGLE_API_KEY", ""),
 }
 
 THROTTLE_TTL_RPM = 60       # per-minute window
