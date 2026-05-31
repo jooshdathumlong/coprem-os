@@ -354,3 +354,21 @@ GitHub CI  → coprem-mac runner
 | Jeff System Prompt | ✅ injected into L1-C |
 | L1-B → L1-C pillar routing | ✅ |
 | Full flow 21 nodes | ✅ exec 147 success |
+
+## Session 2026-06-01 Session 6 — L3 KB Retrieval Live
+
+| Time | Action | Result |
+|---|---|---|
+| session | Dify KB IDs retrieved (all 5 KBs, segments exist) | ✅ |
+| session | L3 Retriever nodes added to WF01 | ✅ |
+| session | L1-C: context injected into system prompt | ✅ |
+| session | Ollama + WF01 24 nodes, exec 159 = success | ✅ |
+| session | Jeff answers with KB context (Marketing tasks) | ✅ |
+
+## BUG LOG — Session 6
+
+| BUG | ROOT | FIX |
+|---|---|---|
+| L3 JSON body invalid | Thai chars in context broke string interpolation | JSON.stringify($json) approach |
+| L1-C Respond invalid JSON | Thai dify_reply broke responseBody string | JSON.stringify in responseBody |
+| KB segments=0 from retrieve API | Dify Cloud free tier: no vector embedding | Use Segments API + keyword match instead |
