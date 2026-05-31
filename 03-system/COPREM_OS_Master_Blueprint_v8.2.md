@@ -882,6 +882,26 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 
 ---
 
+## Part 15 — Build Log v3.2.3 (2026-05-31)
+
+### Session Summary
+- **WF L1-C, WF05, WF10, WF11** imported via n8n API + activated (all 4 confirmed active=True)
+- **n8n workflow count:** 12/13 Active | COPREM-MVP = Inactive (legacy)
+- **Postgres credential** confirmed: host=`postgres`, SSL=Disable, same user/pass for both `coprem` and `coprem_os`
+- **Telegram test** sent successfully to chat_id 7731591925
+
+### Decisions
+- n8n API import requires stripping: `id`, `active`, `createdAt`, `updatedAt`, `versionId`, `meta` — documented in temp script pattern
+- WF01 full flow test deferred — Gemini quota blocked (resets 08:00)
+
+### Next
+- WF01 full flow test post Gemini reset: send message → L1-C routes → agent replies
+- Apply migrations 002–004 to live DB (`bash scripts/apply_migrations.sh`)
+- L1.5 Redis Session Manager
+- L4, L7, L8 layers
+
+---
+
 ## Part 15 — Build Log v3.2.2 (2026-05-31)
 
 ### Session Summary
