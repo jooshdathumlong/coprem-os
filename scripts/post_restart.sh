@@ -37,7 +37,7 @@ fi
 # 4. Activate WF01 (plain Webhook node — no secret refresh needed)
 log "Activating WF01..."
 N8N_API_KEY_VAL=$(grep "^N8N_API_KEY=" "$ENV" | cut -d= -f2)
-WF01_ID="qbuaTTbivLIkfGUB"
+WF01_ID="2i43qe8gDM0rjWYb"
 curl -sf -X POST -H "X-N8N-API-KEY: $N8N_API_KEY_VAL" \
   "http://localhost:5678/api/v1/workflows/$WF01_ID/activate" > /dev/null 2>&1 || true
 log "WF01 activated ✅"

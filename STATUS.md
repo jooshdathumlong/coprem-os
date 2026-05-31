@@ -328,3 +328,19 @@ GitHub CI  → coprem-mac runner
 | session | Dify GPT-4 trial error | cloud.dify.ai trial ไม่รองรับ GPT-4 | เปลี่ยน Dify Smart Router → LiteLLM gemini-2.0-flash |
 | session | LiteLLM localhost not reachable | n8n ใน Docker container — localhost ไม่ใช่ host | ใช้ service name: litellm:4000 |
 | session | Send Reply text=undefined | $json = L7 Audit output {ok:1} ไม่ใช่ L2.5 output | เปลี่ยนเป็น $('L2.5 Normalize Output').first().json.reply |
+
+## Session 2026-06-01 Session 4 — Jeff
+
+| Time | Action | Result |
+|---|---|---|
+| session | L1-C wired into WF01 | ✅ Telegram → WF01 → L1-C → LiteLLM → Reply |
+| session | L1-C fixes: Select Model $('Webhook').first(), typeVersion 2→4.2, Log to Audit | ✅ all nodes pass |
+| session | WF01: Dify Smart Router → L1-C webhook, L2.5 handle dify_reply | ✅ |
+| session | Blueprint compliance: Telegram→L1-A→L1.5→L1-C→L2→Reply | ✅ DONE |
+
+## BUG LOG — 2026-06-01 Session 4
+
+| Time | BUG | ROOT | FIX |
+|---|---|---|---|
+| session | L1-C message="" | $input.first() = Check Rate Limits output, not Webhook | $('Webhook').first().json.body |
+| session | Route to Dify 405 | httpRequest typeVersion:2 — different API schema | Upgrade typeVersion 2→4.2 |
