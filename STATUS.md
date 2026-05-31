@@ -242,3 +242,5 @@ GitHub CI  → coprem-mac runner
 | 23:00 | L6 Cron count | ✅ 11/11 complete (stale 10/11 corrected) |
 | 23:00 | N8N_API_KEY | ✅ extracted from DB + saved to .env |
 | 23:00 | health_check.sh n8n | ✅ working correctly (HTML issue was already fixed) |
+| 23:30 | Gemini key rotation | ✅ 5 keys ใน .env + gemini_router.py (key+model rotation, daily/RPM detect) |
+| 23:30 | N8N_API_KEY | ✅ บันทึกใน .env แล้ว |
