@@ -344,3 +344,13 @@ GitHub CI  → coprem-mac runner
 |---|---|---|---|
 | session | L1-C message="" | $input.first() = Check Rate Limits output, not Webhook | $('Webhook').first().json.body |
 | session | Route to Dify 405 | httpRequest typeVersion:2 — different API schema | Upgrade typeVersion 2→4.2 |
+
+## Session 2026-06-01 Session 5 — Blueprint Full Implementation
+
+| Component | Status |
+|---|---|
+| L1-B Intent Classifier | ✅ live in WF01 |
+| HITL Gate | ✅ live in WF01 |
+| Jeff System Prompt | ✅ injected into L1-C |
+| L1-B → L1-C pillar routing | ✅ |
+| Full flow 21 nodes | ✅ exec 147 success |

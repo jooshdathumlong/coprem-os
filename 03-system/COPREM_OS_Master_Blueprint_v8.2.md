@@ -1025,3 +1025,23 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 - Telegram → n8n → LiteLLM → Telegram: confirmed working
 - All 18 nodes execute successfully
 - Pending: Dify Cloud model fix (Prem must change GPT-4 → free model in cloud.dify.ai)
+
+---
+
+## Part 15 — Session 2026-06-01 (Session 5 — Blueprint Full Implementation)
+
+### Done
+- **L1-B Intent Classifier** added to WF01 — LiteLLM Smart Router classifies pillar/domain/confidence/hitl_required
+- **HITL Gate** added — hitl_required=true → Telegram alert to Prem + stop flow
+- **Jeff System Prompt** from prompts.md injected into L1-C Route to Dify
+- **L1-C receives pillar from L1-B** — model matrix now uses real classification
+- **WF01 flow**: Telegram → L7 → L1-A → L1-B → HITL Gate → L1-C → LiteLLM(Jeff) → Reply ✅
+- **Execution 147**: all 21 nodes pass, L1-B: pillar=JOB conf=0.8, Jeff replies in Thai
+
+### Remaining Blueprint gaps (need Prem content/infra)
+- KB-01 to KB-05: content not yet populated (trading rules, brand constitution, ego era bible, etc.)
+- Ollama Tier 3: not installed (Mac M5 local)
+- Dify Cloud agents: GPT-4 trial limitation — use LiteLLM instead for now
+- Confidence < 0.7 clarification path: Low Confidence Reply node exists, wiring pending
+
+### WF01 ID: W11IKLoxmN2BzImS | L1-C ID: varies (by path /l1c-route)
