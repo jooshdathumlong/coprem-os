@@ -1,19 +1,19 @@
 #!/bin/bash
 # health_check.sh — run at session start and end
 
-echo "## SYSTEM_STATE — $(date '+%Y-%m-%d %H:%M')" > /Users/eilinaire/.gemini/tmp/coprem/state.md
+echo "## SYSTEM_STATE — $(date '+%Y-%m-%d %H:%M')" > /tmp/state.md
 
 # Infrastructure
 check() {
-  local name=$1 cmd=$2
-  result=$(eval "$cmd" 2>&1)
+  local name=$1 cmd=$2 note=$3
+  eval "$cmd" > /dev/null 2>&1
   status=$([[ $? -eq 0 ]] && echo "UP" || echo "DOWN")
-  echo "| $name | $status | $result |" >> /tmp/state.md
+  echo "| $name | $status | ${note} |" >> /tmp/state.md
 }
 
-check "n8n" "curl -sf --max-time 5 http://localhost:5678/health"
+check "n8n" "curl -sf --max-time 5 http://localhost:5678/healthz"
 check "postgres" "docker exec 03-system-postgres-1 pg_isready -U coprem -d coprem_os -q"
-check "redis" "docker exec 03-system-redis-1 redis-cli ping"
+check "redis" "docker exec 03-system-redis-1 redis-cli ping" "PONG"
 check "dify" "curl -sf --max-time 5 http://localhost/health"
 
 # Credential test (ไม่ print password)
