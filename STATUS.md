@@ -1,6 +1,21 @@
 # COPREM OS — Current Status
 
-> Last Updated: 2026-05-31 | Session: v3.3.0 — L1.5 Session Context Manager Live ✅
+> Last Updated: 2026-05-31 | Session: v3.3.1 — L7 Security Layer Live ✅
+
+---
+
+## ✅ Done (v3.3.1)
+
+**L7 Security Layer**
+- `L7 — Audit WEBHOOK_RECEIVED` — บันทึกทุก incoming message → `audit_log`
+- `L7 — Check Blocked User` — query `blocked_ips` ก่อนประมวลผล
+- `L7 — Blocked Gate` — ถ้า blocked → หยุด flow ทันที
+- `L7 — Audit AGENT_OUTPUT` — บันทึกทุก agent reply → `audit_log`
+- WF01: 19 → **23 nodes** | Architecture: 67% → **72%**
+
+| Layer | Status |
+|-------|--------|
+| L7 Security | ✅ Live |
 
 ---
 
@@ -131,7 +146,7 @@
 - migrations 002–004 ยังไม่ได้ apply บน live DB
 
 ## Architecture Progress (Blueprint v8.3)
-~67% complete
+~72% complete
 
 | Layer | Status |
 |-------|--------|
@@ -146,7 +161,7 @@
 | L4 Content Library | ❌ |
 | L5 Feedback Loop | ❌ |
 | L6 Cron Workflows | ⚠️ 8/11 |
-| L7 Security | ❌ |
+| L7 Security | ✅ |
 | L8 Monitoring | ❌ |
 
 ## Stack
