@@ -1,6 +1,16 @@
 # COPREM OS — Current Status
 
-> Last Updated: 2026-05-31 | Session: v3.2.3 — WF Import + Activation + Telegram Test
+> Last Updated: 2026-05-31 | Session: v3.2.4 — WF01 Full Flow Confirmed ✅
+
+---
+
+## ✅ Done (v3.2.4)
+
+**WF01 Full Flow — Confirmed Live**
+- Telegram → WF01 → L1-C Provider Router → Agent → Reply ✅
+- Gemini quota reset — routing ทำงานปกติ
+- Architecture Progress: 55% → **60%**
+- PR #3 merged to main
 
 ---
 
@@ -81,18 +91,17 @@
 
 ## ⏳ Next Session
 
-- [ ] Test WF01 full flow: /start → approve → chat → Dify reply (after 08:00 Gemini)
-- [ ] Import WF03/05/10/11/L1-C into n8n + set credentials
+- [ ] `bash scripts/apply_migrations.sh` — apply migrations 002–004 to live DB
 - [ ] L1.5 Session Context Manager (Redis)
 - [ ] L4 Content Library
 - [ ] L7 Security Layer
 - [ ] L8 Monitoring Layer
 
 ## 🚫 Blocked
-- Gemini quota resets 08:00 daily
+- migrations 002–004 ยังไม่ได้ apply บน live DB
 
-## Architecture Progress (Blueprint v8.2)
-~55% complete
+## Architecture Progress (Blueprint v8.3)
+~60% complete
 
 | Layer | Status |
 |-------|--------|
