@@ -1000,3 +1000,28 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 - All layers ✅ (L1–L8 fully operational)
 - 15 workflows active, 3 utility/draft
 - No pending items
+
+---
+
+## Part 15 — Session 2026-06-01 (Session 3)
+
+### Done
+- WF01 end-to-end fixed — 11 bugs resolved, execution 93+ = success
+  - pairedItem chain broken: .item.json → .first().json (global)
+  - L7 Blocked Gate typeValidation strict → loose (COUNT returns string)
+  - L1-A Preprocessor: body.message path + aliases (isStart/isApproval/isChat/userId/chatId)
+  - Route by Type: added explicit 3rd rule isChat=true (fallbackOutput:extra broken in n8n 2.22.5)
+  - Dify Smart Router: Dify Cloud GPT-4 trial unsupported → LiteLLM gemini-2.0-flash
+  - LiteLLM URL: localhost:4000 → litellm:4000 (Docker network)
+  - Send Reply: $json.reply → $('L2.5 Normalize Output').first().json.reply
+- Telegram webhook re-registered to /webhook/telegram-coprem (was pointing to stale UUID)
+- Migrations 002–004 applied to live DB ✅ (idempotent, constraint + tables verified)
+- post_restart.sh: WF01_ID updated to mmC1f5Md8vZT1FHU
+- WF01 export saved: 03-system/workflows/exports/WF01 — Inbox Receiver (Dify).json
+
+### System State
+- WF01 active ID: mmC1f5Md8vZT1FHU
+- AI backend: LiteLLM gemini-2.0-flash (litellm:4000)
+- Telegram → n8n → LiteLLM → Telegram: confirmed working
+- All 18 nodes execute successfully
+- Pending: Dify Cloud model fix (Prem must change GPT-4 → free model in cloud.dify.ai)
