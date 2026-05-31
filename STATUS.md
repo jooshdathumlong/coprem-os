@@ -1,6 +1,22 @@
 # COPREM OS — Current Status
 
-> Last Updated: 2026-05-31 | Session: v3.3.3 — L5 Feedback Loop + L4 Content Library ✅ ALL LAYERS COMPLETE
+> Last Updated: 2026-05-31 | Session: v3.3.4 — Merge coprem-os build + fill gaps
+
+---
+
+## ✅ Done (v3.3.4)
+
+**Merge from coprem-os build**
+- WF09 Automated Backup — added to `03-system/workflows/exports/` (was the only missing workflow)
+- Migration 006: `memory_embeddings` table + PGVector extension (L3 semantic vector search)
+- `scripts/coprem` CLI wrapper — `coprem status`, `cost.today`, `kb.sync`, `killswitch`, etc.
+- INDEX.md updated — all 14 workflow exports registered, migration range 001–006, CLI registered
+- L6 Cron: 8/11 → **9/11** (WF09 added, still need import)
+
+**Gap analysis result:**
+- Docker, .env, migrations 001–005, scripts, Dify agents, CI/CD, workflow specs — all already existed
+- 13/14 workflow JSONs already existed (WF01–08, 10–11, L1-C, L1.5, L8)
+- coprem-os build in Cowork folder is now redundant — Coprem folder is source of truth
 
 ---
 
@@ -192,7 +208,7 @@ L0 ✅ | L1 ✅ | L1.5 ✅ | L2 ✅ | L2.5 ✅ | L3 ✅ | L4 ✅ | L5 ✅ | L6 �
 | L3 Memory/KB | ✅ KB + WF10 auto-sync |
 | L4 Content Library | ✅ |
 | L5 Feedback Loop | ✅ |
-| L6 Cron Workflows | ⚠️ 8/11 |
+| L6 Cron Workflows | ⚠️ 9/11 (WF09 added, need import) |
 | L7 Security | ✅ |
 | L8 Monitoring | ✅ |
 
@@ -204,3 +220,12 @@ Redis      → session cache
 Dify.ai    → cloud.dify.ai (4 agents, 5 KBs)
 GitHub CI  → coprem-mac runner
 ```
+
+## 2026-05-31 Session — Jeff
+
+| Time | Action | Result |
+|---|---|---|
+| 21:58 | pgvector migration 006 | ✅ memory_embeddings table created |
+| 21:58 | temp_fix_all_creds.py | ✅ deleted |
+| — | WF09 Backup import | ⏳ HITL — manual n8n UI import |
+| — | Dify | ⚠️ DOWN (cloud) — monitor |

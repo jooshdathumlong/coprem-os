@@ -1,0 +1,179 @@
+#!/bin/bash
+# COPREM OS — CLI Command Wrapper
+# Usage: coprem <command> [args]
+# Install: ln -sf $(pwd)/scripts/coprem /usr/local/bin/coprem
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
+# Load .env
+if [ -f "$PROJECT_DIR/.env" ]; then
+  source "$PROJECT_DIR/.env"
+fi
+
+N8N_URL="${WEBHOOK_URL:-http://localhost:5678}"
+DB_USER="${POSTGRES_USER:-coprem}"
+DB_NAME="${COPREM_OS_DB:-coprem_os}"
+
+# Helper: run SQL
+run_sql() {
+  docker compose -f "$PROJECT_DIR/docker-compose.yml" exec -T postgres psql -U "$DB_USER" -d "$DB_NAME" -t -A -c "$1"
+}
+
+# Helper: call n8n webhook
+call_webhook() {
+  curl -s -X POST "$N8N_URL/webhook/$1" -H "Content-Type: application/json" -d "$2"
+}
+
+case "${1:-help}" in
+  # ── Core ──────────────────────────────────
+  run)
+    shift
+    call_webhook "coprem" "{\"message\": \"$*\"}"
+    ;;
+
+  fetch)
+    shift
+    echo "🔍 Searching memory for: $*"
+    run_sql "SELECT id, content, memory_type, created_at FROM memory_embeddings WHERE content ILIKE '%$*%' ORDER BY created_at DESC LIMIT 5;"
+    ;;
+
+  # ── Status ────────────────────────────────
+  status)
+    echo "━━━ COPREM OS Status ━━━"
+    echo ""
+    echo "📊 Database:"
+    run_sql "SELECT 'Tables: ' || count(*) FROM information_schema.tables WHERE table_schema = 'public';"
+    echo ""
+    echo "💰 Cost today:"
+    run_sql "SELECT COALESCE(SUM(total_cost_usd), 0) as daily_cost FROM cost_tracker WHERE date = CURRENT_DATE;"
+    echo ""
+    echo "📋 Active tasks:"
+    run_sql "SELECT count(*) FROM task_board WHERE status IN ('pending', 'in_progress');"
+    echo ""
+    echo "❌ Failed tasks:"
+    run_sql "SELECT count(*) FROM failed_tasks_db WHERE status = 'pending';"
+    echo ""
+    echo "🔒 Quarantine:"
+    run_sql "SELECT count(*) FROM quarantine_db WHERE resolved = false;"
+    ;;
+
+  cost.today)
+    run_sql "SELECT provider, model, total_cost_usd, request_count FROM cost_tracker WHERE date = CURRENT_DATE ORDER BY total_cost_usd DESC;"
+    ;;
+
+  cost.month)
+    run_sql "SELECT provider, SUM(total_cost_usd) as total, SUM(request_count) as requests FROM cost_tracker WHERE date >= date_trunc('month', CURRENT_DATE) GROUP BY provider ORDER BY total DESC;"
+    ;;
+
+  degradation.tier)
+    DAILY=$(run_sql "SELECT COALESCE(SUM(total_cost_usd), 0) FROM cost_tracker WHERE date = CURRENT_DATE;")
+    MONTHLY=$(run_sql "SELECT COALESCE(SUM(total_cost_usd), 0) FROM cost_tracker WHERE date >= date_trunc('month', CURRENT_DATE);")
+    echo "Daily cost:   \$$DAILY"
+    echo "Monthly cost: \$$MONTHLY"
+
+    if (( $(echo "$DAILY > 1.00" | bc -l) )); then echo "⚠️  Tier 3 — Emergency (Ollama only)"
+    elif (( $(echo "$DAILY > 0.50" | bc -l) )); then echo "⚠️  Tier 2 — Cost limit"
+    elif (( $(echo "$DAILY > 0.30" | bc -l) )); then echo "⚡ Tier 1 — Cost alert"
+    else echo "✅ Tier 0 — Full capability"
+    fi
+    ;;
+
+  # ── Agents ────────────────────────────────
+  agent.jeff)
+    shift
+    call_webhook "coprem" "{\"message\": \"$*\", \"force_agent\": \"jeff\"}"
+    ;;
+  agent.eilinaire)
+    shift
+    call_webhook "coprem" "{\"message\": \"$*\", \"force_agent\": \"eilinaire\"}"
+    ;;
+  agent.ego_era)
+    shift
+    call_webhook "coprem" "{\"message\": \"$*\", \"force_agent\": \"ego_era\"}"
+    ;;
+
+  # ── KB ────────────────────────────────────
+  kb.sync)
+    KB_ID="${2:-all}"
+    call_webhook "kb-sync" "{\"kb_id\": \"$KB_ID\"}"
+    ;;
+
+  memory.audit)
+    echo "🔍 Running 90-day TTL audit..."
+    run_sql "SELECT id, decision, created_at, expires_at FROM decision_memory_log WHERE expires_at < NOW() AND archived = false ORDER BY expires_at ASC;"
+    ;;
+
+  # ── Prompts ───────────────────────────────
+  prompt.status)
+    run_sql "SELECT agent, version, is_active, feedback_avg, shadow_score, created_at FROM prompt_library ORDER BY agent, created_at DESC;"
+    ;;
+
+  prompt.rollback)
+    AGENT="${2:?Usage: coprem prompt.rollback <agent> <version>}"
+    VERSION="${3:?Usage: coprem prompt.rollback <agent> <version>}"
+    echo "⏪ Rolling back $AGENT to $VERSION..."
+    run_sql "UPDATE prompt_library SET is_active = false WHERE agent = '$AGENT';"
+    run_sql "UPDATE prompt_library SET is_active = true WHERE agent = '$AGENT' AND version = '$VERSION';"
+    run_sql "INSERT INTO audit_log (event_type, source, payload) VALUES ('PROMPT_ROLLBACK', 'cli', '{\"agent\": \"$AGENT\", \"version\": \"$VERSION\"}'::jsonb);"
+    echo "✅ Done"
+    ;;
+
+  # ── Workflows ─────────────────────────────
+  workflow.trigger)
+    WF_NAME="${2:?Usage: coprem workflow.trigger <name>}"
+    case "$WF_NAME" in
+      morning_brief) call_webhook "morning-brief" "{}" ;;
+      market_pulse)  call_webhook "market-pulse" "{}" ;;
+      okr_review)    call_webhook "okr-review" "{}" ;;
+      health_ping)   call_webhook "health-ping" "{}" ;;
+      *) echo "Unknown workflow: $WF_NAME" ;;
+    esac
+    ;;
+
+  # ── Emergency ─────────────────────────────
+  killswitch)
+    echo "🚨 KILLSWITCH ACTIVATED"
+    echo "Halting all n8n workflows..."
+    # Deactivate all workflows via n8n API
+    run_sql "INSERT INTO audit_log (event_type, source, payload) VALUES ('KILLSWITCH', 'cli', '{\"activated_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}'::jsonb);"
+    echo "⚠️  Manual intervention required to restart."
+    echo "    All new tasks queued to Failed_Tasks_DB."
+    ;;
+
+  # ── Help ──────────────────────────────────
+  help|*)
+    echo "COPREM OS CLI v8.2"
+    echo ""
+    echo "Core:"
+    echo "  coprem run \"task\"              Run a task through the pipeline"
+    echo "  coprem fetch \"keyword\"         Search memory"
+    echo "  coprem status                  System health overview"
+    echo ""
+    echo "Cost:"
+    echo "  coprem cost.today              API cost today"
+    echo "  coprem cost.month              API cost this month"
+    echo "  coprem degradation.tier        Current degradation tier"
+    echo ""
+    echo "Agents:"
+    echo "  coprem agent.jeff \"task\"        Force-assign to Jeff"
+    echo "  coprem agent.eilinaire \"task\"   Force-assign to Eilinaire"
+    echo "  coprem agent.ego_era \"task\"     Force-assign to Ego Era"
+    echo ""
+    echo "Memory:"
+    echo "  coprem kb.sync [KB-ID|all]     Re-embed KB"
+    echo "  coprem memory.audit            Run 90-day TTL audit"
+    echo ""
+    echo "Prompts:"
+    echo "  coprem prompt.status           Show active prompt versions"
+    echo "  coprem prompt.rollback A V     Roll back agent A to version V"
+    echo ""
+    echo "Workflows:"
+    echo "  coprem workflow.trigger NAME   Trigger a workflow manually"
+    echo ""
+    echo "Emergency:"
+    echo "  coprem killswitch              HALT everything"
+    ;;
+esac

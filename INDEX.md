@@ -39,7 +39,7 @@
 | `ego-era/` | Lore rules + style reference | KB-02 |
 | `trading/` | Investment research | KB-03 |
 | `job/` | Marketing + Ops dept knowledge | KB-04 |
-| `personal/` | Mindset, learning, me SSOT | — |
+| `personal/` | Mindset, learning, me SSOT + prem-profile | — |
 
 ## 03-system/ — COPREM OS Operational
 | File/Folder | Content | Status |
@@ -56,12 +56,20 @@
 ## 03-system/workflows/exports/ — Import-ready JSONs
 | File | Workflow | Status |
 |------|---------|--------|
-| `WF01_Inbox_Single_Entry.json` | Single Telegram entry point (L1-A→Dify→L2.5) | ⏳ Pending import |
-| `01_COPREM_MVP_Dify.json` | WF01 alt version | ⏳ Superseded by above |
+| `WF01_Inbox_Single_Entry.json` | Single Telegram entry point (L1-A→L7→L1.5→Dify→L2.5) | ✅ Active |
 | `WF02_Daily_Morning_Brief.json` | 07:00 daily brief | ✅ Active |
-| `WF03_Market_Pulse_Scanner.json` | Market scan every 6h | ✅ Active (placeholder) |
+| `WF03_Market_Pulse_Scanner.json` | Market scan every 6h | ✅ Active |
 | `WF04_Weekly_OKR_Review.json` | Sunday 20:00 OKR | ✅ Active |
+| `WF05_HITL_Decision_Saver.json` | HITL approve/reject webhook | ✅ Active |
 | `WF06_Health_Ping.json` | Health check every 6h | ✅ Active |
+| `WF07_Feedback_Collector.json` | Boss rates ⭐1–5 → flag < 3 | ✅ Active |
+| `WF08_Self_Optimization.json` | Sunday 22:00 weak output analysis | ✅ Active |
+| `WF09_Automated_Backup.json` | Sunday 03:00 export + backup | ⏳ Ready to import |
+| `WF10_KB_Sync.json` | GDrive webhook → Dify re-embed | ✅ Active |
+| `WF11_DLQ_Processor.json` | Every 4h retry failed tasks | ✅ Active |
+| `WF_L1C_Provider_Router.json` | Model matrix + fallback chain | ✅ Active |
+| `WF_L1_5_Session_Context_Manager.json` | Redis multi-turn context | ✅ Active |
+| `WF_L8_Daily_Monitor.json` | 07:30 daily KPI + SLO report | ✅ Active |
 
 ## .github/workflows/ — CI/CD
 | File | Trigger | Status |
@@ -89,5 +97,7 @@ Next.js dashboard (localhost:3000) — not yet built.
 | `.env` | API keys (never commit secrets) |
 | `03-system/skills/SRE_Master_Playbook.md` | Advanced tactical rules 16–25 (DB, API, security, ops) |
 | `02-knowledge/COPREM_OS_24_Frameworks_v1_1.md` | Architecture backlog — 24 framework mappings, Priority Matrix, Framework Interaction Map | L3 grep-only |
-| `db/migrations/` | Numbered idempotent DB migrations (001–004) — source of truth for schema |
+| `db/migrations/` | Numbered idempotent DB migrations (001–006) — source of truth for schema |
+| `db/migrations/006_enable_pgvector.sql` | PGVector extension + memory_embeddings table (L3 semantic search) |
+| `scripts/coprem` | CLI wrapper — coprem status, cost.today, kb.sync, killswitch, etc. |
 | `.env.example` | Env var template for new machine setup — all keys, no real values |
