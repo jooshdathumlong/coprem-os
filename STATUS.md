@@ -249,3 +249,14 @@ GitHub CI  → coprem-mac runner
 | 23:50 | n8n credential fix | ✅ reset pg password + update encrypted credential |
 | 23:50 | N8N_BLOCK_ENV_ACCESS_IN_NODE | ✅ เพิ่มใน docker-compose เพื่อให้ $env ทำงานใน Code node |
 | 23:50 | WF L1-C new ID | ✅ 4kUNH6gYNQxg3VN1 (re-imported เพราะ n8n 2.22.5 publish version issue) |
+
+## 2026-06-01 Session — Jeff
+
+| Time | Action | Result |
+|---|---|---|
+| 00:05 | LiteLLM proxy | ✅ รันที่ port 4000, 6 Gemini keys |
+| 00:10 | litellm.peabuntid.com | ✅ DNS + Cloudflare tunnel ใช้งานได้ |
+| 00:10 | coprem-cloudflared-1 | ✅ หยุดแล้ว (wrong network) — ใช้ 03-system-cloudflared-1 แทน |
+| 00:10 | CF_API_TOKEN | ✅ บันทึกใน .env |
+| — | Dify → LiteLLM | ⏳ HITL — เปรมตั้งค่าใน cloud.dify.ai |
+| — | ทดสอบ end-to-end | ⏳ รอ quota reset ตีสี่ |
