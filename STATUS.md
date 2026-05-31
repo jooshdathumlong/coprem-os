@@ -1,6 +1,24 @@
 # COPREM OS — Current Status
 
-> Last Updated: 2026-05-31 | Session: v3.2.2 — v8.3 Compliance Gaps Closed (5/5)
+> Last Updated: 2026-05-31 | Session: v3.2.3 — WF Import + Activation + Telegram Test
+
+---
+
+## ✅ Done (v3.2.3)
+
+**Workflow Import + Activation**
+- WF L1-C Provider Router — imported + activated ✅
+- WF05 HITL Decision Saver — imported + activated ✅
+- WF10 KB Sync (Auto-Librarian) — imported + activated ✅
+- WF11 DLQ Processor — imported + activated ✅
+- Telegram test message ส่งสำเร็จ (chat_id: 7731591925)
+- n8n status: 12/13 workflows Active (COPREM-MVP legacy = Inactive ปกติ)
+
+**Postgres Credentials**
+- Confirmed host=`postgres`, db=`coprem`/`coprem_os`, user=`coprem`, SSL=Disable
+
+## 🚫 Blocked
+- Gemini quota ยังไม่ reset — WF01 full flow test รอ 08:00
 
 ---
 
