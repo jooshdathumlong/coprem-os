@@ -230,3 +230,5 @@ GitHub CI  → coprem-mac runner
 | — | WF09 Backup import | ⏳ HITL — manual n8n UI import |
 | — | Dify | ⚠️ DOWN (cloud) — monitor |
 | 22:15 | WF09 Automated Backup | ✅ activated — cron Sunday 03:00 |
+| 22:20 | WF07 Feedback Collector | ✅ activated |
+| 22:20 | L5 Feedback Loop | ✅ fully live (WF07 + WF08 active) |
