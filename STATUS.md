@@ -54,7 +54,7 @@
 | L1.5 Session Manager | ❌ |
 | L2 Agents (Dify) | ✅ |
 | L2.5 Normalizer | ✅ live in WF01 |
-| L3 Memory/KB | ⚠️ KB only |
+| L3 Memory/KB | ✅ KB + WF10 auto-sync |
 | L4 Content Library | ❌ |
 | L5 Feedback Loop | ❌ |
 | L6 Cron Workflows | ⚠️ 5/11 |
