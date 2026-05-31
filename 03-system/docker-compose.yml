@@ -72,6 +72,26 @@ services:
     networks:
       - coprem-internal
 
+  # ── LiteLLM: Multi-key Gemini Proxy ─────────────────────────
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
+      - EILINAIRE_GOOGLE_API_KEY=${EILINAIRE_GOOGLE_API_KEY}
+      - JOOSHDATHUMLONG_GOOGLE_API_KEY=${JOOSHDATHUMLONG_GOOGLE_API_KEY}
+      - MAHITTISAK_GOOGLE_API_KEY=${MAHITTISAK_GOOGLE_API_KEY}
+      - SUNSETSOL_GOOGLE_API_KEY=${SUNSETSOL_GOOGLE_API_KEY}
+      - RLIE_GOOGLE_API_KEY=${RLIE_GOOGLE_API_KEY}
+      - PEABANTID_GOOGLE_API_KEY=${PEABANTID_GOOGLE_API_KEY}
+    volumes:
+      - ./litellm/config.yaml:/app/config.yaml:ro
+    networks:
+      - coprem-internal
+
   # ── Cloudflared: Named Tunnel (Cloudflare Zero Trust) ───────
   cloudflared:
     image: cloudflare/cloudflared:latest
