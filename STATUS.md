@@ -604,3 +604,6 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 PENDING ต่อ session หน้า:
 - ข้อมูลบริษัทงานประจำของเปรม (รอเปรมส่งมา)
 - COPREM v8.3+ Blueprint unlock (ได้รับอนุมัติแล้ว)
+
+| 2026-06-02 00:05 | CHAT: Jeff system prompt อ่าน work/ KB ทุกครั้ง — รู้จัก Royal Shammi, Batiste, Scrub Daddy | ✅ |
+| 2026-06-02 00:05 | Session End — จบ session | ✅ |
