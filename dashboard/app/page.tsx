@@ -244,7 +244,8 @@ export default function Dashboard() {
             {(Object.keys(L.nav) as Tab[]).map(id => (
               <button key={id} onClick={() => setTab(id)} style={{
                 position: 'relative', padding: '0 16px', height: 52, fontSize: 14, fontWeight: tab === id ? 500 : 400,
-                color: tab === id ? '#0066cc' : '#424245', background: 'none', border: 'none', cursor: 'pointer',
+                color: tab === id ? '#0066cc' : '#424245', background: 'none', cursor: 'pointer',
+                borderTop: 'none', borderLeft: 'none', borderRight: 'none',
                 borderBottom: tab === id ? '2px solid #0066cc' : '2px solid transparent', transition: 'color 0.15s', whiteSpace: 'nowrap',
                 display: 'flex', alignItems: 'center', gap: 6
               }}>
@@ -650,9 +651,9 @@ export default function Dashboard() {
               <div style={{ flex: 1, overflowY: 'auto' }}>
                 {sessionsView === 'sessions' && sessions.map((s, i) => (
                   <button key={i} onClick={() => setExpandedSession(expandedSession === `s${i}` ? null : `s${i}`)} style={{
-                    width: '100%', textAlign: 'left', padding: '12px 14px', borderBottom: '1px solid #e8e8ed', background: expandedSession === `s${i}` ? 'white' : 'transparent',
-                    borderLeft: expandedSession === `s${i}` ? '3px solid #0066cc' : '3px solid transparent', cursor: 'pointer', border: 'none',
-                    borderBottomColor: '#e8e8ed', borderBottomWidth: 1, borderBottomStyle: 'solid'
+                    width: '100%', textAlign: 'left', padding: '12px 14px', background: expandedSession === `s${i}` ? 'white' : 'transparent',
+                    borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #e8e8ed',
+                    borderLeft: expandedSession === `s${i}` ? '3px solid #0066cc' : '3px solid transparent', cursor: 'pointer',
                   }}>
                     <div style={{ fontSize: 12, color: '#1d1d1f', fontWeight: 500, marginBottom: 3, lineHeight: 1.4 }}>{s.title}</div>
                     <div style={{ fontSize: 11, color: '#6e6e73' }}>{s.date} · {s.steps.length} steps</div>
@@ -660,9 +661,9 @@ export default function Dashboard() {
                 ))}
                 {sessionsView === 'commits' && commits.map((c, i) => (
                   <button key={i} onClick={() => setExpandedSession(expandedSession === `c${i}` ? null : `c${i}`)} style={{
-                    width: '100%', textAlign: 'left', padding: '12px 14px', borderBottom: '1px solid #e8e8ed', background: expandedSession === `c${i}` ? 'white' : 'transparent',
-                    borderLeft: expandedSession === `c${i}` ? '3px solid #0066cc' : '3px solid transparent', cursor: 'pointer', border: 'none',
-                    borderBottomColor: '#e8e8ed', borderBottomWidth: 1, borderBottomStyle: 'solid'
+                    width: '100%', textAlign: 'left', padding: '12px 14px', background: expandedSession === `c${i}` ? 'white' : 'transparent',
+                    borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #e8e8ed',
+                    borderLeft: expandedSession === `c${i}` ? '3px solid #0066cc' : '3px solid transparent', cursor: 'pointer',
                   }}>
                     <div style={{ fontSize: 12, color: '#1d1d1f', fontWeight: 500, marginBottom: 3, lineHeight: 1.4 }}>{c.subject}</div>
                     <div style={{ fontSize: 11, color: '#6e6e73', fontFamily: 'monospace' }}>{c.hash} · {c.time}</div>
