@@ -460,3 +460,18 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 | BUG | ROOT | FIX |
 |---|---|---|
 | IF node ไม่ block invalid sig | n8n IF ไม่ access headers ใน production webhook mode | ใช้ Code node + return [] แทน |
+
+## Session 2026-06-01 — GAP-04 Rate Limit Tracker
+
+| Time | Action | Result |
+|---|---|---|
+| 2026-06-01 10:02 | WF L1-C: Update Rate Limits node | ✅ Postgres upsert หลังทุก API call |
+| 2026-06-01 10:02 | rate_limit_registry verify | ✅ gemini-2.0-flash: remaining=999 updated |
+| 2026-06-01 10:02 | Select Model throttle logic | ✅ อ่าน is_throttled ก่อน route ทุกครั้ง |
+
+## All Backlog Tasks — COMPLETE
+| Task | Status |
+|---|---|
+| Low Confidence Reply wiring | ✅ |
+| GAP-07 Webhook Signature | ✅ |
+| GAP-04 Rate Limit Tracker | ✅ |
