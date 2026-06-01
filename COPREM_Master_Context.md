@@ -1,5 +1,5 @@
 # COPREM OS — Master Context
-> อัปเดต: 2026-06-01 11:00 | Version: Blueprint v8.2 Complete | Status: **LIVE ✅** | Month 3 ACTIVE
+> อัปเดต: 2026-06-02 | Version: Blueprint v8.3 | Status: **LIVE ✅** | Month 3 ACTIVE
 
 ---
 
@@ -91,7 +91,7 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 
 ---
 
-## 4. Blueprint Layer Status (100% complete)
+## 4. Blueprint Layer Status (v8.3 — 10 layers)
 
 | Layer | Status |
 |---|---|
@@ -109,6 +109,7 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 | L6 Cron 11/11 | ✅ |
 | L7 Security + HITL Gate | ✅ |
 | L8 Monitoring | ✅ |
+| L9 Command Center Dashboard (Next.js port 3001) | ✅ NEW v8.3 |
 
 ---
 
@@ -189,7 +190,8 @@ Keys ที่สำคัญ (masked):
 users, audit_log, inbox_log, dedup_cache, session_store,
 rate_limit_registry, blocked_ips, failed_tasks_db, quarantine_db,
 task_board, okr_scoreboard, market_signal_log, kb_sync_log,
-prompt_library, decision_memory_log, memory_embeddings (pgvector)
+prompt_library, decision_memory_log, memory_embeddings (pgvector),
+chat_sessions, chat_messages  ← NEW v8.3 (L9 Dashboard persistent chat history)
 ```
 
 ---
@@ -269,13 +271,21 @@ ollama serve &
 | 17:20 | Memory: feedback_litellm_health | ห้ามเรียก /health — ใช้ /health/liveliness เท่านั้น |
 
 **Month 3 Backlog (ACTIVE):**
-- Next.js Dashboard (P1), WebSocket (P2), Ollama tuning (P2), Chaos experiment (P3)
-- FutureSkill KB-06: ✅ DONE — Postgres 584 rows + KB-06.md (88KB) + Dify indexed | 127 unsorted = ระยะยาว
+- Next.js Dashboard ✅ | Chat sessions ✅ | SSE live status ✅ | Chaos experiment ✅
+- FutureSkill KB-06: ✅ DONE — Postgres 584 rows + KB-06.md (88KB) + Dify indexed
+- **NEXT:** Ollama tuning | PERSONAL pillar activation
 | 04:30 | Timezone fix (GENERIC_TIMEZONE=Asia/Bangkok) | ✅ |
 
 ## Session Log (2026-06-01)
 
 | 2026-06-01 | Phase 1–4 Complete | T1-T5 tactical + S1-S7 structural + Dashboard + 3 Agents |
 | 2026-06-01 | Dashboard v2 | 6 tabs: Chat(model selector) / HITL / KB / Browser / Docs / System |
+
+## Session Log (2026-06-02)
+
+| 2026-06-02 | Chat sessions sidebar (ChatGPT-style) | ✅ PostgreSQL + API + UI sidebar |
+| 2026-06-02 | Blueprint v8.3 | ✅ L9 layer, Module 4, DB schema, roadmap updated |
+| 2026-06-02 | SSE live status (/api/status-stream) | ✅ 10s push replaces 30s polling |
+| 2026-06-02 | Chaos experiment (n8n kill/recovery) | ✅ SSE detect DOWN+UP <10s, WF01 survives |
 | 2026-06-01 | Mac Launcher | COPREM OS.app + start_coprem.sh on Desktop |
 | 2026-06-01 | Semantic Search | nomic-embed-text 116 segments in pgvector |
