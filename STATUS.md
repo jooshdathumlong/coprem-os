@@ -446,3 +446,17 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 | BUG | ROOT | FIX |
 |---|---|---|
 | IF typeVersion 2 breaks WF01 flow | n8n 2.22.5 incompatible IF v2 in this WF | ใช้ Switch node ver 3 แทน |
+
+## Session 2026-06-01 — GAP-07 Webhook Signature Validation
+
+| Time | Action | Result |
+|---|---|---|
+| 2026-06-01 09:59 | Telegram setWebhook secret_token | ✅ WEBHOOK_SECRET set |
+| 2026-06-01 09:59 | WF01 Signature Validator node | ✅ Code node — invalid sig = return [] |
+| 2026-06-01 09:59 | Test valid sig | ✅ WEBHOOK_RECEIVED + AGENT_OUTPUT |
+| 2026-06-01 09:59 | Test invalid sig | ✅ blocked — no audit_log entry |
+
+## BUG LOG
+| BUG | ROOT | FIX |
+|---|---|---|
+| IF node ไม่ block invalid sig | n8n IF ไม่ access headers ใน production webhook mode | ใช้ Code node + return [] แทน |
