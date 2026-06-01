@@ -5,7 +5,7 @@ Reads KB segments from Dify API, embeds via nomic-embed-text (Ollama),
 stores in memory_embeddings.embedding_768 for vector search.
 Run: python3 scripts/embed_kb.py
 """
-import os, sys, json, time, hashlib, urllib.request, urllib.parse
+import os, sys, json, time, hashlib, subprocess, urllib.request, urllib.parse
 from pathlib import Path
 
 # ── Config ────────────────────────────────────────────────────────────────────
@@ -60,32 +60,37 @@ def dify_list_segments(dataset_id: str, doc_id: str) -> list:
         print(f"  segments error: {e}")
         return []
 
-def pg_upsert(conn, content: str, pillar: str, kb_id: str, embedding: list[float]):
-    import psycopg2.extras
-    content_hash = hashlib.md5(content.encode()).hexdigest()
+def get_pg_container() -> str:
+    result = subprocess.run(
+        ["docker", "ps", "--filter", "name=postgres", "-q"],
+        capture_output=True, text=True
+    )
+    cid = result.stdout.strip().split("\n")[0]
+    if not cid:
+        raise RuntimeError("Postgres container not found")
+    return cid
+
+def pg_upsert(pg_cid: str, content: str, pillar: str, kb_id: str, embedding: list[float]):
     embedding_str = "[" + ",".join(str(x) for x in embedding) + "]"
-    with conn.cursor() as cur:
-        cur.execute("""
-            INSERT INTO memory_embeddings (content, memory_type, pillar, kb_id, embedding_768)
-            VALUES (%s, 'kb_segment', %s, %s, %s::vector)
-            ON CONFLICT DO NOTHING
-        """, (content, pillar, kb_id, embedding_str))
-    conn.commit()
+    # Escape single quotes in content
+    safe_content = content.replace("'", "''")
+    sql = (
+        f"INSERT INTO memory_embeddings (content, memory_type, pillar, kb_id, embedding_768) "
+        f"VALUES ('{safe_content}', 'kb_segment', '{pillar}', '{kb_id}', '{embedding_str}'::vector) "
+        f"ON CONFLICT DO NOTHING;"
+    )
+    subprocess.run(
+        ["docker", "exec", pg_cid, "psql", "-U", PG_USER, "-d", PG_DB, "-c", sql],
+        capture_output=True
+    )
 
 def main():
     load_env()
     if not os.environ.get("DIFY_API_KEY"):
         print("ERROR: DIFY_API_KEY not set"); sys.exit(1)
 
-    try:
-        import psycopg2
-    except ImportError:
-        print("Installing psycopg2..."); os.system("pip install psycopg2-binary -q")
-        import psycopg2
-
-    pg_pass = os.environ.get("POSTGRES_PASSWORD", "")
-    conn = psycopg2.connect(host=PG_HOST, port=PG_PORT, dbname=PG_DB,
-                             user=PG_USER, password=pg_pass)
+    pg_cid = get_pg_container()
+    print(f"Postgres container: {pg_cid[:12]}")
 
     total = 0
     for dataset_id, (pillar, kb_label) in KB_TARGETS.items():
@@ -99,13 +104,12 @@ def main():
                 if len(content) < 20:
                     continue
                 vec = embed(content)
-                pg_upsert(conn, content, pillar, kb_label, vec)
+                pg_upsert(pg_cid, content, pillar, kb_label, vec)
                 total += 1
                 if total % 50 == 0:
                     print(f"  Embedded {total} segments so far...")
-                time.sleep(0.05)  # gentle pace
+                time.sleep(0.05)
 
-    conn.close()
     print(f"\nDone: {total} segments embedded into memory_embeddings.embedding_768")
 
 if __name__ == "__main__":
