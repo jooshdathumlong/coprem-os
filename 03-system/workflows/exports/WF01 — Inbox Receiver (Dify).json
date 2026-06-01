@@ -25,7 +25,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// L1-A Preprocessor v3 — fixed path + all routing aliases\nconst triggerData = $('Telegram Trigger').first().json;\nconst msg = triggerData.body?.message || triggerData.message || {};\nconst text = msg.text || msg.caption || '';\nconst userId = msg.from?.id || 0;\nconst chatId = msg.chat?.id || userId;\n\nfunction simpleHash(str) {\n  let hash = 5381;\n  for (let i = 0; i < str.length; i++) {\n    hash = ((hash << 5) + hash) + str.charCodeAt(i);\n    hash = hash & hash;\n  }\n  return Math.abs(hash).toString(16);\n}\n\nconst content_clean = text.trim().replace(/\\s+/g, ' ');\nconst thaiRegex = /[฀-๿]/;\nconst lang_detected = thaiRegex.test(content_clean) ? 'th' : 'en';\nconst msg_hash = simpleHash(`${userId}:${content_clean}`);\n\nlet msg_type = 'chat';\nif (text.startsWith('/start')) msg_type = 'start';\nelse if (text.startsWith('/rate')) msg_type = 'feedback';\nelse if (text.toUpperCase() === 'APPROVE' || text.toUpperCase() === 'REJECT') msg_type = 'approval';\n\nreturn [{ json: {\n  content_raw: text,\n  content_clean,\n  text: content_clean,\n  lang_detected,\n  isThai: lang_detected === 'th',\n  msg_hash,\n  hash: msg_hash,\n  msg_type,\n  isStart: msg_type === 'start',\n  isApproval: msg_type === 'approval',\n  isChat: msg_type === 'chat',\n  user_id: userId, userId,\n  chat_id: chatId, chatId,\n  firstName: msg.from?.first_name || '',\n  username: msg.from?.username || '',\n  preprocessed_at: new Date().toISOString()\n} }];\n"
+        "jsCode": "// L1-A Preprocessor v4 — S5: injection defense + sanitization\nconst triggerData = $('Telegram Trigger').first().json;\nconst msg = triggerData.body?.message || triggerData.message || {};\nconst rawText = msg.text || msg.caption || '';\nconst userId = msg.from?.id || 0;\nconst chatId = msg.chat?.id || userId;\n\nfunction simpleHash(str) {\n  let hash = 5381;\n  for (let i = 0; i < str.length; i++) {\n    hash = ((hash << 5) + hash) + str.charCodeAt(i);\n    hash = hash & hash;\n  }\n  return Math.abs(hash).toString(16);\n}\n\n// S5: Sanitize — truncate, strip null bytes, escape backticks\nlet text = rawText.slice(0, 2000).replace(/\\x00/g, '').replace(/`/g, \"'\");\n\n// S5: Injection detection — detect silently, continue normally\nconst INJECTION_PATTERNS = [\n  /ignore previous/i, /forget instructions/i, /you are now/i,\n  /disregard/i, /act as/i, /jailbreak/i, /override/i\n];\nconst injection_detected = INJECTION_PATTERNS.some(p => p.test(text));\n// Do NOT expose detection to attacker — just log via flag, continue normal flow\n\nconst content_clean = text.trim().replace(/\\s+/g, ' ');\nconst thaiRegex = /[฀-๿]/;\nconst lang_detected = thaiRegex.test(content_clean) ? 'th' : 'en';\nconst msg_hash = simpleHash(`${userId}:${content_clean}`);\n\nlet msg_type = 'chat';\nif (rawText.startsWith('/start')) msg_type = 'start';\nelse if (rawText.startsWith('/rate')) msg_type = 'feedback';\nelse if (rawText.toUpperCase() === 'APPROVE' || rawText.toUpperCase() === 'REJECT') msg_type = 'approval';\n\nreturn [{ json: {\n  content_raw: rawText,\n  content_clean,\n  text: content_clean,\n  lang_detected,\n  isThai: lang_detected === 'th',\n  msg_hash,\n  hash: msg_hash,\n  msg_type,\n  isStart: msg_type === 'start',\n  isApproval: msg_type === 'approval',\n  isChat: msg_type === 'chat',\n  user_id: userId, userId,\n  chat_id: chatId, chatId,\n  firstName: msg.from?.first_name || '',\n  username: msg.from?.username || '',\n  preprocessed_at: new Date().toISOString(),\n  injection_detected\n} }];"
       },
       "id": "l1a-preprocess",
       "name": "L1-A Preprocessor",
@@ -941,6 +941,29 @@
         }
       },
       "onError": "continueRegularOutput"
+    },
+    {
+      "id": "l7-injection-audit",
+      "name": "L7 — Audit Injection Attempt",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        448,
+        560
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO audit_log (event_type, source, payload)\nSELECT 'INJECTION_ATTEMPT', 'L1-A', $1::jsonb\nWHERE ($1::jsonb->>'injection_detected')::boolean = true;\nSELECT 1 AS ok;",
+        "options": {
+          "queryReplacement": "={{ JSON.stringify({ user_id: $json.userId, msg_hash: $json.msg_hash, injection_detected: $json.injection_detected }) }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "rdxzBrj9putuOkku",
+          "name": "Postgres coprem_os"
+        }
+      }
     }
   ],
   "connections": {
@@ -959,7 +982,7 @@
       "main": [
         [
           {
-            "node": "Dedup Check",
+            "node": "L7 — Audit Injection Attempt",
             "type": "main",
             "index": 0
           }
@@ -1335,6 +1358,17 @@
           }
         ]
       ]
+    },
+    "L7 — Audit Injection Attempt": {
+      "main": [
+        [
+          {
+            "node": "Dedup Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {},
@@ -1389,7 +1423,7 @@
       },
       {
         "parameters": {
-          "jsCode": "// L1-A Preprocessor v3 — fixed path + all routing aliases\nconst triggerData = $('Telegram Trigger').first().json;\nconst msg = triggerData.body?.message || triggerData.message || {};\nconst text = msg.text || msg.caption || '';\nconst userId = msg.from?.id || 0;\nconst chatId = msg.chat?.id || userId;\n\nfunction simpleHash(str) {\n  let hash = 5381;\n  for (let i = 0; i < str.length; i++) {\n    hash = ((hash << 5) + hash) + str.charCodeAt(i);\n    hash = hash & hash;\n  }\n  return Math.abs(hash).toString(16);\n}\n\nconst content_clean = text.trim().replace(/\\s+/g, ' ');\nconst thaiRegex = /[฀-๿]/;\nconst lang_detected = thaiRegex.test(content_clean) ? 'th' : 'en';\nconst msg_hash = simpleHash(`${userId}:${content_clean}`);\n\nlet msg_type = 'chat';\nif (text.startsWith('/start')) msg_type = 'start';\nelse if (text.startsWith('/rate')) msg_type = 'feedback';\nelse if (text.toUpperCase() === 'APPROVE' || text.toUpperCase() === 'REJECT') msg_type = 'approval';\n\nreturn [{ json: {\n  content_raw: text,\n  content_clean,\n  text: content_clean,\n  lang_detected,\n  isThai: lang_detected === 'th',\n  msg_hash,\n  hash: msg_hash,\n  msg_type,\n  isStart: msg_type === 'start',\n  isApproval: msg_type === 'approval',\n  isChat: msg_type === 'chat',\n  user_id: userId, userId,\n  chat_id: chatId, chatId,\n  firstName: msg.from?.first_name || '',\n  username: msg.from?.username || '',\n  preprocessed_at: new Date().toISOString()\n} }];\n"
+          "jsCode": "// L1-A Preprocessor v4 — S5: injection defense + sanitization\nconst triggerData = $('Telegram Trigger').first().json;\nconst msg = triggerData.body?.message || triggerData.message || {};\nconst rawText = msg.text || msg.caption || '';\nconst userId = msg.from?.id || 0;\nconst chatId = msg.chat?.id || userId;\n\nfunction simpleHash(str) {\n  let hash = 5381;\n  for (let i = 0; i < str.length; i++) {\n    hash = ((hash << 5) + hash) + str.charCodeAt(i);\n    hash = hash & hash;\n  }\n  return Math.abs(hash).toString(16);\n}\n\n// S5: Sanitize — truncate, strip null bytes, escape backticks\nlet text = rawText.slice(0, 2000).replace(/\\x00/g, '').replace(/`/g, \"'\");\n\n// S5: Injection detection — detect silently, continue normally\nconst INJECTION_PATTERNS = [\n  /ignore previous/i, /forget instructions/i, /you are now/i,\n  /disregard/i, /act as/i, /jailbreak/i, /override/i\n];\nconst injection_detected = INJECTION_PATTERNS.some(p => p.test(text));\n// Do NOT expose detection to attacker — just log via flag, continue normal flow\n\nconst content_clean = text.trim().replace(/\\s+/g, ' ');\nconst thaiRegex = /[฀-๿]/;\nconst lang_detected = thaiRegex.test(content_clean) ? 'th' : 'en';\nconst msg_hash = simpleHash(`${userId}:${content_clean}`);\n\nlet msg_type = 'chat';\nif (rawText.startsWith('/start')) msg_type = 'start';\nelse if (rawText.startsWith('/rate')) msg_type = 'feedback';\nelse if (rawText.toUpperCase() === 'APPROVE' || rawText.toUpperCase() === 'REJECT') msg_type = 'approval';\n\nreturn [{ json: {\n  content_raw: rawText,\n  content_clean,\n  text: content_clean,\n  lang_detected,\n  isThai: lang_detected === 'th',\n  msg_hash,\n  hash: msg_hash,\n  msg_type,\n  isStart: msg_type === 'start',\n  isApproval: msg_type === 'approval',\n  isChat: msg_type === 'chat',\n  user_id: userId, userId,\n  chat_id: chatId, chatId,\n  firstName: msg.from?.first_name || '',\n  username: msg.from?.username || '',\n  preprocessed_at: new Date().toISOString(),\n  injection_detected\n} }];"
         },
         "id": "l1a-preprocess",
         "name": "L1-A Preprocessor",
@@ -2194,7 +2228,7 @@
         "main": [
           [
             {
-              "node": "Dedup Check",
+              "node": "L7 — Audit Injection Attempt",
               "type": "main",
               "index": 0
             }
@@ -2524,6 +2558,17 @@
       "HITL Queue Insert": {
         "main": [
           []
+        ]
+      },
+      "L7 — Audit Injection Attempt": {
+        "main": [
+          [
+            {
+              "node": "Dedup Check",
+              "type": "main",
+              "index": 0
+            }
+          ]
         ]
       }
     },
