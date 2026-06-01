@@ -125,9 +125,13 @@ export default function Dashboard() {
       .catch(() => setKbLoading(false))
   }, [])
 
-  const openKbDoc = useCallback((file: KBFile, l: Lang) => {
-    setSelectedFile(file); setKbView('doc'); setKbDoc(null); setKbDocLoading(true)
-    fetch(`/api/kb-docs?action=doc&cat=${file.catId}&file=${file.filename}&lang=${l}`).then(r => r.json())
+  const openKbDoc = useCallback((file: KBFile | { id: string; catId?: string; filename?: string; title?: string }, l: Lang) => {
+    setSelectedFile(file as KBFile); setKbView('doc'); setKbDoc(null); setKbDocLoading(true)
+    // Category files use catId+filename; pillar files (work/business) use id directly
+    const url = file.catId && file.filename
+      ? `/api/kb-docs?action=doc&cat=${file.catId}&file=${file.filename}&lang=${l}`
+      : `/api/kb-docs?action=doc&file=${file.id}&lang=${l}`
+    fetch(url).then(r => r.json())
       .then(d => { setKbDoc(d); setKbDocLoading(false) })
       .catch(() => setKbDocLoading(false))
   }, [])
