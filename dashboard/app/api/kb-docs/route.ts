@@ -80,16 +80,31 @@ const CATEGORIES: Record<string, { label: string; labelTh: string; emoji: string
 }
 
 // Non-category pillars (business/work) file registry
-const PILLAR_FILES: Record<string, { id: string; path: string; label: string }[]> = {
-  work: [
-    { id: 'work-readme', path: 'work/README.md', label: 'Company Overview' },
-  ],
-  business: [
-    { id: 'biz-business', path: 'personal/business_ssot.md', label: 'Business Projects (SSOT)' },
-    { id: 'biz-peabuntid', path: 'brand/peabuntid_ssot.md', label: 'Peabuntid Brand' },
-    { id: 'biz-eilinaire', path: 'brand/eilinaire_ssot.md', label: 'Eilinaire Brand' },
-    { id: 'biz-profile', path: 'personal/prem-profile.md', label: 'Prem Master Profile' },
-  ],
+// ── Dynamic pillar folder scan ────────────────────────────────────────────
+const PILLAR_FOLDERS: Record<string, { dirs: string[]; prefix: string }> = {
+  work:     { dirs: ['work'],                                                    prefix: 'work' },
+  business: { dirs: ['personal', 'brand'],                                       prefix: 'biz'  },
+}
+
+function scanPillarFiles(pillar: string) {
+  const cfg = PILLAR_FOLDERS[pillar]
+  if (!cfg) return []
+  const results: { id: string; path: string; label: string; fullPath: string }[] = []
+  for (const dir of cfg.dirs) {
+    const dirPath = join(KB_ROOT, dir)
+    if (!existsSync(dirPath)) continue
+    readdirSync(dirPath)
+      .filter(f => f.endsWith('.md') && !f.startsWith('_'))
+      .forEach(f => {
+        const fullPath = join(dirPath, f)
+        const relPath = `${dir}/${f}`
+        const content = readFileSync(fullPath, 'utf-8')
+        const titleMatch = content.match(/^#\s+(.+)/m)
+        const label = titleMatch ? titleMatch[1].trim() : f.replace('.md', '').replace(/_/g, ' ')
+        results.push({ id: `${cfg.prefix}-${f.replace('.md','').replace(/[^a-z0-9]/gi,'-')}`, path: relPath, label, fullPath })
+      })
+  }
+  return results
 }
 
 // ── Helper: scan .md files in a category folder ───────────────────────────
@@ -161,7 +176,7 @@ export async function GET(req: NextRequest) {
       id, label: labels[id][lang as 'en' | 'th'] || labels[id].en,
       fileCount: id === 'knowledge'
         ? Object.keys(CATEGORIES).reduce((n, c) => n + scanCategory(c).length, 0)
-        : (PILLAR_FILES[id] || []).filter(f => existsSync(join(KB_ROOT, f.path))).length,
+        : scanPillarFiles(id).length,
     })))
   }
 
@@ -190,10 +205,10 @@ export async function GET(req: NextRequest) {
 
   // ── Non-knowledge pillar items ────────────────────────────────────────────
   if (action === 'items' && (pillar === 'work' || pillar === 'business')) {
-    const items = (PILLAR_FILES[pillar] || []).map(f => ({
+    const items = scanPillarFiles(pillar).map(f => ({
       id: f.id, fileId: f.id, title: f.label, type: 'file',
       lines: 0, courseCount: 0, globalStandard: null, source: 'Prem',
-      sourceUrl: null, exists: existsSync(join(KB_ROOT, f.path)),
+      sourceUrl: null, exists: true,
     }))
     return NextResponse.json(items)
   }
@@ -207,11 +222,11 @@ export async function GET(req: NextRequest) {
       if (!parsed) return NextResponse.json({ error: 'not found' }, { status: 404 })
       return NextResponse.json({ ...parsed, filename: fileParam, path: fullPath })
     }
-    // Non-category files (business/work)
-    const allFiles = Object.values(PILLAR_FILES).flat()
+    // Non-category files (business/work) — find by id across all pillar files
+    const allFiles = [...scanPillarFiles('work'), ...scanPillarFiles('business')]
     const meta = allFiles.find(f => f.id === fileParam)
     if (meta) {
-      const fullPath = join(KB_ROOT, meta.path)
+      const fullPath = meta.fullPath
       const parsed = readMd(fullPath)
       if (!parsed) return NextResponse.json({ error: 'not found' }, { status: 404 })
       return NextResponse.json({ ...parsed, filename: meta.path, path: fullPath })
@@ -246,8 +261,9 @@ export async function GET(req: NextRequest) {
     } else if (catId && fileParam) {
       fullPath = join(CAT_ROOT, catId, fileParam)
     } else {
-      const meta = Object.values(PILLAR_FILES).flat().find(f => f.id === fileParam)
-      if (meta) fullPath = join(KB_ROOT, meta.path)
+      const allPillarFiles = [...scanPillarFiles('work'), ...scanPillarFiles('business')]
+      const meta = allPillarFiles.find(f => f.id === fileParam)
+      if (meta) fullPath = meta.fullPath
     }
     if (!fullPath || !existsSync(fullPath)) return NextResponse.json({ ok: false })
     try { execSync(`open "${fullPath}"`); return NextResponse.json({ ok: true }) }
