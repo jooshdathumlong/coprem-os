@@ -1,0 +1,347 @@
+{
+  "updatedAt": "2026-06-01T10:40:31.802Z",
+  "createdAt": "2026-06-01T10:40:31.802Z",
+  "id": "DQh1dFrcWhwowtpj",
+  "name": "WF-HITL-Resolver",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "hitl-resolve-trigger",
+      "name": "Telegram — Resolve Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "telegram-coprem",
+        "options": {}
+      },
+      "webhookId": "675a7fef-9940-46ee-8465-a205f66f1ce3"
+    },
+    {
+      "id": "hitl-parse-command",
+      "name": "Parse /resolve Command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const msg = $input.first().json.body?.message || {};\nconst text = msg.text || '';\nconst from_id = String(msg.from?.id || '');\n\n// Only admin (Prem) can resolve\nconst ADMIN_IDS = ['7731591925'];\nif (!ADMIN_IDS.includes(from_id)) {\n  return [{ json: { valid: false, reason: 'unauthorized' } }];\n}\n\n// Format: /resolve <hitl_id> <resolution_message>\nconst match = text.match(/^\\/resolve\\s+(\\d+)\\s+(.+)$/s);\nif (!match) {\n  return [{ json: { valid: false, reason: 'format: /resolve <id> <message>' } }];\n}\n\nreturn [{ json: {\n  valid: true,\n  hitl_id: parseInt(match[1]),\n  resolution: match[2].trim(),\n  admin_id: from_id,\n  admin_chat_id: String(msg.chat?.id || from_id)\n} }];"
+      }
+    },
+    {
+      "id": "hitl-valid-check",
+      "name": "Valid Command?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "typeValidation": "loose",
+            "version": 1,
+            "caseSensitive": false,
+            "leftValue": ""
+          },
+          "conditions": [
+            {
+              "id": "v",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "hitl-lookup",
+      "name": "Postgres — Lookup HITL Queue",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        900,
+        200
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, chat_id, message FROM hitl_queue WHERE id = $1 AND resolved_at IS NULL LIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ $json.hitl_id }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "rdxzBrj9putuOkku",
+          "name": "Postgres coprem_os"
+        }
+      }
+    },
+    {
+      "id": "hitl-found-check",
+      "name": "HITL Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "typeValidation": "loose",
+            "version": 1,
+            "caseSensitive": false,
+            "leftValue": ""
+          },
+          "conditions": [
+            {
+              "id": "f",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "hitl-send-resolution",
+      "name": "Telegram — Send Resolution to User",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1340,
+        120
+      ],
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $('Parse /resolve Command').first().json.resolution }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "webhookId": "c4782e60-1c81-4f71-8a2e-27ec695b2cb2"
+    },
+    {
+      "id": "hitl-update-queue",
+      "name": "Postgres — Mark Resolved",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1560,
+        120
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE hitl_queue SET resolved_at = NOW(), resolution = $1 WHERE id = $2; SELECT 1 AS ok;",
+        "options": {
+          "queryReplacement": "={{ $('Parse /resolve Command').first().json.resolution }}, {{ $('Parse /resolve Command').first().json.hitl_id }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "rdxzBrj9putuOkku",
+          "name": "Postgres coprem_os"
+        }
+      }
+    },
+    {
+      "id": "hitl-ack-admin",
+      "name": "Telegram — Ack to Admin",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1780,
+        120
+      ],
+      "parameters": {
+        "chatId": "={{ $('Parse /resolve Command').first().json.admin_chat_id }}",
+        "text": "=✅ HITL #{{ $('Parse /resolve Command').first().json.hitl_id }} resolved.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "webhookId": "5e4e0046-1311-466b-b2b8-7cdac939ba9a"
+    },
+    {
+      "id": "hitl-invalid-reply",
+      "name": "Telegram — Invalid Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        900,
+        400
+      ],
+      "parameters": {
+        "chatId": "={{ $input.first().json.body?.message?.chat?.id }}",
+        "text": "=❌ {{ $('Parse /resolve Command').first().json.reason || 'Invalid command' }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "webhookId": "579bde9d-aab4-45e5-817b-4ef82d3204b0"
+    }
+  ],
+  "connections": {
+    "Telegram — Resolve Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse /resolve Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse /resolve Command": {
+      "main": [
+        [
+          {
+            "node": "Valid Command?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid Command?": {
+      "main": [
+        [
+          {
+            "node": "Postgres — Lookup HITL Queue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram — Invalid Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres — Lookup HITL Queue": {
+      "main": [
+        [
+          {
+            "node": "HITL Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HITL Found?": {
+      "main": [
+        [
+          {
+            "node": "Telegram — Send Resolution to User",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram — Invalid Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram — Send Resolution to User": {
+      "main": [
+        [
+          {
+            "node": "Postgres — Mark Resolved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres — Mark Resolved": {
+      "main": [
+        [
+          {
+            "node": "Telegram — Ack to Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "927d3c1e-1301-4ea6-a7e0-662c0e5892af",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-06-01T10:40:31.802Z",
+      "createdAt": "2026-06-01T10:40:31.802Z",
+      "role": "workflow:owner",
+      "workflowId": "DQh1dFrcWhwowtpj",
+      "projectId": "zcgfC5I8AUAr3U8J",
+      "project": {
+        "updatedAt": "2026-05-30T20:55:56.474Z",
+        "createdAt": "2026-05-30T20:51:13.491Z",
+        "id": "zcgfC5I8AUAr3U8J",
+        "name": "Jeff COPREM <jooshdathumlong@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      }
+    }
+  ],
+  "tags": [],
+  "parentFolder": null,
+  "activeVersion": null
+}
