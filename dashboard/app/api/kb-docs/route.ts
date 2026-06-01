@@ -1,217 +1,210 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFileSync, existsSync } from 'fs'
-import { join } from 'path'
+import { readFileSync, existsSync, readdirSync, statSync, writeFileSync, mkdirSync } from 'fs'
+import { join, basename, extname } from 'path'
 import { execSync } from 'child_process'
 
 const ROOT = join(process.cwd(), '..')
 const KB_ROOT = join(ROOT, '02-knowledge')
+const CAT_ROOT = join(KB_ROOT, 'categories')
 
-// ── Source badge metadata ──────────────────────────────────────────────────
-type SourceType = 'FutureSkill' | 'Internal' | 'Prem' | 'Team'
-
-function detectSource(fileId: string): SourceType {
-  if (fileId === 'kb06') return 'FutureSkill'
-  if (fileId === 'coprem') return 'Internal'
-  if (fileId.startsWith('biz-') || fileId.startsWith('work-') || fileId === 'learning') return 'Prem'
-  return 'Team'
+// ── Category metadata ──────────────────────────────────────────────────────
+const CATEGORIES: Record<string, { label: string; labelTh: string; emoji: string; gradient: string }> = {
+  'ai-ml':           { label: 'AI & Machine Learning',           labelTh: 'AI & Machine Learning',         emoji: '🤖', gradient: 'linear-gradient(135deg,#e8f0fe,#d0e4ff)' },
+  'data-science':    { label: 'Data Science & Analytics',        labelTh: 'วิทยาศาสตร์ข้อมูล',              emoji: '📊', gradient: 'linear-gradient(135deg,#f3e8ff,#e4d0ff)' },
+  'software-dev':    { label: 'Software Development',            labelTh: 'พัฒนาซอฟต์แวร์',                 emoji: '💻', gradient: 'linear-gradient(135deg,#e0f7fa,#b2ebf2)' },
+  'cloud-devops':    { label: 'IT Infrastructure, Cloud & DevOps', labelTh: 'Cloud & DevOps',              emoji: '☁️', gradient: 'linear-gradient(135deg,#e1f5fe,#b3e5fc)' },
+  'cybersecurity':   { label: 'Cybersecurity',                   labelTh: 'ความมั่นคงไซเบอร์',              emoji: '🔒', gradient: 'linear-gradient(135deg,#fce4ec,#f8bbd0)' },
+  'digital-marketing':{ label: 'Digital Marketing & E-Commerce', labelTh: 'การตลาดดิจิทัล',                emoji: '📱', gradient: 'linear-gradient(135deg,#fce8e6,#fad2cf)' },
+  'business':        { label: 'Business & Entrepreneurship',     labelTh: 'ธุรกิจ & ผู้ประกอบการ',           emoji: '🏢', gradient: 'linear-gradient(135deg,#fff8e1,#ffecb3)' },
+  'management':      { label: 'Management, HR & Leadership',     labelTh: 'จัดการ & ภาวะผู้นำ',             emoji: '👥', gradient: 'linear-gradient(135deg,#e8f5e9,#c8e6c9)' },
+  'productivity':    { label: 'Productivity & Office Tools',     labelTh: 'เครื่องมือเพิ่มประสิทธิภาพ',     emoji: '⚡', gradient: 'linear-gradient(135deg,#fffde7,#fff9c4)' },
+  'content-creative':{ label: 'Content Creation & Creative',     labelTh: 'สร้างคอนเทนต์ & ครีเอทีฟ',       emoji: '🎨', gradient: 'linear-gradient(135deg,#f3e5f5,#e1bee7)' },
+  'communication':   { label: 'Communication & Soft Skills',     labelTh: 'การสื่อสาร & Soft Skills',        emoji: '💬', gradient: 'linear-gradient(135deg,#e3f2fd,#bbdefb)' },
+  'language':        { label: 'Language Learning',               labelTh: 'เรียนภาษา',                      emoji: '🌏', gradient: 'linear-gradient(135deg,#e8f5e9,#dcedc8)' },
+  'career':          { label: 'Career Development',              labelTh: 'พัฒนาอาชีพ',                     emoji: '🎯', gradient: 'linear-gradient(135deg,#fff3e0,#ffe0b2)' },
+  'health':          { label: 'Health, Wellbeing & Lifestyle',   labelTh: 'สุขภาพ & ไลฟ์สไตล์',             emoji: '🌿', gradient: 'linear-gradient(135deg,#f1f8e9,#dcedc8)' },
+  'misc':            { label: 'Miscellaneous',                   labelTh: 'อื่นๆ',                          emoji: '📦', gradient: 'linear-gradient(135deg,#f5f5f5,#eeeeee)' },
 }
 
-// ── Pillar + file registry ─────────────────────────────────────────────────
-const FILES: Record<string, { path: string; pathTH?: string; label: string; pillar: string; sourceUrl?: string }> = {
-  'kb06':         { path: 'KB-06_FutureSkill_Courses.md',         pathTH: 'KB-06_FutureSkill_Courses_TH_backup.md', label: 'FutureSkill Courses (584)', pillar: 'knowledge', sourceUrl: 'https://learn.futureskill.co' },
-  'coprem':       { path: 'COPREM_OS_24_Frameworks_v1_1.md',       label: 'COPREM OS Frameworks', pillar: 'knowledge' },
-  'learning':     { path: 'personal/learning_ssot.md',             label: 'Learning Log (SSOT)',   pillar: 'knowledge' },
-  'biz-business': { path: 'personal/business_ssot.md',             label: 'Business Projects',     pillar: 'business' },
-  'biz-peabuntid':{ path: 'brand/peabuntid_ssot.md',               label: 'Peabuntid Brand',       pillar: 'business' },
-  'biz-eilinaire':{ path: 'brand/eilinaire_ssot.md',               label: 'Eilinaire Brand',       pillar: 'business' },
-  'biz-profile':  { path: 'personal/prem-profile.md',              label: 'Prem Master Profile',   pillar: 'business' },
-  'work-readme':  { path: 'work/README.md',                        label: 'Company Overview',      pillar: 'work' },
+// Non-category pillars (business/work) file registry
+const PILLAR_FILES: Record<string, { id: string; path: string; label: string }[]> = {
+  work: [
+    { id: 'work-readme', path: 'work/README.md', label: 'Company Overview' },
+  ],
+  business: [
+    { id: 'biz-business', path: 'personal/business_ssot.md', label: 'Business Projects (SSOT)' },
+    { id: 'biz-peabuntid', path: 'brand/peabuntid_ssot.md', label: 'Peabuntid Brand' },
+    { id: 'biz-eilinaire', path: 'brand/eilinaire_ssot.md', label: 'Eilinaire Brand' },
+    { id: 'biz-profile', path: 'personal/prem-profile.md', label: 'Prem Master Profile' },
+  ],
 }
 
-// ── Parse sections from MD ─────────────────────────────────────────────────
-function parseSections(content: string) {
-  const lines = content.split('\n')
-  const sections: {
-    title: string; content: string; lines: number;
-    globalStandard: string | null; firstCourseUrl: string | null; courseCount: number
-  }[] = []
-  let current: { title: string; lines: string[] } = { title: '(intro)', lines: [] }
-
-  for (const line of lines) {
-    if (line.startsWith('## ')) {
-      if (current.lines.length > 1) sections.push(buildSection(current))
-      current = { title: line.replace(/^## (SECTION:\s*)?/, '').trim(), lines: [line] }
-    } else {
-      current.lines.push(line)
-    }
-  }
-  if (current.lines.length > 1) sections.push(buildSection(current))
-  return sections
+// ── Helper: scan .md files in a category folder ───────────────────────────
+function scanCategory(catId: string) {
+  const dir = join(CAT_ROOT, catId)
+  if (!existsSync(dir)) return []
+  return readdirSync(dir)
+    .filter(f => f.endsWith('.md') && !f.startsWith('_index'))
+    .map(f => {
+      const fullPath = join(dir, f)
+      const content = readFileSync(fullPath, 'utf-8')
+      const firstLine = content.split('\n').find(l => l.startsWith('# ')) || ''
+      const title = firstLine.replace('# ', '').trim() || f.replace('.md', '')
+      const sourceMatch = content.match(/>\s*ที่มา:\s*(.+)/m) || content.match(/>\s*Source:\s*(.+)/m)
+      const source = sourceMatch ? sourceMatch[1].split('|')[0].trim() : 'Prem'
+      const wordCount = content.split(/\s+/).length
+      const linkCount = (content.match(/\[link\]\(https?:\/\/[^)]+\)/g) || []).length
+      return { filename: f, fullPath, title, source, wordCount, linkCount, modified: statSync(fullPath).mtime.toISOString() }
+    })
+    .sort((a, b) => {
+      // futureskill-catalog first, then alphabetical
+      if (a.filename === 'futureskill-catalog.md') return -1
+      if (b.filename === 'futureskill-catalog.md') return 1
+      return a.filename.localeCompare(b.filename)
+    })
 }
 
-function buildSection(s: { title: string; lines: string[] }) {
-  const content = s.lines.join('\n')
-  const gsMatch = content.match(/>\s*Global standard:\s*(.+)/)
-  const linkMatch = content.match(/\[link\]\((https?:\/\/[^)]+)\)/)
-  const courseCount = (content.match(/\[link\]\(https?:\/\/learn\.futureskill/g) || []).length
+// ── Helper: read & parse a single .md file ───────────────────────────────
+function readMd(fullPath: string) {
+  if (!existsSync(fullPath)) return null
+  const content = readFileSync(fullPath, 'utf-8')
+  const links = [...content.matchAll(/\| (\d+) \| (.+?) \| \[link\]\((https?:\/\/[^)]+)\)/g)]
+    .map(m => ({ index: parseInt(m[1]), name: m[2].trim(), url: m[3] }))
+  const sourceMatch = content.match(/>\s*ที่มา:\s*(.+)/m) || content.match(/>\s*Source:\s*(.+)/m)
+  const stdMatch = content.match(/>\s*Global standard:\s*(.+)/m)
   return {
-    title: s.title,
     content,
-    lines: s.lines.length,
-    globalStandard: gsMatch ? gsMatch[1].trim() : null,
-    firstCourseUrl: linkMatch ? linkMatch[1] : null,
-    courseCount,
+    links,
+    source: sourceMatch ? sourceMatch[1].split('|')[0].trim() : 'Prem',
+    globalStandard: stdMatch ? stdMatch[1].trim() : null,
+    sourceUrl: links.length > 0 ? links[0].url : null,
+    courseCount: links.length,
   }
 }
 
-// Extract all FutureSkill links from a section
-function extractLinks(content: string): { name: string; url: string }[] {
-  const rows = content.split('\n').filter(l => l.startsWith('| ') && l.includes('[link]('))
-  return rows.map(row => {
-    const cols = row.split('|').map(c => c.trim()).filter(Boolean)
-    const name = cols[1] || ''
-    const urlMatch = row.match(/\[link\]\((https?:\/\/[^)]+)\)/)
-    return { name, url: urlMatch ? urlMatch[1] : '' }
-  }).filter(l => l.url)
-}
-
-function readKB(fileId: string, lang: string): string | null {
-  const meta = FILES[fileId]
-  if (!meta) return null
-  const p = lang === 'th' && meta.pathTH ? meta.pathTH : meta.path
-  const full = join(KB_ROOT, p)
-  return existsSync(full) ? readFileSync(full, 'utf-8') : null
-}
-
-// ── GET handler ────────────────────────────────────────────────────────────
+// ── Route ─────────────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams
   const action = sp.get('action') || ''
   const pillar = sp.get('pillar') || ''
-  const fileId = sp.get('file') || ''
-  const section = sp.get('section') || ''
+  const catId = sp.get('cat') || ''
+  const fileParam = sp.get('file') || ''
   const lang = sp.get('lang') || 'en'
 
-  // ── Pillars list ──────────────────────────────────────────────────────────
+  // ── Pillars ───────────────────────────────────────────────────────────────
   if (action === 'pillars') {
-    const PILLAR_LABELS: Record<string, { en: string; th: string }> = {
-      work:      { en: 'Day Job',       th: 'งานประจำ'    },
-      business:  { en: 'My Business',   th: 'ธุรกิจของฉัน' },
-      knowledge: { en: 'Knowledge Base', th: 'คลังความรู้'  },
+    const labels: Record<string, { en: string; th: string }> = {
+      work:      { en: 'Day Job',        th: 'งานประจำ' },
+      business:  { en: 'My Business',    th: 'ธุรกิจของฉัน' },
+      knowledge: { en: 'Knowledge Base', th: 'คลังความรู้' },
     }
     return NextResponse.json(['work', 'business', 'knowledge'].map(id => ({
-      id,
-      label: PILLAR_LABELS[id][lang as 'en' | 'th'] || PILLAR_LABELS[id].en,
-      fileCount: Object.values(FILES).filter(f => f.pillar === id && existsSync(join(KB_ROOT, f.path))).length,
+      id, label: labels[id][lang as 'en' | 'th'] || labels[id].en,
+      fileCount: id === 'knowledge'
+        ? Object.keys(CATEGORIES).reduce((n, c) => n + scanCategory(c).length, 0)
+        : (PILLAR_FILES[id] || []).filter(f => existsSync(join(KB_ROOT, f.path))).length,
     })))
   }
 
-  // ── Items for a pillar ────────────────────────────────────────────────────
-  // For 'knowledge' pillar + kb06: return categories (sections) directly
-  if (action === 'items' && pillar) {
-    if (pillar === 'knowledge') {
-      // KB-06 sections as top-level items
-      const content = readKB('kb06', lang)
-      if (!content) return NextResponse.json([])
-      const sections = parseSections(content).filter(s => s.title !== 'KB-06: FutureSkill Course Catalog')
-      return NextResponse.json(sections.map(s => ({
-        id: `kb06::${s.title}`,
-        fileId: 'kb06',
-        title: s.title,
-        type: 'category',
-        lines: s.lines,
-        courseCount: s.courseCount,
-        globalStandard: s.globalStandard,
-        source: 'FutureSkill' as SourceType,
-        sourceUrl: s.firstCourseUrl || 'https://learn.futureskill.co',
-      })))
-    }
-    // Other pillars: return files as items
-    const items = Object.entries(FILES)
-      .filter(([, f]) => f.pillar === pillar)
-      .map(([id, f]) => ({
-        id, fileId: id, title: f.label, type: 'file',
-        lines: 0, courseCount: 0, globalStandard: null,
-        source: detectSource(id) as SourceType,
-        sourceUrl: f.sourceUrl || null,
-        path: f.path, exists: existsSync(join(KB_ROOT, f.path)),
-      }))
+  // ── Knowledge categories (bento grid) ────────────────────────────────────
+  if (action === 'categories') {
+    return NextResponse.json(
+      Object.entries(CATEGORIES).map(([id, meta]) => {
+        const files = scanCategory(id)
+        const totalCourses = files.reduce((n, f) => n + f.linkCount, 0)
+        return { id, label: meta.label, labelTh: meta.labelTh, emoji: meta.emoji, gradient: meta.gradient, fileCount: files.length, totalCourses }
+      })
+    )
+  }
+
+  // ── Files in a category ───────────────────────────────────────────────────
+  if (action === 'cat-files' && catId) {
+    const files = scanCategory(catId)
+    return NextResponse.json(files.map(f => ({
+      id: `${catId}::${f.filename}`,
+      catId, filename: f.filename, title: f.title,
+      source: f.source, wordCount: f.wordCount,
+      linkCount: f.linkCount, modified: f.modified,
+      isCatalog: f.filename === 'futureskill-catalog.md',
+    })))
+  }
+
+  // ── Non-knowledge pillar items ────────────────────────────────────────────
+  if (action === 'items' && (pillar === 'work' || pillar === 'business')) {
+    const items = (PILLAR_FILES[pillar] || []).map(f => ({
+      id: f.id, fileId: f.id, title: f.label, type: 'file',
+      lines: 0, courseCount: 0, globalStandard: null, source: 'Prem',
+      sourceUrl: null, exists: existsSync(join(KB_ROOT, f.path)),
+    }))
     return NextResponse.json(items)
   }
 
-  // ── Content for an item ───────────────────────────────────────────────────
-  if (action === 'content' && fileId) {
-    const content = readKB(fileId, lang)
-    if (!content) return NextResponse.json({ error: 'File not found' }, { status: 404 })
-
-    const meta = FILES[fileId]
-
-    // If section specified → return that section
-    if (section) {
-      const sections = parseSections(content)
-      const found = sections.find(s => s.title === section)
-      if (!found) return NextResponse.json({ error: 'Section not found' }, { status: 404 })
-      const links = extractLinks(found.content)
-      return NextResponse.json({
-        title: found.title,
-        content: found.content,
-        source: detectSource(fileId),
-        sourceUrl: found.firstCourseUrl || meta?.sourceUrl || null,
-        globalStandard: found.globalStandard,
-        courseCount: found.courseCount,
-        links, // all course links
-      })
+  // ── Full file content ─────────────────────────────────────────────────────
+  if (action === 'doc') {
+    // catId::filename OR legacy file id
+    if (catId && fileParam) {
+      const fullPath = join(CAT_ROOT, catId, fileParam)
+      const parsed = readMd(fullPath)
+      if (!parsed) return NextResponse.json({ error: 'not found' }, { status: 404 })
+      return NextResponse.json({ ...parsed, filename: fileParam, path: fullPath })
     }
-
-    // No section → return whole file summary
-    const sections = parseSections(content)
-    return NextResponse.json({
-      title: meta?.label || fileId,
-      content: sections.slice(0, 3).map(s => s.content).join('\n\n'),
-      source: detectSource(fileId),
-      sourceUrl: meta?.sourceUrl || null,
-      sectionCount: sections.length,
-      links: [],
-    })
-  }
-
-  // ── Sections list (for files in business/work pillars) ────────────────────
-  if (action === 'sections' && fileId) {
-    const content = readKB(fileId, lang)
-    if (!content) return NextResponse.json([])
-    const sections = parseSections(content)
-    return NextResponse.json(sections.map(s => ({
-      title: s.title, lines: s.lines, courseCount: s.courseCount, sourceUrl: s.firstCourseUrl
-    })))
+    // Non-category files (business/work)
+    const allFiles = Object.values(PILLAR_FILES).flat()
+    const meta = allFiles.find(f => f.id === fileParam)
+    if (meta) {
+      const fullPath = join(KB_ROOT, meta.path)
+      const parsed = readMd(fullPath)
+      if (!parsed) return NextResponse.json({ error: 'not found' }, { status: 404 })
+      return NextResponse.json({ ...parsed, filename: meta.path, path: fullPath })
+    }
+    return NextResponse.json({ error: 'not found' }, { status: 404 })
   }
 
   // ── Open file in editor ───────────────────────────────────────────────────
-  if (action === 'open' && fileId) {
-    const meta = FILES[fileId]
-    if (!meta) return NextResponse.json({ error: 'not found' }, { status: 404 })
-    const full = join(KB_ROOT, meta.path)
-    if (!existsSync(full)) return NextResponse.json({ error: 'missing' }, { status: 404 })
-    try { execSync(`open "${full}"`); return NextResponse.json({ ok: true }) }
+  if (action === 'open') {
+    let fullPath = ''
+    if (catId && fileParam) fullPath = join(CAT_ROOT, catId, fileParam)
+    else {
+      const meta = Object.values(PILLAR_FILES).flat().find(f => f.id === fileParam)
+      if (meta) fullPath = join(KB_ROOT, meta.path)
+    }
+    if (!fullPath || !existsSync(fullPath)) return NextResponse.json({ ok: false })
+    try { execSync(`open "${fullPath}"`); return NextResponse.json({ ok: true }) }
     catch { return NextResponse.json({ ok: false }) }
   }
 
-  // ── Legacy compat ─────────────────────────────────────────────────────────
-  if (sp.get('list') === '1') {
-    return NextResponse.json(Object.entries(FILES).map(([id, f]) => ({ id, label: f.label })))
+  // ── Save new .md file (Jeff ingests PDFs/uploads) ─────────────────────────
+  if (action === 'save' && req.method === 'POST') {
+    // handled in POST
   }
+
+  // ── Legacy compat ─────────────────────────────────────────────────────────
   const kb = sp.get('kb')
-  if (kb) {
-    const legacyMap: Record<string, string> = { 'KB-06': 'kb06', 'COPREM': 'coprem' }
-    const fid = legacyMap[kb] || kb
-    const content = readKB(fid, lang)
-    if (!content) return NextResponse.json([])
-    const sections = parseSections(content)
-    if (section) {
-      const found = sections.find(s => s.title === section)
-      return NextResponse.json(found ? { content: found.content } : { error: 'not found' })
-    }
-    return NextResponse.json(sections.map(s => ({ title: s.title, preview: '', lines: s.lines })))
+  if (kb || sp.get('list') === '1') {
+    // Return flat list of all category files for backward compat
+    const all = Object.keys(CATEGORIES).flatMap(c => scanCategory(c).map(f => ({ id: `${c}::${f.filename}`, label: f.title })))
+    return NextResponse.json(all)
   }
 
   return NextResponse.json({ error: 'invalid params' }, { status: 400 })
+}
+
+// ── POST: save new knowledge file ─────────────────────────────────────────
+export async function POST(req: NextRequest) {
+  const sp = req.nextUrl.searchParams
+  const action = sp.get('action') || ''
+
+  if (action === 'save') {
+    const { catId, filename, content, source } = await req.json()
+    if (!catId || !filename || !content) return NextResponse.json({ error: 'missing fields' }, { status: 400 })
+    if (!CATEGORIES[catId]) return NextResponse.json({ error: 'invalid category' }, { status: 400 })
+    const safeName = filename.replace(/[^a-zA-Z0-9ก-๙_\-\.]/g, '_').replace(/\.md$/, '') + '.md'
+    const dir = join(CAT_ROOT, catId)
+    mkdirSync(dir, { recursive: true })
+    const fullPath = join(dir, safeName)
+    writeFileSync(fullPath, content, 'utf-8')
+    return NextResponse.json({ ok: true, path: fullPath, filename: safeName })
+  }
+
+  return NextResponse.json({ error: 'invalid action' }, { status: 400 })
 }

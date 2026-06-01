@@ -576,3 +576,10 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 | 2026-06-01 21:52 | DB RECHECK: HITL/Latency/KB APIs tested — all connect OK | ✅ |
 | 2026-06-01 21:52 | Sessions tab: VSCode-style session list + git log panel | DONE |
 | 2026-06-01 21:52 | Sessions API: /api/sessions — parses STATUS.md + git log | DONE |
+
+## 2026-06-01 Session — KB Architecture + UI Redesign
+| 2026-06-01 23:xx | KB ARCHITECTURE: 3-pillar system — งานประจำ / ธุรกิจของฉัน / คลังความรู้ | DONE |
+| 2026-06-01 23:xx | KB FOLDER: 02-knowledge/categories/[15 folders] — Jeff auto-routes .md files here | DONE |
+| 2026-06-01 23:xx | KB UI: Bento grid → File list → Document reader (3-level navigation) | DONE |
+| 2026-06-01 23:xx | HITL: Kanban board (รอตอบ | เสร็จแล้ว) | DONE |
+| 2026-06-01 23:xx | I18N: TH/EN toggle, kbLang syncs with lang | DONE |
