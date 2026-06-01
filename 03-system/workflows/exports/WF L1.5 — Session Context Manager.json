@@ -261,6 +261,95 @@
           "name": "Postgres coprem_os"
         }
       }
+    },
+    {
+      "id": "turn-count-check",
+      "name": "Turns > 10?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        640
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "typeValidation": "loose",
+            "version": 1,
+            "caseSensitive": false,
+            "leftValue": ""
+          },
+          "conditions": [
+            {
+              "id": "tc",
+              "leftValue": "={{ $('Code — Append Turn').item.json.turn_count }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "llm-summarize",
+      "name": "LiteLLM — Summarize Session",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        640
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://litellm:4000/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 187234854205c015f2d8379d5455a0a8"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"model\": \"gemini-2.0-flash\", \"messages\": [{\"role\": \"system\", \"content\": \"Summarize these conversation turns into exactly 3 bullet points: 1) user intent 2) key facts 3) decisions made. Output plain text only.\"}, {\"role\": \"user\", \"content\": {{ JSON.stringify($('Code — Append Turn').item.json.turns_json) }}}], \"max_tokens\": 200, \"temperature\": 0 }",
+        "options": {
+          "timeout": 20000
+        }
+      }
+    },
+    {
+      "id": "store-summary",
+      "name": "Postgres — Store Summary",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1560,
+        640
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE session_store SET summary = $1, turns = '[]'::jsonb, updated_at = NOW() WHERE session_key = $2;\nINSERT INTO audit_log (event_type, source, payload) VALUES ('MEMORY_SUMMARIZED', 'L1.5', $3::jsonb);\nSELECT 1 AS ok;",
+        "options": {
+          "queryReplacement": "={{ ($json.choices && $json.choices[0]) ? $json.choices[0].message.content : '' }}, {{ $('Code — Append Turn').item.json.session_key }}, {{ JSON.stringify({ session_key: $('Code — Append Turn').item.json.session_key, turns_summarized: $('Code — Append Turn').item.json.turn_count }) }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "rdxzBrj9putuOkku",
+          "name": "Postgres coprem_os"
+        }
+      }
     }
   ],
   "connections": {
@@ -382,6 +471,46 @@
       ]
     },
     "Postgres — Upsert session_store": {
+      "main": [
+        [
+          {
+            "node": "Turns > 10?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Turns > 10?": {
+      "main": [
+        [
+          {
+            "node": "LiteLLM — Summarize Session",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redis — Write + TTL 30min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LiteLLM — Summarize Session": {
+      "main": [
+        [
+          {
+            "node": "Postgres — Store Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres — Store Summary": {
       "main": [
         [
           {
