@@ -1087,3 +1087,15 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 - Dashboard: 04-outputs/command-center.html (standalone HTML, no server required)
 - WF01 stability: Day 1/7 — monitoring window active
 - Next: อัพเดท INDEX.md + git commit
+
+---
+## Part 15 — Build Log: 2026-06-01 FutureSkill KB Planning
+
+### Actions
+- Created `Futureskill/CATEGORY_RULES.md` v2.0 — 14-category taxonomy aligned with LinkedIn Learning + Coursera + ESCO
+- Created `02-knowledge/PLAN_FutureSkill_KB.md` — 4-phase integration plan (Postgres + Markdown + PDF extract + Dify)
+- Updated `INDEX.md` — Futureskill/kb/ registered as KB-06 (planned)
+- Updated `STATUS.md` — session log + pending actions
+
+### Pending (Prem action)
+- จัดไฟล์ .md 14 ไฟล์ตาม CATEGORY_RULES.md → Jeff import ต่อ

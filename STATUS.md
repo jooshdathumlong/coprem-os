@@ -490,3 +490,15 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 | Ollama Local tuning | P2 |
 | First Chaos experiment | P3 |
 | Supabase Edge Functions for WF10 | P3 |
+
+## Session 2026-06-01 — FutureSkill KB Planning
+
+| Time | Action | Result |
+|---|---|---|
+| 2026-06-01 | FutureSkill taxonomy created | CATEGORY_RULES.md v2.0 — 14 categories (LinkedIn/Coursera/ESCO aligned) |
+| 2026-06-01 | KB integration plan created | PLAN_FutureSkill_KB.md — 4 phases (Postgres→Markdown→PDF→Dify) |
+| 2026-06-01 | INDEX.md updated | Futureskill/kb/ registered as KB-06 (planned) |
+
+**Pending (Prem action required):**
+- เปรมจัดไฟล์ .md 14 ไฟล์ตาม CATEGORY_RULES.md ใน Futureskill/kb/
+- แจ้ง Jeff เมื่อเสร็จ → Jeff import เข้า Postgres + Dify
