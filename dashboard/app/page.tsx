@@ -8,6 +8,48 @@ type ChatMsg = { role: 'user' | 'assistant'; text: string; model?: string }
 type Tab = 'chat' | 'hitl' | 'kb' | 'browser' | 'docs' | 'system'
 type KBSection = { title: string; preview: string; lines: number }
 type KBDoc = { id: string; label: string; pillar: string; sections: string[] }
+type Lang = 'en' | 'th'
+
+const I18N = {
+  en: {
+    nav: { chat: 'Chat', hitl: 'Approvals', kb: 'Knowledge', browser: 'Browser', docs: 'Guide', system: 'System' },
+    status: { online: '● Online', issue: '● Issue' },
+    chat: { model: 'Model', placeholder: 'Message Jeff… (Enter to send)', send: 'Send', thinking: 'Jeff is thinking...', subtext: 'Your AI Executive Partner' },
+    hitl: { title: 'Pending Approvals', pending: (n: number) => `${n} item${n>1?'s':''} awaiting response`, none: 'No pending items', reply: 'Reply', sendReply: 'Send Reply', cancel: 'Cancel', placeholder: 'Type your reply...' },
+    kb: { title: 'Knowledge Base', lines: (n: number) => `${n} lines`, select: 'Select a section to read', copy: 'Copy', loading: 'Loading...', kb06: 'KB-06 FutureSkill (584 courses)', coprem: 'COPREM Frameworks', kbLang: 'Content language', viewTH: 'Thai', viewEN: 'English' },
+    browser: { title: 'Browser', placeholder: 'Search or enter URL, press Enter to open', open: 'Open ↗', system: 'COPREM System', general: 'General' },
+    docs: { title: 'COPREM OS Guide', subtitle: 'Jeff — INTJ AI Executive Partner · v8.3 · 2026-06-01' },
+    system: { title: 'System', services: 'Services', refresh: '↻ Refresh', latency: 'Latency by Layer', openServices: 'Open Services', waiting: 'Waiting for traffic from WF01...', online: 'Online', down: 'Down', checking: 'Checking' },
+    quickMsgs: ["What's on the agenda today?", 'Recommend a Python course', 'Summarize system status', "Analyze today's market"],
+    docs_sections: [
+      { title: 'Chat with Jeff', items: ['Type a message and press Enter or click Send', 'Select an AI model above — Auto recommended for most tasks', 'Gemini Flash: fast, free · Groq: no daily limit · Ollama: offline', 'Tap a quick-start message to begin a conversation'] },
+      { title: 'Pending Approvals (HITL)', items: ['Jeff pauses and waits when a request exceeds its scope', 'Click Reply → type your answer → sends to the Telegram user', 'Via Telegram: /resolve <id> <message>', 'Yellow badge shows count of pending items'] },
+      { title: 'Knowledge Base', items: ['KB-06: FutureSkill — 584 courses across 14 categories', 'COPREM: Frameworks and system rules for COPREM OS', 'Click a section in the left panel to read the full content', 'Toggle TH/EN to switch content language'] },
+      { title: 'Browser', items: ['Type a URL and press Enter or click Open', 'Bookmarks: n8n, LiteLLM, Dify, Google, GitHub', 'Use Open ↗ to open in a new tab', 'Use to inspect Workflow state and external dashboards'] },
+      { title: 'AI Cost Tiers (auto-selected)', items: ['Tier 0: Gemini Flash (Groq primary + Gemini 6 keys)', 'Tier 1: Gemini Lite (cost >$1/day)', 'Tier 2: Groq 70B (when Gemini is throttled)', 'Tier 3: Ollama local (when all cloud APIs are down)'] },
+      { title: 'Starting COPREM OS', items: ['Double-click "COPREM OS.app" on the Desktop', 'Or run: bash scripts/start_coprem.sh', 'Stop Dashboard: bash scripts/stop_coprem.sh', 'Docker continues running when the Dashboard is closed'] },
+    ],
+  },
+  th: {
+    nav: { chat: 'คุยกับ Jeff', hitl: 'รออนุมัติ', kb: 'คลังความรู้', browser: 'เบราว์เซอร์', docs: 'คู่มือ', system: 'ระบบ' },
+    status: { online: '● ปกติ', issue: '● มีปัญหา' },
+    chat: { model: 'โมเดล', placeholder: 'พิมพ์ข้อความ... (Enter ส่ง)', send: 'ส่ง', thinking: 'Jeff กำลังคิด...', subtext: 'AI Executive Partner ของคุณ' },
+    hitl: { title: 'รายการรออนุมัติ', pending: (n: number) => `${n} รายการรอการตอบกลับ`, none: 'ไม่มีรายการรอ', reply: 'ตอบกลับ', sendReply: 'ส่งคำตอบ', cancel: 'ยกเลิก', placeholder: 'พิมพ์คำตอบ...' },
+    kb: { title: 'คลังความรู้', lines: (n: number) => `${n} บรรทัด`, select: '← เลือกหมวดหมู่เพื่ออ่านเนื้อหา', copy: 'คัดลอก', loading: 'กำลังโหลด...', kb06: 'KB-06 FutureSkill (584 คอร์ส)', coprem: 'COPREM Frameworks', kbLang: 'ภาษาเนื้อหา', viewTH: 'ไทย', viewEN: 'อังกฤษ' },
+    browser: { title: 'เบราว์เซอร์', placeholder: 'ค้นหาหรือพิมพ์ URL แล้วกด Enter', open: 'เปิด ↗', system: 'ระบบ COPREM', general: 'ทั่วไป' },
+    docs: { title: 'คู่มือ COPREM OS', subtitle: 'Jeff — AI Executive Partner · v8.3 · 2026-06-01' },
+    system: { title: 'ระบบ', services: 'บริการ', refresh: '↻ รีเฟรช', latency: 'ความเร็วแต่ละชั้น', openServices: 'เปิดระบบ', waiting: 'รอ traffic จาก WF01...', online: 'ปกติ', down: 'ล้มเหลว', checking: 'ตรวจสอบ' },
+    quickMsgs: ['วันนี้ต้องทำอะไรบ้าง?', 'แนะนำคอร์ส Python', 'สรุปสถานะระบบ', 'วิเคราะห์ตลาดวันนี้'],
+    docs_sections: [
+      { title: '💬 คุยกับ Jeff', items: ['พิมพ์ข้อความ กด Enter หรือปุ่ม ส่ง', 'เลือกโมเดล AI ด้านบน — Auto แนะนำสำหรับงานทั่วไป', 'Gemini Flash: เร็ว ฟรี | Groq: ไม่มี daily limit | Ollama: ออฟไลน์', 'กดข้อความสำเร็จรูปเพื่อเริ่มบทสนทนาได้เลย'] },
+      { title: '⚠️ รออนุมัติ (HITL)', items: ['Jeff หยุดรอ Prem เมื่อคำถามเกินขอบเขต', 'กด ตอบกลับ → พิมพ์คำตอบ → ส่งไปยัง Telegram ผู้ใช้', 'สั่งผ่าน Telegram: /resolve <id> <ข้อความ>', 'Badge สีเหลืองแสดงจำนวนที่รอ'] },
+      { title: '📚 คลังความรู้', items: ['KB-06: FutureSkill 584 คอร์ส แบ่ง 14 หมวด', 'COPREM: Framework และกฎระบบ COPREM OS', 'คลิกหมวดหมู่ซ้าย → อ่านเนื้อหาเต็มขวา', 'กด TH/EN เพื่อสลับภาษาเนื้อหา'] },
+      { title: '🌐 เว็บเบราว์เซอร์', items: ['พิมพ์ URL แล้ว Enter หรือกดปุ่มเปิด', 'Bookmarks: n8n, LiteLLM, Dify, Google, GitHub', 'กด เปิด ↗ เพื่อเปิด tab ใหม่', 'ใช้สำหรับดูข้อมูล ตรวจสอบ Workflow'] },
+      { title: '🤖 AI Tier (Jeff เลือกอัตโนมัติ)', items: ['Tier 0: Gemini Flash (Groq primary + Gemini 6 keys)', 'Tier 1: Gemini Lite (cost >$1/วัน)', 'Tier 2: Groq 70B (เมื่อ Gemini throttle)', 'Tier 3: Ollama local (เมื่อ cloud ล่มทั้งหมด)'] },
+      { title: '🚀 เปิดใช้งาน COPREM OS', items: ['ดับเบิลคลิก "COPREM OS.app" บน Desktop', 'หรือรัน: bash scripts/start_coprem.sh', 'หยุด Dashboard: bash scripts/stop_coprem.sh', 'Docker ยังทำงานอยู่เมื่อปิด Dashboard'] },
+    ],
+  },
+}
 
 const MODELS = [
   { value: 'auto',                  label: 'Auto',          group: 'Auto' },
@@ -18,18 +60,10 @@ const MODELS = [
   { value: 'ollama/qwen',           label: 'Qwen 2.5',      group: 'Local' },
 ]
 
-const NAV: { id: Tab; label: string }[] = [
-  { id: 'chat',    label: 'Chat' },
-  { id: 'hitl',   label: 'Approvals' },
-  { id: 'kb',     label: 'Knowledge' },
-  { id: 'browser',label: 'Browser' },
-  { id: 'docs',   label: 'Guide' },
-  { id: 'system', label: 'System' },
-]
-
-const QUICK_MSGS = ["What's on the agenda today?", 'Recommend a Python course', 'Summarize system status', 'Analyze today\'s market']
-
 export default function Dashboard() {
+  const [lang, setLang] = useState<Lang>('en')
+  const [kbLang, setKbLang] = useState<Lang>('en')
+  const L = I18N[lang]
   const [tab, setTab] = useState<Tab>('chat')
   const [model, setModel] = useState('auto')
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([])
@@ -72,25 +106,25 @@ export default function Dashboard() {
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
   useEffect(() => { if (tab === 'kb') { fetchKB() } }, [tab, fetchKB])
 
-  const loadKbSections = useCallback((kb: string) => {
+  const loadKbSections = useCallback((kb: string, lang: Lang = 'en') => {
     setKbLoading(true); setKbSections([]); setSelectedSection(''); setSectionContent('')
-    fetch(`/api/kb-docs?kb=${kb}`).then(r => r.json())
+    fetch(`/api/kb-docs?kb=${kb}&lang=${lang}`).then(r => r.json())
       .then(data => { setKbSections(Array.isArray(data) ? data : []); setKbLoading(false) })
       .catch(() => setKbLoading(false))
   }, [])
 
   useEffect(() => {
     if (!selectedKb || tab !== 'kb') return
-    loadKbSections(selectedKb)
-  }, [selectedKb, tab, loadKbSections])
+    loadKbSections(selectedKb, kbLang)
+  }, [selectedKb, tab, kbLang, loadKbSections])
 
   useEffect(() => {
     if (!selectedSection) return
     setSectionContent('loading...')
-    fetch(`/api/kb-docs?kb=${selectedKb}&section=${encodeURIComponent(selectedSection)}`)
+    fetch(`/api/kb-docs?kb=${selectedKb}&section=${encodeURIComponent(selectedSection)}&lang=${kbLang}`)
       .then(r => r.json()).then(d => setSectionContent(d.content || d.error || ''))
       .catch(() => setSectionContent('Failed to load'))
-  }, [selectedSection, selectedKb])
+  }, [selectedSection, selectedKb, kbLang])
 
   async function sendChat(msgOverride?: string) {
     const msg = (msgOverride || chatInput).trim()
@@ -194,25 +228,35 @@ export default function Dashboard() {
 
           {/* Nav tabs */}
           <div style={{ display: 'flex', flex: 1, gap: 0, overflowX: 'auto' }}>
-            {NAV.map(n => (
-              <button key={n.id} onClick={() => setTab(n.id)} style={{
-                position: 'relative', padding: '0 16px', height: 52, fontSize: 14, fontWeight: tab === n.id ? 500 : 400,
-                color: tab === n.id ? '#0066cc' : '#424245', background: 'none', border: 'none', cursor: 'pointer',
-                borderBottom: tab === n.id ? '2px solid #0066cc' : '2px solid transparent', transition: 'color 0.15s', whiteSpace: 'nowrap',
+            {(Object.keys(L.nav) as Tab[]).map(id => (
+              <button key={id} onClick={() => setTab(id)} style={{
+                position: 'relative', padding: '0 16px', height: 52, fontSize: 14, fontWeight: tab === id ? 500 : 400,
+                color: tab === id ? '#0066cc' : '#424245', background: 'none', border: 'none', cursor: 'pointer',
+                borderBottom: tab === id ? '2px solid #0066cc' : '2px solid transparent', transition: 'color 0.15s', whiteSpace: 'nowrap',
                 display: 'flex', alignItems: 'center', gap: 6
               }}>
-                {n.label}
-                {n.id === 'hitl' && pending.length > 0 && (
+                {L.nav[id]}
+                {id === 'hitl' && pending.length > 0 && (
                   <span style={{ background: '#ff3b30', color: 'white', fontSize: 11, fontWeight: 600, padding: '1px 6px', borderRadius: 10, lineHeight: 1.6 }}>{pending.length}</span>
                 )}
               </button>
             ))}
           </div>
 
-          {/* Status + links */}
+          {/* Status + lang toggle + links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 8 }}>
+            {/* Language toggle */}
+            <div style={{ display: 'flex', background: '#f5f5f7', borderRadius: 20, padding: 2, gap: 2, border: '1px solid #d2d2d7' }}>
+              {(['en', 'th'] as Lang[]).map(l => (
+                <button key={l} onClick={() => setLang(l)} style={{
+                  fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 16, border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                  background: lang === l ? '#0066cc' : 'transparent',
+                  color: lang === l ? 'white' : '#6e6e73',
+                }}>{l.toUpperCase()}</button>
+              ))}
+            </div>
             <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 20, fontWeight: 500, background: allOk ? '#d1f5e0' : status ? '#ffe5e5' : '#f5f5f7', color: allOk ? '#1a7f3c' : status ? '#cc0000' : '#6e6e73' }}>
-              {allOk ? '● Online' : status ? '● Issue' : '...'}
+              {allOk ? L.status.online : status ? L.status.issue : '...'}
             </span>
             {[['n8n', 'http://localhost:5678'], ['LiteLLM', 'http://localhost:4000/ui'], ['Dify', 'http://localhost']].map(([l, u]) => (
               <a key={l} href={u} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#6e6e73', textDecoration: 'none', padding: '4px 10px', borderRadius: 6, border: '1px solid #d2d2d7', transition: 'all 0.15s' }}
@@ -233,7 +277,7 @@ export default function Dashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             {/* Model selector */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderBottom: '1px solid #e8e8ed', background: '#f5f5f7', overflowX: 'auto', flexShrink: 0 }}>
-              <span style={{ fontSize: 12, color: '#6e6e73', flexShrink: 0, fontWeight: 500 }}>Model</span>
+              <span style={{ fontSize: 12, color: '#6e6e73', flexShrink: 0, fontWeight: 500 }}>{L.chat.model}</span>
               {MODELS.map(m => (
                 <button key={m.value} onClick={() => setModel(m.value)} style={{
                   fontSize: 12, padding: '4px 14px', borderRadius: 20, border: '1px solid', whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.15s',
@@ -252,10 +296,10 @@ export default function Dashboard() {
                   <div style={{ textAlign: 'center' }}>
                     <p style={{ fontSize: 40, marginBottom: 12 }}>✦</p>
                     <h2 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f', marginBottom: 6 }}>Jeff</h2>
-                    <p style={{ fontSize: 15, color: '#6e6e73' }}>Your AI Executive Partner · <span style={{ color: '#0066cc' }}>{MODELS.find(m => m.value === model)?.label}</span></p>
+                    <p style={{ fontSize: 15, color: '#6e6e73' }}>{L.chat.subtext} · <span style={{ color: '#0066cc' }}>{MODELS.find(m => m.value === model)?.label}</span></p>
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 480 }}>
-                    {QUICK_MSGS.map(s => (
+                    {L.quickMsgs.map(s => (
                       <button key={s} onClick={() => sendChat(s)} style={{ fontSize: 13, color: '#0066cc', border: '1px solid #0066cc', padding: '7px 16px', borderRadius: 20, background: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
                         onMouseEnter={e => { (e.target as HTMLElement).style.background = '#0066cc'; (e.target as HTMLElement).style.color = 'white' }}
                         onMouseLeave={e => { (e.target as HTMLElement).style.background = 'none'; (e.target as HTMLElement).style.color = '#0066cc' }}>
@@ -281,7 +325,7 @@ export default function Dashboard() {
               ))}
               {chatLoading && (
                 <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                  <div style={{ background: '#f5f5f7', color: '#6e6e73', fontSize: 14, padding: '12px 16px', borderRadius: 18, borderBottomLeftRadius: 4 }}>Jeff is thinking...</div>
+                  <div style={{ background: '#f5f5f7', color: '#6e6e73', fontSize: 14, padding: '12px 16px', borderRadius: 18, borderBottomLeftRadius: 4 }}>{L.chat.thinking}</div>
                 </div>
               )}
               <div ref={chatEndRef} />
@@ -292,14 +336,14 @@ export default function Dashboard() {
               <div style={{ display: 'flex', gap: 10, maxWidth: 760, margin: '0 auto' }}>
                 <input value={chatInput} onChange={e => setChatInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendChat()} disabled={chatLoading}
-                  placeholder="Message Jeff… (Enter to send)"
+                  placeholder={L.chat.placeholder}
                   style={{ flex: 1, background: '#f5f5f7', color: '#1d1d1f', padding: '11px 18px', borderRadius: 24, border: '1px solid #d2d2d7', fontSize: 14, outline: 'none', transition: 'border-color 0.15s' }}
                   onFocus={e => (e.target.style.borderColor = '#0066cc')}
                   onBlur={e => (e.target.style.borderColor = '#d2d2d7')} />
                 <button onClick={() => sendChat()} disabled={chatLoading || !chatInput.trim()} style={{
                   background: chatLoading || !chatInput.trim() ? '#d2d2d7' : '#0066cc', color: 'white',
                   padding: '11px 22px', borderRadius: 24, border: 'none', fontSize: 14, fontWeight: 500, cursor: chatLoading || !chatInput.trim() ? 'not-allowed' : 'pointer', transition: 'background 0.15s'
-                }}>Send</button>
+                }}>{L.chat.send}</button>
               </div>
             </div>
           </div>
@@ -309,8 +353,8 @@ export default function Dashboard() {
         {tab === 'hitl' && (
           <div style={{ height: '100%', overflowY: 'auto', padding: '32px 24px' }}>
             <div style={{ maxWidth: 680, margin: '0 auto' }}>
-              <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f', marginBottom: 6 }}>Pending Approvals</h1>
-              <p style={{ fontSize: 14, color: '#6e6e73', marginBottom: 24 }}>{pending.length > 0 ? `${pending.length} item${pending.length > 1 ? 's' : ''} awaiting response` : 'No pending items'}</p>
+              <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f', marginBottom: 6 }}>{L.hitl.title}</h1>
+              <p style={{ fontSize: 14, color: '#6e6e73', marginBottom: 24 }}>{pending.length > 0 ? L.hitl.pending(pending.length) : L.hitl.none}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {hitlItems.map(item => (
                   <div key={item.id} style={{
@@ -324,16 +368,16 @@ export default function Dashboard() {
                         {item.resolution && <p style={{ color: '#1a7f3c', fontSize: 14, marginTop: 8 }}>✓ {item.resolution}</p>}
                       </div>
                       {!item.resolved_at && resolveId !== item.id && (
-                        <button onClick={() => { setResolveId(item.id); setResolveMsg('') }} style={{ flexShrink: 0, background: '#0066cc', color: 'white', fontSize: 13, padding: '7px 16px', borderRadius: 20, border: 'none', cursor: 'pointer' }}>Reply</button>
+                        <button onClick={() => { setResolveId(item.id); setResolveMsg('') }} style={{ flexShrink: 0, background: '#0066cc', color: 'white', fontSize: 13, padding: '7px 16px', borderRadius: 20, border: 'none', cursor: 'pointer' }}>{L.hitl.reply}</button>
                       )}
                     </div>
                     {resolveId === item.id && (
                       <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        <textarea value={resolveMsg} onChange={e => setResolveMsg(e.target.value)} rows={3} autoFocus placeholder="Type your reply..."
+                        <textarea value={resolveMsg} onChange={e => setResolveMsg(e.target.value)} rows={3} autoFocus placeholder={L.hitl.placeholder}
                           style={{ width: '100%', background: 'white', color: '#1d1d1f', fontSize: 14, padding: '10px 14px', borderRadius: 12, border: '1px solid #d2d2d7', outline: 'none', resize: 'none' }} />
                         <div style={{ display: 'flex', gap: 8 }}>
-                          <button onClick={resolveHITL} disabled={!resolveMsg.trim()} style={{ background: '#0066cc', color: 'white', fontSize: 13, padding: '8px 18px', borderRadius: 20, border: 'none', cursor: 'pointer' }}>Send Reply</button>
-                          <button onClick={() => setResolveId(null)} style={{ color: '#6e6e73', fontSize: 13, padding: '8px 18px', borderRadius: 20, border: '1px solid #d2d2d7', background: 'none', cursor: 'pointer' }}>Cancel</button>
+                          <button onClick={resolveHITL} disabled={!resolveMsg.trim()} style={{ background: '#0066cc', color: 'white', fontSize: 13, padding: '8px 18px', borderRadius: 20, border: 'none', cursor: 'pointer' }}>{L.hitl.sendReply}</button>
+                          <button onClick={() => setResolveId(null)} style={{ color: '#6e6e73', fontSize: 13, padding: '8px 18px', borderRadius: 20, border: '1px solid #d2d2d7', background: 'none', cursor: 'pointer' }}>{L.hitl.cancel}</button>
                         </div>
                       </div>
                     )}
@@ -350,23 +394,36 @@ export default function Dashboard() {
             {/* Sidebar */}
             <div style={{ width: 260, borderRight: '1px solid #e8e8ed', display: 'flex', flexDirection: 'column', flexShrink: 0, background: '#f5f5f7' }}>
               <div style={{ padding: '16px 12px', borderBottom: '1px solid #e8e8ed' }}>
-                <p style={{ fontSize: 11, color: '#6e6e73', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>Knowledge Base</p>
+                <p style={{ fontSize: 11, color: '#6e6e73', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>{L.kb.title}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {['KB-06', 'COPREM'].map(id => (
-                    <button key={id} onClick={() => { setSelectedKb(id); loadKbSections(id) }} style={{
+                    <button key={id} onClick={() => { setSelectedKb(id); loadKbSections(id, kbLang) }} style={{
                       width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 10, fontSize: 13, cursor: 'pointer', border: 'none', transition: 'all 0.15s',
                       background: selectedKb === id ? 'white' : 'transparent',
                       color: selectedKb === id ? '#0066cc' : '#424245',
                       fontWeight: selectedKb === id ? 500 : 400,
                       boxShadow: selectedKb === id ? '0 1px 4px rgba(0,0,0,0.08)' : 'none'
                     }}>
-                      {id === 'KB-06' ? 'KB-06 FutureSkill (584 courses)' : 'COPREM Frameworks'}
+                      {id === 'KB-06' ? L.kb.kb06 : L.kb.coprem}
                     </button>
                   ))}
                 </div>
               </div>
+              {/* KB content language toggle */}
+              <div style={{ padding: '10px 12px', borderBottom: '1px solid #e8e8ed', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 11, color: '#6e6e73' }}>{L.kb.kbLang}</span>
+                <div style={{ display: 'flex', background: '#f5f5f7', borderRadius: 16, padding: 2, gap: 2, border: '1px solid #d2d2d7' }}>
+                  {(['en', 'th'] as Lang[]).map(l => (
+                    <button key={l} onClick={() => { setKbLang(l); loadKbSections(selectedKb, l) }} style={{
+                      fontSize: 11, fontWeight: 600, padding: '2px 10px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                      background: kbLang === l ? '#0066cc' : 'transparent',
+                      color: kbLang === l ? 'white' : '#6e6e73',
+                    }}>{l === 'en' ? L.kb.viewEN : L.kb.viewTH}</button>
+                  ))}
+                </div>
+              </div>
               <div style={{ flex: 1, overflowY: 'auto' }}>
-                {kbLoading && <p style={{ color: '#6e6e73', fontSize: 13, padding: 12 }}>Loading...</p>}
+                {kbLoading && <p style={{ color: '#6e6e73', fontSize: 13, padding: 12 }}>{L.kb.loading}</p>}
                 {kbSections.map(s => (
                   <button key={s.title} onClick={() => setSelectedSection(s.title)} style={{
                     width: '100%', textAlign: 'left', padding: '11px 14px',
@@ -376,7 +433,7 @@ export default function Dashboard() {
                     cursor: 'pointer', transition: 'all 0.1s',
                   }}>
                     <p style={{ fontSize: 13, color: '#1d1d1f', margin: 0 }}>{s.title}</p>
-                    <p style={{ fontSize: 11, color: '#6e6e73', marginTop: 2, margin: 0 }}>{s.lines} lines</p>
+                    <p style={{ fontSize: 11, color: '#6e6e73', marginTop: 2, margin: 0 }}>{L.kb.lines(s.lines)}</p>
                   </button>
                 ))}
               </div>
@@ -391,17 +448,17 @@ export default function Dashboard() {
                       <span style={{ fontSize: 12, color: '#6e6e73' }}>{selectedKb} / </span>
                       <span style={{ fontSize: 14, fontWeight: 500, color: '#1d1d1f' }}>{selectedSection}</span>
                     </div>
-                    <button onClick={() => navigator.clipboard.writeText(sectionContent)} style={{ fontSize: 12, color: '#6e6e73', padding: '5px 14px', borderRadius: 16, border: '1px solid #d2d2d7', background: 'none', cursor: 'pointer' }}>Copy</button>
+                    <button onClick={() => navigator.clipboard.writeText(sectionContent)} style={{ fontSize: 12, color: '#6e6e73', padding: '5px 14px', borderRadius: 16, border: '1px solid #d2d2d7', background: 'none', cursor: 'pointer' }}>{L.kb.copy}</button>
                   </div>
                   <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
-                    {sectionContent === 'loading...' ? <p style={{ color: '#6e6e73' }}>Loading...</p> : <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{renderMd(sectionContent)}</div>}
+                    {sectionContent === 'loading...' ? <p style={{ color: '#6e6e73' }}>{L.kb.loading}</p> : <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{renderMd(sectionContent)}</div>}
                   </div>
                 </>
               ) : (
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6e6e73' }}>
                   <div style={{ textAlign: 'center' }}>
                     <p style={{ fontSize: 32, marginBottom: 10 }}>📚</p>
-                    <p style={{ fontSize: 14 }}>Select a section to read</p>
+                    <p style={{ fontSize: 14 }}>{L.kb.select}</p>
                   </div>
                 </div>
               )}
@@ -413,12 +470,12 @@ export default function Dashboard() {
         {tab === 'browser' && (
           <div style={{ height: '100%', overflowY: 'auto', padding: '32px 24px' }}>
             <div style={{ maxWidth: 900, margin: '0 auto' }}>
-              <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f', marginBottom: 20 }}>Browser</h1>
+              <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f', marginBottom: 20 }}>{L.browser.title}</h1>
               {/* URL bar */}
               <div style={{ display: 'flex', gap: 10, marginBottom: 32 }}>
                 <input value={browserInput} onChange={e => setBrowserInput(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') { const q = browserInput.trim(); window.open(q.startsWith('http') ? q : `https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank') } }}
-                  placeholder="Search or enter URL, press Enter to open in new tab"
+                  placeholder={L.browser.placeholder}
                   style={{ flex: 1, background: '#f5f5f7', color: '#1d1d1f', padding: '11px 18px', borderRadius: 24, border: '1px solid #d2d2d7', fontSize: 14, outline: 'none' }}
                   onFocus={e => (e.target.style.borderColor = '#0066cc')}
                   onBlur={e => (e.target.style.borderColor = '#d2d2d7')} />
@@ -428,7 +485,7 @@ export default function Dashboard() {
 
               {/* COPREM links */}
               <div style={{ marginBottom: 32 }}>
-                <p style={{ fontSize: 12, color: '#6e6e73', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 14 }}>COPREM System</p>
+                <p style={{ fontSize: 12, color: '#6e6e73', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 14 }}>{L.browser.system}</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
                   {[
                     { label: 'n8n Workflows', url: 'http://localhost:5678/workflows', desc: 'Automation workflows' },
@@ -474,17 +531,10 @@ export default function Dashboard() {
           <div style={{ height: '100%', overflowY: 'auto' }}>
             <div style={{ maxWidth: 720, margin: '0 auto', padding: '32px 24px' }}>
               <div style={{ marginBottom: 32 }}>
-                <h1 style={{ fontSize: 40, fontWeight: 600, color: '#1d1d1f', marginBottom: 8 }}>COPREM OS Guide</h1>
-                <p style={{ fontSize: 16, color: '#6e6e73' }}>Jeff — INTJ AI Executive Partner · v8.3 · 2026-06-01</p>
+                <h1 style={{ fontSize: 40, fontWeight: 600, color: '#1d1d1f', marginBottom: 8 }}>{L.docs.title}</h1>
+                <p style={{ fontSize: 16, color: '#6e6e73' }}>{L.docs.subtitle}</p>
               </div>
-              {[
-                { title: 'Chat with Jeff', items: ['Type a message and press Enter or click Send', 'Select an AI model above — Auto recommended for most tasks', 'Gemini Flash: fast, free · Groq: no daily limit · Ollama: offline', 'Tap a quick-start message to begin a conversation'] },
-                { title: 'Pending Approvals (HITL)', items: ['Jeff pauses and waits when a request exceeds its scope', 'Click Reply → type your answer → sends to the Telegram user', 'Via Telegram: /resolve <id> <message>', 'Yellow badge shows count of pending items'] },
-                { title: 'Knowledge Base', items: ['KB-06: FutureSkill — 584 courses across 14 categories', 'COPREM: Frameworks and system rules for COPREM OS', 'Click a section in the left panel to read the full content', 'Click Copy to copy content to clipboard'] },
-                { title: 'Browser', items: ['Type a URL and press Enter or click Open', 'Bookmarks: n8n, LiteLLM, Dify, Google, GitHub', 'Some sites block iframes — use Open ↗ to open in a new tab', 'Use to inspect Workflow state and external dashboards'] },
-                { title: 'AI Cost Tiers (auto-selected by Jeff)', items: ['Tier 0: Gemini Flash (Groq primary + Gemini 6 keys)', 'Tier 1: Gemini Lite (cost >$1/day)', 'Tier 2: Groq 70B (when Gemini is throttled)', 'Tier 3: Ollama local (when all cloud APIs are down)'] },
-                { title: 'Starting COPREM OS', items: ['Double-click "COPREM OS.app" on the Desktop', 'Or run: bash scripts/start_coprem.sh', 'Stop Dashboard: bash scripts/stop_coprem.sh', 'Docker continues running when the Dashboard is closed'] },
-              ].map(s => (
+              {L.docs_sections.map(s => (
                 <div key={s.title} style={{ background: '#f5f5f7', borderRadius: 16, padding: '20px 24px', marginBottom: 12 }}>
                   <h2 style={{ fontSize: 17, fontWeight: 600, color: '#1d1d1f', marginBottom: 14 }}>{s.title}</h2>
                   <ul style={{ display: 'flex', flexDirection: 'column', gap: 8, listStyle: 'none', margin: 0, padding: 0 }}>
@@ -505,13 +555,13 @@ export default function Dashboard() {
         {tab === 'system' && (
           <div style={{ height: '100%', overflowY: 'auto', padding: '32px 24px' }}>
             <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f' }}>System</h1>
+              <h1 style={{ fontSize: 28, fontWeight: 600, color: '#1d1d1f' }}>{L.system.title}</h1>
 
               {/* Services */}
               <div style={{ background: '#f5f5f7', borderRadius: 16, padding: '20px 24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <h2 style={{ fontSize: 17, fontWeight: 600, color: '#1d1d1f' }}>Services</h2>
-                  <button onClick={fetchAll} style={{ fontSize: 13, color: '#0066cc', background: 'none', border: 'none', cursor: 'pointer' }}>↻ Refresh</button>
+                  <h2 style={{ fontSize: 17, fontWeight: 600, color: '#1d1d1f' }}>{L.system.services}</h2>
+                  <button onClick={fetchAll} style={{ fontSize: 13, color: '#0066cc', background: 'none', border: 'none', cursor: 'pointer' }}>{L.system.refresh}</button>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                   {[
@@ -522,7 +572,7 @@ export default function Dashboard() {
                     <div key={s.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 0', borderBottom: idx < arr.length - 1 ? '1px solid #e8e8ed' : 'none' }}>
                       <a href={s.url} target="_blank" rel="noreferrer" style={{ fontSize: 14, color: '#0066cc', textDecoration: 'none' }}>{s.label} ↗</a>
                       <span style={{ fontSize: 12, padding: '4px 12px', borderRadius: 20, fontWeight: 500, background: s.ok == null ? '#e8e8ed' : s.ok ? '#d1f5e0' : '#ffe5e5', color: s.ok == null ? '#6e6e73' : s.ok ? '#1a7f3c' : '#cc0000' }}>
-                        {s.ok == null ? 'Checking' : s.ok ? 'Online' : 'Down'}
+                        {s.ok == null ? L.system.checking : s.ok ? L.system.online : L.system.down}
                       </span>
                     </div>
                   ))}
@@ -531,8 +581,8 @@ export default function Dashboard() {
 
               {/* Latency */}
               <div style={{ background: '#f5f5f7', borderRadius: 16, padding: '20px 24px' }}>
-                <h2 style={{ fontSize: 17, fontWeight: 600, color: '#1d1d1f', marginBottom: 16 }}>Latency by Layer</h2>
-                {latency.length === 0 ? <p style={{ color: '#6e6e73', fontSize: 14 }}>Waiting for traffic from WF01...</p> : (
+                <h2 style={{ fontSize: 17, fontWeight: 600, color: '#1d1d1f', marginBottom: 16 }}>{L.system.latency}</h2>
+                {latency.length === 0 ? <p style={{ color: '#6e6e73', fontSize: 14 }}>{L.system.waiting}</p> : (
                   <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid #d2d2d7' }}>
@@ -553,7 +603,7 @@ export default function Dashboard() {
 
               {/* Quick links */}
               <div style={{ background: '#f5f5f7', borderRadius: 16, padding: '20px 24px' }}>
-                <h2 style={{ fontSize: 17, fontWeight: 600, color: '#1d1d1f', marginBottom: 16 }}>Open Services</h2>
+                <h2 style={{ fontSize: 17, fontWeight: 600, color: '#1d1d1f', marginBottom: 16 }}>{L.system.openServices}</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   {[['n8n Workflows', 'http://localhost:5678/workflows'], ['LiteLLM UI', 'http://localhost:4000/ui'], ['Dify Datasets', 'https://cloud.dify.ai/datasets'], ['Dify Apps', 'https://cloud.dify.ai/apps']].map(([l, u]) => (
                     <a key={l} href={u} target="_blank" rel="noreferrer" style={{ fontSize: 13, color: '#0066cc', background: 'white', padding: '12px 16px', borderRadius: 12, border: '1px solid #e8e8ed', textDecoration: 'none', transition: 'box-shadow 0.15s' }}

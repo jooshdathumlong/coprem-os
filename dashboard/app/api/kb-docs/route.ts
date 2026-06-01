@@ -4,8 +4,8 @@ import { join } from 'path'
 
 const ROOT = join(process.cwd(), '..')
 
-const KB_FILES: Record<string, { path: string; label: string; pillar: string }> = {
-  'KB-06': { path: 'knowledge/KB-06_FutureSkill_Courses.md', label: 'FutureSkill Courses (584)', pillar: 'SKILL' },
+const KB_FILES: Record<string, { path: string; pathTH?: string; label: string; pillar: string }> = {
+  'KB-06': { path: 'knowledge/KB-06_FutureSkill_Courses.md', pathTH: 'knowledge/KB-06_FutureSkill_Courses_TH_backup.md', label: 'FutureSkill Courses (584)', pillar: 'SKILL' },
   'COPREM': { path: 'knowledge/COPREM_OS_24_Frameworks_v1_1.md', label: 'COPREM OS Frameworks', pillar: 'JOB' },
 }
 
@@ -33,11 +33,13 @@ function parseMarkdownSections(content: string) {
 export async function GET(req: NextRequest) {
   const kb = req.nextUrl.searchParams.get('kb') || 'KB-06'
   const section = req.nextUrl.searchParams.get('section') || ''
+  const lang = req.nextUrl.searchParams.get('lang') || 'en'
 
   // List mode
   if (!section && req.nextUrl.searchParams.get('list') === '1') {
     const result = Object.entries(KB_FILES).map(([id, meta]) => {
-      const fullPath = join(ROOT, '02-knowledge', meta.path.replace('knowledge/', ''))
+      const filePath = lang === 'th' && meta.pathTH ? meta.pathTH : meta.path
+      const fullPath = join(ROOT, '02-knowledge', filePath.replace('knowledge/', ''))
       const exists = existsSync(fullPath)
       let sections: string[] = []
       if (exists) {
@@ -53,7 +55,8 @@ export async function GET(req: NextRequest) {
   const meta = KB_FILES[kb]
   if (!meta) return NextResponse.json({ error: 'KB not found' }, { status: 404 })
 
-  const fullPath = join(ROOT, '02-knowledge', meta.path.replace('knowledge/', ''))
+  const filePath = lang === 'th' && meta.pathTH ? meta.pathTH : meta.path
+  const fullPath = join(ROOT, '02-knowledge', filePath.replace('knowledge/', ''))
   if (!existsSync(fullPath)) return NextResponse.json({ error: 'File not found' }, { status: 404 })
 
   const content = readFileSync(fullPath, 'utf-8')
