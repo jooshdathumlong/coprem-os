@@ -502,3 +502,14 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 **Pending (Prem action required):**
 - เปรมจัดไฟล์ .md 14 ไฟล์ตาม CATEGORY_RULES.md ใน Futureskill/kb/
 - แจ้ง Jeff เมื่อเสร็จ → Jeff import เข้า Postgres + Dify
+
+## Session 2026-06-01 — FutureSkill Course Extraction
+
+| Time | Action | Result |
+|---|---|---|
+| 2026-06-01 | สกัด 584 คอร์สจาก CSV | จัด 14 หมวดหมู่ใน Futureskill/kb/ |
+| 2026-06-01 | Placed: 457 | Unsorted: 127 → _unsorted.md รอ Jeff จัดเพิ่ม |
+
+**Pending:**
+- Review _unsorted.md (127 คอร์ส) → จัดหมวดหมู่เพิ่มเติม
+- Import Futureskill/kb/ → Postgres + Dify Knowledge Base (Phase 2)
