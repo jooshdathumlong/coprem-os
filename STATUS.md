@@ -475,3 +475,18 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 | Low Confidence Reply wiring | ✅ |
 | GAP-07 Webhook Signature | ✅ |
 | GAP-04 Rate Limit Tracker | ✅ |
+
+## Session 2026-06-01 — Month 3 Unlocked
+
+| Time | Action | Result |
+|---|---|---|
+| 2026-06-01 10:10 | Month 3 unlocked by Prem | ✅ No-Spec + 1-Pillar constraints removed |
+
+## Month 3 Backlog (ACTIVE)
+| Task | Priority |
+|---|---|
+| Next.js Dashboard (MVC) | P1 |
+| WebSocket live status | P2 |
+| Ollama Local tuning | P2 |
+| First Chaos experiment | P3 |
+| Supabase Edge Functions for WF10 | P3 |

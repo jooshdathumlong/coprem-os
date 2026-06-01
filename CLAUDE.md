@@ -192,10 +192,11 @@ New machine: `sh scripts/setup.sh`
 
 ---
 
-## 12. Architecture Constraints (updated 2026-05-31)
+## 12. Architecture Constraints (updated 2026-06-01)
 
-- **Gate rule:** WF01 must pass end-to-end before any new feature is activated.
-- **1-Pillar Rule:** 1 active pillar per 2 weeks. Feedback score >4.0 from 10 tasks before unlocking next pillar.
-- **No-Spec Rule:** No Blueprint v8.3+ until WF01 stable for 1 week with zero errors.
+- **Gate rule:** WF01 must pass end-to-end before any new feature is activated. ✅ PASSED
+- **1-Pillar Rule:** ~~1 active pillar per 2 weeks~~ — **UNLOCKED by Prem 2026-06-01**
+- **No-Spec Rule:** ~~No Blueprint v8.3+ until WF01 stable for 1 week~~ — **UNLOCKED by Prem 2026-06-01**
 - **Job-First Window:** First 3 months → JOB + PERSONAL only. Ego Era / Music / Peabuntid suspended.
-- **Deferred:** Prompt Shadow Testing / Next.js Dashboard / Discord integration / Big Tech DNA veto.
+- **Month 3 ACTIVE:** Next.js Dashboard + WebSocket + Ollama tuning + Chaos experiment
+- **Deferred:** Prompt Shadow Testing / Discord integration / Big Tech DNA veto.
