@@ -6,16 +6,19 @@ type LatencyRow = { event_type: string; avg_ms: number; max_ms: number; requests
 type EmbeddingRow = { id: number; content: string; pillar: string; kb_id: string; created_at: string }
 type Status = { litellm: boolean; ollama: boolean; n8n: boolean; timestamp: string }
 type ChatMsg = { role: 'user' | 'assistant'; text: string }
+type Tab = 'chat' | 'hitl' | 'kb' | 'system'
 
-const PILLARS = ['', 'JOB', 'PERSONAL', 'SKILL', 'COURSE', 'CREATIVE']
-const LINKS = [
-  { label: 'n8n UI', url: 'http://localhost:5678' },
-  { label: 'Dify', url: 'http://localhost' },
-  { label: 'LiteLLM', url: 'http://localhost:4000' },
+const PILLARS = ['', 'JOB', 'PERSONAL', 'SKILL', 'CREATIVE']
+
+const NAV: { id: Tab; label: string; icon: string }[] = [
+  { id: 'chat',   label: 'คุยกับ Jeff', icon: '💬' },
+  { id: 'hitl',   label: 'รออนุมัติ',   icon: '⚠️' },
+  { id: 'kb',     label: 'คลังความรู้',  icon: '📚' },
+  { id: 'system', label: 'ระบบ',        icon: '⚙️' },
 ]
 
 export default function Dashboard() {
-  const [chill, setChill] = useState(false)
+  const [tab, setTab] = useState<Tab>('chat')
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([])
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
@@ -25,7 +28,6 @@ export default function Dashboard() {
   const [embPillar, setEmbPillar] = useState('')
   const [status, setStatus] = useState<Status | null>(null)
   const [selectedEmb, setSelectedEmb] = useState<EmbeddingRow | null>(null)
-  const [editContent, setEditContent] = useState('')
   const [resolveId, setResolveId] = useState<number | null>(null)
   const [resolveMsg, setResolveMsg] = useState('')
   const chatEndRef = useRef<HTMLDivElement>(null)
@@ -41,7 +43,7 @@ export default function Dashboard() {
     if (l.status === 'fulfilled') setLatency(l.value)
   }, [])
 
-  const fetchEmbeddings = useCallback(async () => {
+  const fetchKB = useCallback(async () => {
     try {
       const res = await fetch(`/api/embeddings?pillar=${embPillar}`)
       const data = await res.json()
@@ -51,10 +53,10 @@ export default function Dashboard() {
 
   useEffect(() => { fetchAll(); const t = setInterval(fetchAll, 30000); return () => clearInterval(t) }, [fetchAll])
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
-  useEffect(() => { fetchEmbeddings() }, [fetchEmbeddings])
+  useEffect(() => { if (tab === 'kb') fetchKB() }, [tab, fetchKB])
 
   async function sendChat() {
-    if (!chatInput.trim()) return
+    if (!chatInput.trim() || chatLoading) return
     const msg = chatInput.trim()
     setChatInput('')
     setChatMessages(m => [...m, { role: 'user', text: msg }])
@@ -66,7 +68,9 @@ export default function Dashboard() {
       })
       const data = await res.json()
       setChatMessages(m => [...m, { role: 'assistant', text: data.reply || data.error || '(ไม่มีการตอบกลับ)' }])
-    } catch (e) { setChatMessages(m => [...m, { role: 'assistant', text: `Error: ${e}` }]) }
+    } catch (e) {
+      setChatMessages(m => [...m, { role: 'assistant', text: `⚠️ Error: ${e}` }])
+    }
     setChatLoading(false)
   }
 
@@ -79,255 +83,286 @@ export default function Dashboard() {
     setResolveId(null); setResolveMsg(''); fetchAll()
   }
 
-  const dot = (ok: boolean) => (
-    <span className={`inline-block w-2 h-2 rounded-full mr-1 ${ok ? 'bg-green-400' : 'bg-red-500'}`} />
-  )
-
   const pending = hitlItems.filter(i => !i.resolved_at)
+  const allOk = status && status.litellm && status.ollama && status.n8n
 
   return (
-    <div className="max-w-7xl mx-auto p-4 text-sm">
+    <div className="flex flex-col h-screen bg-gray-950 text-white">
 
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between mb-4 border-b border-gray-800 pb-3">
-        <div>
-          <h1 className="text-lg font-bold text-white">COPREM OS</h1>
-          <p className="text-xs text-gray-500">Jeff — INTJ Executive Partner</p>
-        </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Quick links */}
-          {LINKS.map(l => (
-            <a key={l.label} href={l.url} target="_blank" rel="noreferrer"
-              className="text-xs px-2 py-1 rounded border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition">
-              {l.label} ↗
-            </a>
-          ))}
-          {/* Status dots */}
-          {status && (
-            <div className="text-xs text-gray-400 flex gap-3 pl-2 border-l border-gray-800">
-              <span>{dot(status.litellm)}LiteLLM</span>
-              <span>{dot(status.ollama)}Ollama</span>
-              <span>{dot(status.n8n)}n8n</span>
-            </div>
+      {/* ── Top bar ── */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 shrink-0">
+        <div className="flex items-center gap-3">
+          <span className="text-white font-bold">COPREM</span>
+          <span className={`text-xs px-2 py-0.5 rounded-full ${allOk ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`}>
+            {allOk ? '● ระบบปกติ' : '● มีปัญหา'}
+          </span>
+          {pending.length > 0 && (
+            <button onClick={() => setTab('hitl')}
+              className="text-xs bg-yellow-600 text-white px-2 py-0.5 rounded-full animate-pulse">
+              ⚠ {pending.length} รอ
+            </button>
           )}
-          <button onClick={() => setChill(!chill)}
-            className={`text-xs px-3 py-1 rounded border transition ${chill ? 'border-blue-500 text-blue-400' : 'border-gray-700 text-gray-400'}`}>
-            {chill ? '☀ Chill ON' : '◉ Chill OFF'}
-          </button>
+        </div>
+        <div className="flex gap-2">
+          <a href="http://localhost:5678" target="_blank" rel="noreferrer"
+            className="text-xs text-gray-400 hover:text-white px-2 py-1 rounded border border-gray-700 hover:border-gray-500 transition">n8n ↗</a>
+          <a href="http://localhost:4000" target="_blank" rel="noreferrer"
+            className="text-xs text-gray-400 hover:text-white px-2 py-1 rounded border border-gray-700 hover:border-gray-500 transition">LiteLLM ↗</a>
         </div>
       </div>
 
-      {/* ── HITL Alert Banner ── */}
-      {pending.length > 0 && (
-        <div className="mb-4 bg-yellow-900 border border-yellow-600 rounded p-3 flex items-center justify-between">
-          <span className="text-yellow-300 text-xs">⚠ {pending.length} รายการรอการอนุมัติ (HITL)</span>
-          <button onClick={() => document.getElementById('hitl-panel')?.scrollIntoView({ behavior: 'smooth' })}
-            className="text-xs bg-yellow-600 text-white px-3 py-1 rounded">ดู →</button>
-        </div>
-      )}
-
-      <div className={`grid gap-4 ${chill ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'}`}>
-
-        {/* ── 1. Chat Panel ── */}
-        <div className="bg-gray-900 rounded-lg p-4 flex flex-col h-[500px]">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Chat — Jeff</h2>
-          <div className="flex-1 overflow-y-auto space-y-2 mb-3 pr-1">
-            {chatMessages.length === 0 && (
-              <p className="text-xs text-gray-600 italic">พิมพ์ข้อความแล้วกด Enter หรือ Send</p>
+      {/* ── Tab nav ── */}
+      <div className="flex border-b border-gray-800 shrink-0">
+        {NAV.map(n => (
+          <button key={n.id} onClick={() => setTab(n.id)}
+            className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition ${
+              tab === n.id
+                ? 'border-blue-500 text-white'
+                : 'border-transparent text-gray-500 hover:text-gray-300'
+            }`}>
+            <span>{n.icon}</span>
+            <span>{n.label}</span>
+            {n.id === 'hitl' && pending.length > 0 && (
+              <span className="bg-yellow-600 text-white text-xs px-1.5 py-0.5 rounded-full leading-none">{pending.length}</span>
             )}
-            {chatMessages.map((m, i) => (
-              <div key={i} className={`text-xs p-2 rounded-lg leading-relaxed ${m.role === 'user'
-                ? 'bg-blue-950 text-blue-200 ml-6'
-                : 'bg-gray-800 text-gray-200 mr-6'}`}>
-                <span className="font-bold text-gray-500 mr-1">{m.role === 'user' ? 'You' : 'Jeff'}:</span>
-                <span className="whitespace-pre-wrap">{m.text}</span>
-              </div>
-            ))}
-            {chatLoading && (
-              <div className="text-xs text-gray-500 animate-pulse bg-gray-800 p-2 rounded-lg mr-6">
-                Jeff กำลังคิด...
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-          <div className="flex gap-2">
-            <input value={chatInput} onChange={e => setChatInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendChat()}
-              placeholder="ถามอะไรก็ได้..." disabled={chatLoading}
-              className="flex-1 bg-gray-800 text-xs text-white px-3 py-2 rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500 disabled:opacity-50" />
-            <button onClick={sendChat} disabled={chatLoading || !chatInput.trim()}
-              className="text-xs bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg disabled:opacity-40 transition">
-              Send
-            </button>
-          </div>
-        </div>
+          </button>
+        ))}
+      </div>
 
-        {/* ── 2. Approval Desk ── */}
-        <div id="hitl-panel" className="bg-gray-900 rounded-lg p-4 flex flex-col h-[500px]">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Approval Desk</h2>
-            {pending.length > 0 && <span className="text-xs bg-yellow-600 text-white px-2 py-0.5 rounded-full">{pending.length}</span>}
-          </div>
-          <div className="flex-1 overflow-y-auto space-y-2">
-            {hitlItems.length === 0 && <p className="text-xs text-gray-600 italic">ไม่มีรายการรอ</p>}
-            {hitlItems.map(item => (
-              <div key={item.id}
-                className={`text-xs p-3 rounded-lg border ${item.resolved_at ? 'border-gray-800 opacity-40' : 'border-yellow-700 bg-yellow-950'}`}>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <span className="text-gray-500">#{item.id} · chat:{item.chat_id} · {new Date(item.created_at).toLocaleTimeString()}</span>
-                    <p className="text-white mt-1 break-words">{item.message}</p>
-                    {item.resolution && <p className="text-green-400 mt-1">✓ {item.resolution}</p>}
+      {/* ── Content ── */}
+      <div className="flex-1 overflow-hidden">
+
+        {/* Chat */}
+        {tab === 'chat' && (
+          <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {chatMessages.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+                  <p className="text-4xl">💬</p>
+                  <p className="text-gray-400">พิมพ์ข้อความด้านล่างเพื่อคุยกับ Jeff</p>
+                  <div className="flex flex-wrap gap-2 justify-center mt-2">
+                    {['วันนี้ต้องทำอะไรบ้าง?', 'แนะนำคอร์สเรียน Python', 'วิเคราะห์ตลาดหุ้นวันนี้'].map(s => (
+                      <button key={s} onClick={() => { setChatInput(s); }}
+                        className="text-xs text-gray-400 border border-gray-700 px-3 py-1.5 rounded-full hover:border-blue-500 hover:text-blue-300 transition">
+                        {s}
+                      </button>
+                    ))}
                   </div>
-                  {!item.resolved_at && (
-                    <button onClick={() => { setResolveId(item.id); setResolveMsg('') }}
-                      className="shrink-0 bg-green-700 hover:bg-green-600 text-white text-xs px-2 py-1 rounded transition">
-                      Resolve
-                    </button>
-                  )}
                 </div>
-              </div>
-            ))}
-          </div>
-          {/* Resolve input */}
-          {resolveId && (
-            <div className="mt-3 border-t border-gray-800 pt-3 space-y-2">
-              <p className="text-xs text-gray-400">ข้อความตอบกลับ HITL #{resolveId}</p>
-              <textarea value={resolveMsg} onChange={e => setResolveMsg(e.target.value)} rows={2}
-                className="w-full bg-gray-800 text-xs text-white px-2 py-1 rounded border border-gray-700 focus:outline-none focus:border-green-500 resize-none"
-                placeholder="พิมพ์คำตอบ..." />
-              <div className="flex gap-2">
-                <button onClick={resolveHITL} disabled={!resolveMsg.trim()}
-                  className="text-xs bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded disabled:opacity-40">
+              )}
+              {chatMessages.map((m, i) => (
+                <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[75%] text-sm p-3 rounded-2xl leading-relaxed ${
+                    m.role === 'user'
+                      ? 'bg-blue-600 text-white rounded-br-sm'
+                      : 'bg-gray-800 text-gray-100 rounded-bl-sm'
+                  }`}>
+                    {m.role === 'assistant' && <p className="text-xs text-gray-500 mb-1">Jeff</p>}
+                    <p className="whitespace-pre-wrap">{m.text}</p>
+                  </div>
+                </div>
+              ))}
+              {chatLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-800 text-gray-400 text-sm p-3 rounded-2xl rounded-bl-sm">
+                    <span className="animate-pulse">Jeff กำลังคิด...</span>
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+            <div className="p-4 border-t border-gray-800">
+              <div className="flex gap-3 max-w-3xl mx-auto">
+                <input value={chatInput} onChange={e => setChatInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendChat()}
+                  placeholder="พิมพ์ข้อความ... (Enter ส่ง)" disabled={chatLoading}
+                  className="flex-1 bg-gray-800 text-white px-4 py-3 rounded-xl border border-gray-700 focus:outline-none focus:border-blue-500 text-sm disabled:opacity-50 placeholder:text-gray-600" />
+                <button onClick={sendChat} disabled={chatLoading || !chatInput.trim()}
+                  className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white px-5 py-3 rounded-xl font-medium text-sm transition">
                   ส่ง
                 </button>
-                <button onClick={() => setResolveId(null)}
-                  className="text-xs text-gray-400 hover:text-white px-3 py-1 rounded border border-gray-700">
-                  ยกเลิก
-                </button>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* ── 3. Knowledge Vault ── */}
-        {!chill && (
-          <div className="bg-gray-900 rounded-lg p-4 flex flex-col h-[500px]">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Knowledge Vault</h2>
-              <div className="flex gap-2 items-center">
-                <button onClick={fetchEmbeddings} className="text-xs text-gray-500 hover:text-white">↻</button>
-                <select value={embPillar} onChange={e => setEmbPillar(e.target.value)}
-                  className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">
-                  {PILLARS.map(p => <option key={p} value={p}>{p || 'All'}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto space-y-1.5">
-              {embeddings.length === 0 && <p className="text-xs text-gray-600 italic">ไม่มีข้อมูล</p>}
-              {embeddings.map(e => (
-                <button key={e.id} onClick={() => { setSelectedEmb(e); setEditContent(e.content) }}
-                  className="w-full text-left text-xs p-2.5 rounded-lg bg-gray-800 hover:bg-gray-750 border border-transparent hover:border-gray-600 transition">
-                  <div className="flex gap-2 text-gray-500 mb-1">
-                    <span className="text-purple-400 font-medium">{e.pillar}</span>
-                    <span>{e.kb_id}</span>
-                  </div>
-                  <p className="text-gray-300 line-clamp-2 leading-relaxed">{e.content}</p>
-                </button>
-              ))}
             </div>
           </div>
         )}
 
-        {/* ── 4. System Status ── */}
-        {!chill && (
-          <div className="bg-gray-900 rounded-lg p-4">
-            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">System Status</h2>
-            <div className="space-y-2.5">
-              {[
-                { label: 'LiteLLM', ok: status?.litellm, link: 'http://localhost:4000' },
-                { label: 'Ollama', ok: status?.ollama, link: 'http://localhost:11434' },
-                { label: 'n8n', ok: status?.n8n, link: 'http://localhost:5678' },
-              ].map(s => (
-                <div key={s.label} className="flex items-center justify-between">
-                  <a href={s.link} target="_blank" rel="noreferrer"
-                    className="text-xs text-gray-400 hover:text-white underline-offset-2 hover:underline">
-                    {s.label} ↗
-                  </a>
-                  <span className={`text-xs font-medium ${s.ok ? 'text-green-400' : 'text-red-400'}`}>
-                    {s.ok == null ? '...' : s.ok ? 'UP' : 'DOWN'}
-                  </span>
+        {/* HITL */}
+        {tab === 'hitl' && (
+          <div className="h-full overflow-y-auto p-4 max-w-2xl mx-auto">
+            <p className="text-gray-500 text-sm mb-4">
+              {pending.length > 0 ? `${pending.length} รายการรอการตอบกลับ` : 'ไม่มีรายการรอ ✓'}
+            </p>
+            <div className="space-y-3">
+              {hitlItems.map(item => (
+                <div key={item.id}
+                  className={`rounded-xl border p-4 ${item.resolved_at ? 'border-gray-800 bg-gray-900/50 opacity-50' : 'border-yellow-700 bg-yellow-950/40'}`}>
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div>
+                      <span className="text-xs text-gray-500">#{item.id} · {new Date(item.created_at).toLocaleString('th-TH')}</span>
+                      <p className="text-white mt-1">{item.message}</p>
+                      {item.resolution && <p className="text-green-400 text-sm mt-2">✓ {item.resolution}</p>}
+                    </div>
+                    {!item.resolved_at && resolveId !== item.id && (
+                      <button onClick={() => { setResolveId(item.id); setResolveMsg('') }}
+                        className="shrink-0 bg-green-700 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-lg transition font-medium">
+                        ตอบกลับ
+                      </button>
+                    )}
+                  </div>
+                  {resolveId === item.id && (
+                    <div className="mt-3 space-y-2">
+                      <textarea value={resolveMsg} onChange={e => setResolveMsg(e.target.value)}
+                        rows={3} autoFocus placeholder="พิมพ์คำตอบที่จะส่งให้ผู้ใช้..."
+                        className="w-full bg-gray-800 text-white text-sm px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-green-500 resize-none" />
+                      <div className="flex gap-2">
+                        <button onClick={resolveHITL} disabled={!resolveMsg.trim()}
+                          className="bg-green-600 hover:bg-green-500 disabled:opacity-40 text-white text-sm px-4 py-2 rounded-lg font-medium transition">
+                          ส่งคำตอบ
+                        </button>
+                        <button onClick={() => setResolveId(null)}
+                          className="text-gray-400 hover:text-white text-sm px-4 py-2 rounded-lg border border-gray-700 transition">
+                          ยกเลิก
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
-              {status && <p className="text-xs text-gray-700 pt-1">{new Date(status.timestamp).toLocaleString()}</p>}
-              <button onClick={fetchAll} className="mt-2 text-xs text-gray-600 hover:text-gray-300 transition">↻ Refresh</button>
             </div>
           </div>
         )}
 
-        {/* ── 5. Latency Panel ── */}
-        {!chill && (
-          <div className="bg-gray-900 rounded-lg p-4 md:col-span-2">
-            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Latency by Layer</h2>
-            <table className="text-xs w-full">
-              <thead><tr className="text-gray-600 border-b border-gray-800">
-                <th className="text-left pb-2">event_type</th>
-                <th className="text-right pb-2">avg ms</th>
-                <th className="text-right pb-2">max ms</th>
-                <th className="text-right pb-2">requests</th>
-                <th className="text-right pb-2">slow</th>
-              </tr></thead>
-              <tbody>
-                {latency.map(r => (
-                  <tr key={r.event_type} className="border-b border-gray-800/50">
-                    <td className="py-1.5 text-blue-300">{r.event_type}</td>
-                    <td className="text-right text-gray-300">{r.avg_ms ?? '–'}</td>
-                    <td className="text-right text-yellow-400">{r.max_ms ?? '–'}</td>
-                    <td className="text-right text-gray-400">{r.requests}</td>
-                    <td className="text-right text-red-400">{r.slow_count || '–'}</td>
-                  </tr>
-                ))}
-                {latency.length === 0 && (
-                  <tr><td colSpan={5} className="text-gray-600 py-3 text-center italic">ยังไม่มีข้อมูล — รอให้มี traffic ก่อน</td></tr>
+        {/* KB */}
+        {tab === 'kb' && (
+          <div className="flex h-full">
+            <div className="flex flex-col w-80 border-r border-gray-800 shrink-0">
+              <div className="p-3 border-b border-gray-800 flex gap-2">
+                <select value={embPillar} onChange={e => setEmbPillar(e.target.value)}
+                  className="flex-1 bg-gray-800 text-sm text-gray-300 px-3 py-2 rounded-lg border border-gray-700">
+                  {PILLARS.map(p => <option key={p} value={p}>{p || 'ทั้งหมด'}</option>)}
+                </select>
+                <button onClick={fetchKB} className="text-gray-400 hover:text-white px-2 text-lg transition">↻</button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {embeddings.length === 0 && (
+                  <p className="text-gray-600 text-sm p-4 text-center">ไม่มีข้อมูล</p>
                 )}
-              </tbody>
-            </table>
+                {embeddings.map(e => (
+                  <button key={e.id} onClick={() => setSelectedEmb(e)}
+                    className={`w-full text-left p-3 border-b border-gray-800/50 hover:bg-gray-800 transition ${selectedEmb?.id === e.id ? 'bg-gray-800 border-l-2 border-l-blue-500' : ''}`}>
+                    <div className="flex gap-2 mb-1">
+                      <span className="text-xs text-purple-400 font-medium">{e.pillar}</span>
+                      <span className="text-xs text-gray-500">{e.kb_id}</span>
+                    </div>
+                    <p className="text-sm text-gray-300 line-clamp-2 leading-relaxed">{e.content}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col">
+              {selectedEmb ? (
+                <>
+                  <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+                    <div>
+                      <span className="text-purple-400 font-medium">{selectedEmb.pillar}</span>
+                      <span className="text-gray-500 text-sm ml-2">{selectedEmb.kb_id}</span>
+                    </div>
+                    <button onClick={() => navigator.clipboard.writeText(selectedEmb.content)}
+                      className="text-sm text-gray-400 hover:text-white px-3 py-1 rounded border border-gray-700 transition">
+                      Copy
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-6">
+                    <p className="text-gray-200 text-sm leading-relaxed whitespace-pre-wrap">{selectedEmb.content}</p>
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-gray-600 text-sm">
+                  ← เลือก entry เพื่อดูเนื้อหา
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* System */}
+        {tab === 'system' && (
+          <div className="h-full overflow-y-auto p-6 max-w-2xl mx-auto space-y-6">
+            {/* Service status */}
+            <div className="bg-gray-900 rounded-xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-white">บริการ</h2>
+                <button onClick={fetchAll} className="text-sm text-gray-400 hover:text-white transition">↻ Refresh</button>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { label: 'LiteLLM', ok: status?.litellm, url: 'http://localhost:4000' },
+                  { label: 'Ollama', ok: status?.ollama, url: 'http://localhost:11434' },
+                  { label: 'n8n', ok: status?.n8n, url: 'http://localhost:5678' },
+                ].map(s => (
+                  <div key={s.label} className="flex items-center justify-between py-2 border-b border-gray-800">
+                    <a href={s.url} target="_blank" rel="noreferrer"
+                      className="text-sm text-gray-300 hover:text-white hover:underline">
+                      {s.label} ↗
+                    </a>
+                    <span className={`text-sm font-medium px-3 py-1 rounded-full ${
+                      s.ok == null ? 'bg-gray-800 text-gray-400' :
+                      s.ok ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'
+                    }`}>
+                      {s.ok == null ? '...' : s.ok ? 'ปกติ' : 'ล้มเหลว'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Latency */}
+            <div className="bg-gray-900 rounded-xl p-5">
+              <h2 className="font-semibold text-white mb-4">ความเร็วแต่ละชั้น</h2>
+              {latency.length === 0 ? (
+                <p className="text-gray-600 text-sm">ยังไม่มีข้อมูล — รอ traffic จาก WF01</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead><tr className="text-gray-500 text-xs border-b border-gray-800">
+                    <th className="text-left pb-2">Layer</th>
+                    <th className="text-right pb-2">เฉลี่ย</th>
+                    <th className="text-right pb-2">สูงสุด</th>
+                    <th className="text-right pb-2">ครั้ง</th>
+                  </tr></thead>
+                  <tbody>
+                    {latency.map(r => (
+                      <tr key={r.event_type} className="border-b border-gray-800/50">
+                        <td className="py-2 text-blue-300 text-xs">{r.event_type}</td>
+                        <td className="text-right text-gray-300">{r.avg_ms}ms</td>
+                        <td className="text-right text-yellow-400">{r.max_ms}ms</td>
+                        <td className="text-right text-gray-500">{r.requests}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Quick actions */}
+            <div className="bg-gray-900 rounded-xl p-5">
+              <h2 className="font-semibold text-white mb-4">เปิดระบบภายนอก</h2>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: '⚙ n8n Workflows', url: 'http://localhost:5678/workflows' },
+                  { label: '📊 LiteLLM Dashboard', url: 'http://localhost:4000/ui' },
+                  { label: '📚 Dify Knowledge', url: 'http://localhost/datasets' },
+                  { label: '🤖 Dify Studio', url: 'http://localhost/apps' },
+                ].map(a => (
+                  <a key={a.label} href={a.url} target="_blank" rel="noreferrer"
+                    className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-sm px-4 py-3 rounded-lg transition border border-gray-700 hover:border-gray-500">
+                    {a.label}
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>
-
-      {/* ── KB Detail Modal ── */}
-      {selectedEmb && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
-          onClick={e => e.target === e.currentTarget && setSelectedEmb(null)}>
-          <div className="bg-gray-900 rounded-xl border border-gray-700 w-full max-w-2xl max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-gray-800">
-              <div>
-                <span className="text-purple-400 font-medium text-sm">{selectedEmb.pillar}</span>
-                <span className="text-gray-500 text-xs ml-2">{selectedEmb.kb_id}</span>
-                <span className="text-gray-600 text-xs ml-2">ID:{selectedEmb.id}</span>
-              </div>
-              <button onClick={() => setSelectedEmb(null)} className="text-gray-500 hover:text-white text-xl leading-none">×</button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <textarea value={editContent} onChange={e => setEditContent(e.target.value)} rows={12}
-                className="w-full bg-gray-800 text-gray-200 text-xs p-3 rounded-lg border border-gray-700 focus:outline-none focus:border-purple-500 resize-none font-mono leading-relaxed" />
-            </div>
-            <div className="p-4 border-t border-gray-800 flex gap-2 items-center">
-              <button onClick={() => { navigator.clipboard.writeText(editContent) }}
-                className="text-xs text-gray-400 hover:text-white px-3 py-1 rounded border border-gray-700 transition">
-                Copy
-              </button>
-              <span className="text-xs text-gray-600">{editContent.length} chars</span>
-              <span className="flex-1" />
-              <button onClick={() => setSelectedEmb(null)}
-                className="text-xs text-gray-400 px-3 py-1 rounded border border-gray-700">
-                ปิด
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
