@@ -1045,3 +1045,45 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 - Confidence < 0.7 clarification path: Low Confidence Reply node exists, wiring pending
 
 ### WF01 ID: W11IKLoxmN2BzImS | L1-C ID: varies (by path /l1c-route)
+
+---
+
+## Part 15 — Session 2026-06-01 (Session 6 — L3 KB Retrieval Live)
+
+### Done
+- **L3 KB Retriever nodes** added to WF01 — Dify Segments API + keyword match (free tier workaround: vector embedding unavailable on Dify Cloud free)
+- **KB IDs retrieved** for all 5 knowledge bases (segments verified, content exists)
+- **L1-C system prompt** injected with KB context — Jeff now answers with COPREM knowledge
+- **Ollama Tier 3 fallback** live — llama3.1:8b + qwen2.5:7b via LiteLLM routing
+- **WF01**: 24 nodes, exec 159, 100% success rate
+- **Cost**: $0.15/day (well within Tier 1 threshold)
+
+### Bugs Fixed
+- Thai chars in context broke JSON string interpolation → `JSON.stringify($json)` approach
+- L1-C Respond node returned invalid JSON when Thai `dify_reply` present → `JSON.stringify` in responseBody
+- KB segments=0 from Dify retrieve API → switched to Segments API + keyword match
+
+### System State
+- WF01 active: 24 nodes, ID W11IKLoxmN2BzImS
+- Active model: Ollama Tier 3 (llama3.1:8b / qwen2.5:7b)
+- Stability window: Day 1/7 (gate before any new feature)
+- KB: 5 sources active, keyword-match retrieval
+- Telegram → n8n → L1-B → L3 KB → L1-C(Jeff+context) → Reply: confirmed ✅
+
+---
+
+## Part 15 — Session 2026-06-01 (Session 7 — Command Center UI)
+
+### Done
+- **COPREM Command Center** built: `04-outputs/command-center.html`
+- Single-page dashboard — no screen switching required
+- Layout: Left nav (file browser) | Center (Task table + Content viewer) | Right (Jeff chat)
+- Integrated: คอร์สเรียน AI-categorized (English / Marketing / Trading / Mindset), Task Pipeline (DICE), System status pills, Event log
+- Chat panel: Webhook URL field → connects directly to n8n WF01 via POST JSON
+- Trading checklist: interactive tick-boxes before trade entry
+- Quick command buttons: Task วันนี้ / Health check / วิเคราะห์ Trade / สรุป session
+
+### System State
+- Dashboard: 04-outputs/command-center.html (standalone HTML, no server required)
+- WF01 stability: Day 1/7 — monitoring window active
+- Next: อัพเดท INDEX.md + git commit

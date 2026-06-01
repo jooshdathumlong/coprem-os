@@ -112,3 +112,5 @@ Next.js dashboard (localhost:3000) — not yet built.
 | `scripts/sqlite_io.py` | (auto-registered 2026-06-01) |
 | `scripts/sync_daemon.py` | (auto-registered 2026-06-01) |
 | `scripts/sync_validator.py` | (auto-registered 2026-06-01) |
+| `04-outputs/command-center.html` | COPREM Command Center — single-page dashboard (Task + KB viewer + Jeff chat) |
+| `04-outputs/coprem-dashboard.html` | COPREM Executive Dashboard v1 (system status + chat) |
