@@ -1190,3 +1190,21 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 - KB Auto-sync: daily cron active → Dify datasets KB-01 to KB-06
 - Memory TTL: daily 03:00 auto-archive expired entries
 - Month 4: KB auto-sync ✅ | Memory TTL ✅ | Prompt Shadow Testing ✅
+
+---
+
+## Part 15 — Session 2026-06-02 (Session 11 — Month 4-6 Features)
+
+### Done
+- **L4 Content Library — Ego Era:** 12/12 characters fully seeded (ego_anchor, power_desc, arc_state, location, key_event) | Chapter 1 "The Day the World Didn't Look Back" (520 words) imported into chapters table
+- **Novels table:** EGO ERA novel record active
+- **WF13 Discord Monitor:** created (id: YP5lk2C4gzJbTQJv) — routes system_alert/hitl/daily events to Discord webhooks | awaiting DISCORD_WEBHOOK_* env vars from Prem
+- **.env.example:** DISCORD_WEBHOOK_SYSTEM_ALERTS / HITL / DAILY added with setup instructions
+- **Month 4-6 targets:** L4 Content Library ✅ | Discord infra ✅ (pending Prem webhook URLs)
+
+### System State
+- Workflows: 14 total (WF01–WF13 + WF L1-C + WF L1.5 + WF L8) | 13 active, 1 pending (WF13 needs Discord URLs)
+- L4: novels(1) | chapters(1) | character_tracker(12/12) — fully seeded from ego_era_bible.md
+- Discord: WF13 ready — activate after adding DISCORD_WEBHOOK_* to .env
+- Month 4-6: L4 ✅ | Memory TTL ✅ | KB auto-sync ✅ | Shadow Testing ✅ | Discord infra ✅
+

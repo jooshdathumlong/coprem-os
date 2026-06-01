@@ -670,3 +670,15 @@ PENDING ต่อ session หน้า:
 - Monitor shadow test scores (WF08 รายงาน Sunday 22:00)
 - Ego Era Content Library (Month 4-6)
 - Discord integration (Month 4-6)
+
+## 2026-06-02 Session 11 — Month 4-6 Features
+| เวลา | Action | ผล |
+|---|---|---|
+| 2026-06-02 | L4 Character Tracker: 12/12 characters seeded from ego_era_bible.md | ✅ |
+| 2026-06-02 | L4 Chapters: Chapter 1 imported (520 words) | ✅ |
+| 2026-06-02 | WF13 Discord Monitor: created, routes 3 event types | ✅ |
+| 2026-06-02 | .env.example: DISCORD_WEBHOOK_* vars added | ✅ |
+
+PENDING (ต้อง Prem):
+- สร้าง Discord webhooks ใน Server Coprem → ใส่ใน .env → activate WF13
+- เพิ่ม chapters 2+ เมื่อมีเนื้อหา
