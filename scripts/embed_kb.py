@@ -14,7 +14,7 @@ EMBED_MODEL = "nomic-embed-text"
 PG_HOST, PG_PORT, PG_DB = "localhost", "5432", "coprem_os"
 PG_USER = "coprem"
 
-DIFY_API_KEY = os.getenv("DIFY_DATASET_KEY", "dataset-YbS0NzUo5D7HrzhFpwo2vOVL")
+DIFY_API_KEY = os.getenv("DIFY_KB_API_KEY") or os.getenv("DIFY_API_KEY", "")
 DIFY_BASE    = "https://api.dify.ai/v1"
 
 # KB datasets to embed: {dataset_id: (pillar, kb_id_label)}
