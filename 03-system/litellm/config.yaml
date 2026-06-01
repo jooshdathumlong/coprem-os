@@ -1,5 +1,11 @@
 model_list:
-  # ── gemini-2.0-flash — Groq FIRST (ไม่มี daily limit, reset ทุกนาที) ──────
+  # ── groq/llama-3.3-70b: Tier 2 dedicated (position 1 = PRIMARY, no daily limit) ─
+  - model_name: groq/llama-3.3-70b
+    litellm_params:
+      model: groq/llama-3.3-70b-versatile
+      api_key: os.environ/GROQ_API_KEY
+
+  # ── Tier 0: gemini-2.0-flash — Groq FIRST then Gemini 6 keys ─────────────
   - model_name: gemini-2.0-flash
     litellm_params:
       model: groq/llama-3.3-70b-versatile
@@ -109,7 +115,7 @@ model_list:
       api_base: http://host.docker.internal:11434
 
 router_settings:
-  routing_strategy: least-busy
+  routing_strategy: usage-based-routing-v2
   retry_after: 60
   num_retries: 3
   allowed_fails: 2
