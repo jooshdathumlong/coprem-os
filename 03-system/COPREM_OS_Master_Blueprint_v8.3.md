@@ -391,8 +391,8 @@ LINE:
 - **KB 3-Pillar System:** งานประจำ (Work) / ธุรกิจของฉัน (Business) / คลังความรู้ (Knowledge — 15 categories)
 - **KB-06 FutureSkill:** 584 courses indexed across 14 categories (EN + TH catalogs)
 - **TH/EN toggle:** UI language + KB content language synchronized
-- **WebSocket live status feed** (planned — replaces polling) [PENDING]
-- New CLI commands: `coprem.prompt.rollback()`, `coprem.kb.sync()` [PENDING]
+- **SSE live status feed** (`/api/status-stream`) — server-push every 10s ✅ LIVE
+- **CLI commands:** `coprem.prompt.rollback()`, `coprem.kb.sync()` ✅ LIVE (scripts/coprem)
 
 ### Module 5 — Storage Engine (Supabase / Google Drive)
 - Permanent storage: novels, decision history, files, audit logs
@@ -818,9 +818,9 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 **Week 3:** Supabase Vector DB → Workflow-09 (Backup) → Workflow-11 (DLQ) → ngrok → static domain ✅
 **Week 4:** Feedback Loop (Workflows 07–08) → Prompt Shadow Testing → Production launch ✅
 **Month 2:** P0 security hardening (GAP-07 + L1 split) → Session Context Manager ✅
-**Month 3 (CURRENT):** Web Dashboard (Next.js) ✅ → Persistent Chat Sessions ✅ → KB 3-Pillar ✅ → WebSocket live status [NEXT] → Ollama Local tuning [NEXT]
-**Month 3 NEXT:** WebSocket replaces polling | Chaos experiment (kill n8n → verify recovery) | PERSONAL pillar activation (1-Pillar Rule unlocked 2026-06-01)
-**Month 4–6:** Ego Era Content Library → KB auto-sync → Memory TTL enforcement → Prompt Shadow Testing live
+**Month 3 (CURRENT):** Web Dashboard ✅ → Chat Sessions ✅ → KB 3-Pillar ✅ → SSE live status ✅ → Chaos experiment ✅ → PERSONAL pillar ✅ → WF06+WF08 active ✅ → Ollama models pull [IN PROGRESS]
+**Month 3 DONE:** All Month 3 targets complete. Next: Month 4 scale phase.
+**Month 4–6:** Ego Era Content Library → KB auto-sync → Memory TTL enforcement → Prompt Shadow Testing live → Discord integration
 
 ---
 
@@ -1076,7 +1076,7 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 - KB-01 to KB-05: content not yet populated (trading rules, brand constitution, ego era bible, etc.)
 - Ollama Tier 3: not installed (Mac M5 local)
 - Dify Cloud agents: GPT-4 trial limitation — use LiteLLM instead for now
-- Confidence < 0.7 clarification path: Low Confidence Reply node exists, wiring pending
+- Confidence < 0.7 clarification path: ✅ Wired — Confidence Check IF → Low Confidence Reply (Telegram)
 
 ### WF01 ID: W11IKLoxmN2BzImS | L1-C ID: varies (by path /l1c-route)
 
@@ -1150,3 +1150,25 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 - KB: 3-pillar system + KB-06 FutureSkill (584 courses) + 15 categories
 - Unlocked: 1-Pillar Rule + No-Spec Rule (by Prem 2026-06-01)
 - Next: WebSocket live status | Chaos experiment | PERSONAL pillar activation
+
+---
+
+## Part 15 — Session 2026-06-02 (Session 9 — Blueprint Completion)
+
+### Done
+- **WF06 Health Ping + WF08 Self-Optimization Loop:** activated — all 12 workflows now active
+- **Confidence < 0.7 path:** verified wired (Confidence Check IF [1] → Low Confidence Reply Telegram node)
+- **CLI `coprem kb.sync`:** verified routes to WF10 `/webhook/kb-sync` ✅
+- **CLI `coprem prompt.rollback`:** verified SQL logic in scripts/coprem ✅
+- **Ollama tuning:** llama3.1:8b + qwen2.5:7b pulled | config.yaml updated (num_ctx:4096, timeout:120, temp:0.7) | LiteLLM restarted | llama3.1 tested via LiteLLM ✅
+- **Blueprint v8.3:** all PENDING items resolved — SSE ✅, Confidence ✅, CLI ✅, Roadmap updated
+- **COPREM_Master_Context.md:** synced to v8.3
+
+### System State
+- All workflows: 12/12 active ✅
+- Ollama: llama3.1:8b ✅ | qwen2.5:7b pulling
+- LiteLLM: restarted with tuned Ollama config | alive ✅
+- Dashboard: port 3001 | Chat sessions | SSE live status
+- Pillars: JOB + PERSONAL active | CREATIVE suspended
+- Month 3: ALL targets complete ✅
+
