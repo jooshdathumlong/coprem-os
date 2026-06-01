@@ -388,3 +388,14 @@ GitHub CI  → coprem-mac runner
 - Cron workflows ยังคงไว้ — รันตอน Mac เปิด = on-demand by nature
 - WF06/WF08 ปิด (ไม่มีคุณค่า)
 - WF11 แก้ credential แล้ว รอ cron fire รอบถัดไป (ทุก 4h) เพื่อ verify
+
+## Session 2026-06-01 Session 8 — ต่อ
+
+| Time | Action | Result |
+|---|---|---|
+| 2026-06-01 09:41 | WF01 end-to-end | ✅ WEBHOOK→AGENT_CALLED→AGENT_OUTPUT verified via audit_log |
+| 2026-06-01 09:41 | Dify → LiteLLM | ✅ เปรมตั้งค่าใน cloud.dify.ai แล้ว — endpoint https://litellm.peabuntid.com/v1 |
+| 2026-06-01 09:41 | LiteLLM verify | ✅ gemini-2.0-flash ตอบสนอง |
+
+## Architecture Progress
+~98% complete — งานค้างหลักเสร็จหมดแล้ว
