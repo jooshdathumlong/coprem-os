@@ -588,3 +588,19 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 | 2026-06-01 23:45 | KB courses index: 478 ไฟล์ index title→filename | DONE |
 | 2026-06-01 23:45 | KB course-doc API: fuzzy match → serve .md จาก courses/ | DONE |
 | 2026-06-01 23:45 | Session End: services UP, TS clean | ✅ |
+
+## 2026-06-01 Session End — UI Redesign Complete
+| เวลา | Action | ผล |
+|---|---|---|
+| 21:22 | UI Redesign: Apple Web style (white, SF Pro, #0066cc) | ✅ |
+| 21:52 | Sessions tab: VSCode-style session list + git log | ✅ |
+| 22:10 | KB: 3-pillar (งานประจำ/ธุรกิจ/คลังความรู้) | ✅ |
+| 22:30 | KB: Bento grid + Kanban HITL + Responsive CSS | ✅ |
+| 22:50 | KB: categories/ folder structure + 15 hubs created | ✅ |
+| 23:11 | KB: article view with course cards + .md viewer | ✅ |
+| 23:29 | KB: TH catalog per category (Thai course names) | ✅ |
+| 23:43 | KB: lang param fix — TH UI shows Thai data | ✅ |
+
+PENDING ต่อ session หน้า:
+- ข้อมูลบริษัทงานประจำของเปรม (รอเปรมส่งมา)
+- COPREM v8.3+ Blueprint unlock (ได้รับอนุมัติแล้ว)
