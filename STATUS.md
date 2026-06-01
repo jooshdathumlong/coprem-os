@@ -571,3 +571,8 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 ## 2026-06-01 Session — UI Redesign
 | 2026-06-01 21:22 | UI REDESIGN: dashboard/app/page.tsx redesigned in Apple Web style — white bg, SF Pro, #0066cc blue, frosted nav, card layout | DONE |
 | 2026-06-01 21:22 | LANG: All Thai UI text converted to English (nav labels, placeholders, messages, error strings) | DONE |
+
+## 2026-06-01 Session — Sessions Tab + DB Recheck
+| 2026-06-01 21:52 | DB RECHECK: HITL/Latency/KB APIs tested — all connect OK | ✅ |
+| 2026-06-01 21:52 | Sessions tab: VSCode-style session list + git log panel | DONE |
+| 2026-06-01 21:52 | Sessions API: /api/sessions — parses STATUS.md + git log | DONE |

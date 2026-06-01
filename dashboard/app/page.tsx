@@ -5,14 +5,17 @@ type HITLItem = { id: number; chat_id: string; message: string; created_at: stri
 type LatencyRow = { event_type: string; avg_ms: number; max_ms: number; requests: number; slow_count: number }
 type Status = { litellm: boolean; ollama: boolean; n8n: boolean; timestamp: string }
 type ChatMsg = { role: 'user' | 'assistant'; text: string; model?: string }
-type Tab = 'chat' | 'hitl' | 'kb' | 'browser' | 'docs' | 'system'
+type Tab = 'chat' | 'hitl' | 'kb' | 'browser' | 'docs' | 'system' | 'sessions'
+type SessionStep = { time: string; action: string; result: string }
+type Session = { date: string; title: string; steps: SessionStep[] }
+type Commit = { hash: string; subject: string; time: string }
 type KBSection = { title: string; preview: string; lines: number }
 type KBDoc = { id: string; label: string; pillar: string; sections: string[] }
 type Lang = 'en' | 'th'
 
 const I18N = {
   en: {
-    nav: { chat: 'Chat', hitl: 'Approvals', kb: 'Knowledge', browser: 'Browser', docs: 'Guide', system: 'System' },
+    nav: { chat: 'Chat', hitl: 'Approvals', kb: 'Knowledge', browser: 'Browser', docs: 'Guide', system: 'System', sessions: 'Sessions' },
     status: { online: '● Online', issue: '● Issue' },
     chat: { model: 'Model', placeholder: 'Message Jeff… (Enter to send)', send: 'Send', thinking: 'Jeff is thinking...', subtext: 'Your AI Executive Partner' },
     hitl: { title: 'Pending Approvals', pending: (n: number) => `${n} item${n>1?'s':''} awaiting response`, none: 'No pending items', reply: 'Reply', sendReply: 'Send Reply', cancel: 'Cancel', placeholder: 'Type your reply...' },
@@ -31,7 +34,7 @@ const I18N = {
     ],
   },
   th: {
-    nav: { chat: 'คุยกับ Jeff', hitl: 'รออนุมัติ', kb: 'คลังความรู้', browser: 'เบราว์เซอร์', docs: 'คู่มือ', system: 'ระบบ' },
+    nav: { chat: 'คุยกับ Jeff', hitl: 'รออนุมัติ', kb: 'คลังความรู้', browser: 'เบราว์เซอร์', docs: 'คู่มือ', system: 'ระบบ', sessions: 'ประวัติ' },
     status: { online: '● ปกติ', issue: '● มีปัญหา' },
     chat: { model: 'โมเดล', placeholder: 'พิมพ์ข้อความ... (Enter ส่ง)', send: 'ส่ง', thinking: 'Jeff กำลังคิด...', subtext: 'AI Executive Partner ของคุณ' },
     hitl: { title: 'รายการรออนุมัติ', pending: (n: number) => `${n} รายการรอการตอบกลับ`, none: 'ไม่มีรายการรอ', reply: 'ตอบกลับ', sendReply: 'ส่งคำตอบ', cancel: 'ยกเลิก', placeholder: 'พิมพ์คำตอบ...' },
@@ -74,6 +77,10 @@ export default function Dashboard() {
   const [status, setStatus] = useState<Status | null>(null)
   const [resolveId, setResolveId] = useState<number | null>(null)
   const [resolveMsg, setResolveMsg] = useState('')
+  const [sessions, setSessions] = useState<Session[]>([])
+  const [commits, setCommits] = useState<Commit[]>([])
+  const [expandedSession, setExpandedSession] = useState<string | null>(null)
+  const [sessionsView, setSessionsView] = useState<'sessions' | 'commits'>('sessions')
   const [kbDocs, setKbDocs] = useState<KBDoc[]>([])
   const [selectedKb, setSelectedKb] = useState('KB-06')
   const [kbSections, setKbSections] = useState<KBSection[]>([])
@@ -103,6 +110,12 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => { fetchAll(); const t = setInterval(fetchAll, 30000); return () => clearInterval(t) }, [fetchAll])
+
+  useEffect(() => {
+    if (tab === 'sessions') {
+      fetch('/api/sessions').then(r => r.json()).then(d => { setSessions(d.sessions || []); setCommits(d.commits || []) }).catch(() => {})
+    }
+  }, [tab])
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
   useEffect(() => { if (tab === 'kb') { fetchKB() } }, [tab, fetchKB])
 
@@ -612,6 +625,108 @@ export default function Dashboard() {
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── SESSIONS ── */}
+        {tab === 'sessions' && (
+          <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+            {/* Left sidebar — session list */}
+            <div style={{ width: 280, borderRight: '1px solid #e8e8ed', background: '#f5f5f7', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+              <div style={{ padding: '16px 14px 10px', borderBottom: '1px solid #e8e8ed' }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#6e6e73', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>COPREM OS</p>
+                <div style={{ display: 'flex', background: '#e8e8ed', borderRadius: 8, padding: 2, gap: 2 }}>
+                  {(['sessions', 'commits'] as const).map(v => (
+                    <button key={v} onClick={() => setSessionsView(v)} style={{
+                      flex: 1, fontSize: 12, fontWeight: 500, padding: '5px 0', borderRadius: 6, border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                      background: sessionsView === v ? 'white' : 'transparent',
+                      color: sessionsView === v ? '#1d1d1f' : '#6e6e73',
+                      boxShadow: sessionsView === v ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    }}>{v === 'sessions' ? (lang === 'th' ? 'เซสชัน' : 'Sessions') : 'Git Log'}</button>
+                  ))}
+                </div>
+              </div>
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                {sessionsView === 'sessions' && sessions.map((s, i) => (
+                  <button key={i} onClick={() => setExpandedSession(expandedSession === `s${i}` ? null : `s${i}`)} style={{
+                    width: '100%', textAlign: 'left', padding: '12px 14px', borderBottom: '1px solid #e8e8ed', background: expandedSession === `s${i}` ? 'white' : 'transparent',
+                    borderLeft: expandedSession === `s${i}` ? '3px solid #0066cc' : '3px solid transparent', cursor: 'pointer', border: 'none',
+                    borderBottomColor: '#e8e8ed', borderBottomWidth: 1, borderBottomStyle: 'solid'
+                  }}>
+                    <div style={{ fontSize: 12, color: '#1d1d1f', fontWeight: 500, marginBottom: 3, lineHeight: 1.4 }}>{s.title}</div>
+                    <div style={{ fontSize: 11, color: '#6e6e73' }}>{s.date} · {s.steps.length} steps</div>
+                  </button>
+                ))}
+                {sessionsView === 'commits' && commits.map((c, i) => (
+                  <button key={i} onClick={() => setExpandedSession(expandedSession === `c${i}` ? null : `c${i}`)} style={{
+                    width: '100%', textAlign: 'left', padding: '12px 14px', borderBottom: '1px solid #e8e8ed', background: expandedSession === `c${i}` ? 'white' : 'transparent',
+                    borderLeft: expandedSession === `c${i}` ? '3px solid #0066cc' : '3px solid transparent', cursor: 'pointer', border: 'none',
+                    borderBottomColor: '#e8e8ed', borderBottomWidth: 1, borderBottomStyle: 'solid'
+                  }}>
+                    <div style={{ fontSize: 12, color: '#1d1d1f', fontWeight: 500, marginBottom: 3, lineHeight: 1.4 }}>{c.subject}</div>
+                    <div style={{ fontSize: 11, color: '#6e6e73', fontFamily: 'monospace' }}>{c.hash} · {c.time}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Right — session detail */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
+              {!expandedSession ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 10, color: '#6e6e73' }}>
+                  <p style={{ fontSize: 32 }}>📋</p>
+                  <p style={{ fontSize: 14 }}>{lang === 'th' ? 'เลือก session เพื่อดูรายละเอียด' : 'Select a session to view details'}</p>
+                </div>
+              ) : expandedSession.startsWith('s') ? (() => {
+                const s = sessions[parseInt(expandedSession.slice(1))]
+                if (!s) return null
+                return (
+                  <div>
+                    <div style={{ marginBottom: 24 }}>
+                      <p style={{ fontSize: 12, color: '#0066cc', fontWeight: 500, marginBottom: 6 }}>{s.date}</p>
+                      <h2 style={{ fontSize: 22, fontWeight: 600, color: '#1d1d1f', marginBottom: 4 }}>{s.title}</h2>
+                      <p style={{ fontSize: 13, color: '#6e6e73' }}>{s.steps.length} steps recorded</p>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                      {s.steps.map((step, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 16, padding: '12px 0', borderBottom: '1px solid #f0f0f5', alignItems: 'flex-start' }}>
+                          {/* Timeline dot */}
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, marginTop: 3 }}>
+                            <div style={{ width: 8, height: 8, borderRadius: '50%', background: step.result?.includes('✅') || step.result?.includes('DONE') ? '#1a7f3c' : step.result?.includes('⚠️') || step.result?.includes('PENDING') ? '#cc7700' : '#0066cc' }} />
+                            {i < s.steps.length - 1 && <div style={{ width: 1, height: 20, background: '#e8e8ed', marginTop: 4 }} />}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <p style={{ fontSize: 13, color: '#1d1d1f', fontWeight: 500, marginBottom: 3 }}>{step.action}</p>
+                            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                              <span style={{ fontSize: 11, color: '#6e6e73', fontFamily: 'monospace' }}>{step.time}</span>
+                              {step.result && <span style={{ fontSize: 11, color: step.result.includes('✅') || step.result.includes('DONE') ? '#1a7f3c' : step.result.includes('⚠️') ? '#cc7700' : '#6e6e73' }}>{step.result}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })() : (() => {
+                const c = commits[parseInt(expandedSession.slice(1))]
+                if (!c) return null
+                const typeColor: Record<string, string> = { feat: '#0066cc', fix: '#cc3300', chore: '#6e6e73', docs: '#6e3399', refactor: '#cc7700' }
+                const typeMatch = c.subject.match(/^(\w+)[\(:]/)
+                const type = typeMatch?.[1] || 'commit'
+                return (
+                  <div>
+                    <div style={{ marginBottom: 24 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: typeColor[type] || '#6e6e73', background: '#f5f5f7', padding: '3px 10px', borderRadius: 12, marginBottom: 12, display: 'inline-block' }}>{type}</span>
+                      <h2 style={{ fontSize: 20, fontWeight: 600, color: '#1d1d1f', marginTop: 8, marginBottom: 6 }}>{c.subject}</h2>
+                      <div style={{ display: 'flex', gap: 16 }}>
+                        <span style={{ fontSize: 12, color: '#6e6e73', fontFamily: 'monospace' }}>{c.hash}</span>
+                        <span style={{ fontSize: 12, color: '#6e6e73' }}>{c.time}</span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
           </div>
         )}
