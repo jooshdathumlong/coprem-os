@@ -524,3 +524,10 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 
 | 2026-06-01 | BUG: Gemini "RateLimitError" | ROOT: LiteLLM /health endpoint ยิง test API call จริงทุก key ทุกครั้ง Jeff เรียก 3×12=36 req | FIX: health_check_interval:0 + ใช้ /health/liveliness แทน |
 | 2026-06-01 | LiteLLM config corrected | routing กลับ least-busy, cooldown: 60s, rpm_limit ยังอยู่ |
+
+| 2026-06-01 | Phase 1 complete | T2 KB-06 routing + T3 KB_MISS fallback + T4 HITL queue + T1 LiteLLM config + T5 Redis→PG fallback |
+| 2026-06-01 | Phase 2 complete | S1 semantic/pgvector + S2 summarization + S3 single router + S4 T3 prompt + S5 injection defense + S6 latency + S7 HITL-Resolver |
+| 2026-06-01 | Phase 3 complete | Next.js dashboard (port 3001) — Chat/HITL/KB Vault/Status/Latency |
+| 2026-06-01 | Phase 4 complete | MARKETING/WRITING/TRADING agent modes wired into L1-B + L1-C + L3 Prepare |
+| 2026-06-01 | PENDING | litellm container restart required for T1 to activate |
+| 2026-06-01 | PENDING | python3 scripts/embed_kb.py needed for S1 semantic search to return results |
