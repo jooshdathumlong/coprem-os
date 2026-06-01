@@ -709,3 +709,15 @@ PENDING (ต้อง Prem):
 PENDING ต่อ session หน้า:
 - Jeff hallucination fix (KB gate + no_kb_data flag + business_context.md)
 - Test anti-hallucination: "ยอดขาย Scrub Daddy เป็นยังไงบ้าง"
+
+## 2026-06-02 — Anti-hallucination Fix
+| Action | ผล |
+|---|---|
+| FIX 1: prompt_library jeff v2.0+v2.1-shadow — anti-hallucination rule prepended | ✅ |
+| FIX 2: L1-C kb_miss gate — prepend WARNING when no KB data for JOB/PERSONAL/TRADING | ✅ |
+| FIX 3: business_context.md template สร้าง — รอเปรมกรอกข้อมูลจริง | ✅ |
+| TEST: "ยอดขาย Scrub Daddy เป็นยังไงบ้าง" → Jeff ตอบ no-KB message ไม่แต่งตัวเลข | ✅ |
+
+PENDING (ต้อง Prem):
+- กรอก 02-knowledge/work/business_context.md → รัน embed_kb.py
+- Jeff จะรู้ยอดขาย/OKR/แคมเปญจริงทันที
