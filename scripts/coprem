@@ -153,7 +153,7 @@ case "${1:-help}" in
     ;;
 
   help|*)
-    echo "COPREM OS CLI v8.2"
+    echo "COPREM OS CLI v8.3"
     echo ""
     echo "Core:"
     echo "  coprem run \"task\"              Run a task through the pipeline"

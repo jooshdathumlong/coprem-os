@@ -24,7 +24,7 @@ const I18N = {
     hitl: { title: 'Pending Approvals', pending: (n: number) => `${n} item${n>1?'s':''} awaiting response`, none: 'No pending items', reply: 'Reply', sendReply: 'Send Reply', cancel: 'Cancel', placeholder: 'Type your reply...' },
     kb: { title: 'Knowledge Base', lines: (n: number) => `${n} lines`, select: 'Select a section to read', copy: 'Copy', loading: 'Loading...', kb06: 'KB-06 FutureSkill (584 courses)', coprem: 'COPREM Frameworks', kbLang: 'Content language', viewTH: 'Thai', viewEN: 'English' },
     browser: { title: 'Browser', placeholder: 'Search or enter URL, press Enter to open', open: 'Open ↗', system: 'COPREM System', general: 'General' },
-    docs: { title: 'COPREM OS Guide', subtitle: 'Jeff — INTJ AI Executive Partner · v8.3 · 2026-06-01' },
+    docs: { title: 'COPREM OS Guide', subtitle: 'Jeff — INTJ AI Executive Partner · v8.3 · 2026-06-02' },
     system: { title: 'System', services: 'Services', refresh: '↻ Refresh', latency: 'Latency by Layer', openServices: 'Open Services', waiting: 'Waiting for traffic from WF01...', online: 'Online', down: 'Down', checking: 'Checking' },
     quickMsgs: ["What's on the agenda today?", 'Recommend a Python course', 'Summarize system status', "Analyze today's market"],
     docs_sections: [
@@ -43,7 +43,7 @@ const I18N = {
     hitl: { title: 'รายการรออนุมัติ', pending: (n: number) => `${n} รายการรอการตอบกลับ`, none: 'ไม่มีรายการรอ', reply: 'ตอบกลับ', sendReply: 'ส่งคำตอบ', cancel: 'ยกเลิก', placeholder: 'พิมพ์คำตอบ...' },
     kb: { title: 'คลังความรู้', lines: (n: number) => `${n} บรรทัด`, select: '← เลือกหมวดหมู่เพื่ออ่านเนื้อหา', copy: 'คัดลอก', loading: 'กำลังโหลด...', kb06: 'KB-06 FutureSkill (584 คอร์ส)', coprem: 'COPREM Frameworks', kbLang: 'ภาษาเนื้อหา', viewTH: 'ไทย', viewEN: 'อังกฤษ' },
     browser: { title: 'เบราว์เซอร์', placeholder: 'ค้นหาหรือพิมพ์ URL แล้วกด Enter', open: 'เปิด ↗', system: 'ระบบ COPREM', general: 'ทั่วไป' },
-    docs: { title: 'คู่มือ COPREM OS', subtitle: 'Jeff — AI Executive Partner · v8.3 · 2026-06-01' },
+    docs: { title: 'คู่มือ COPREM OS', subtitle: 'Jeff — AI Executive Partner · v8.3 · 2026-06-02' },
     system: { title: 'ระบบ', services: 'บริการ', refresh: '↻ รีเฟรช', latency: 'ความเร็วแต่ละชั้น', openServices: 'เปิดระบบ', waiting: 'รอ traffic จาก WF01...', online: 'ปกติ', down: 'ล้มเหลว', checking: 'ตรวจสอบ' },
     quickMsgs: ['วันนี้ต้องทำอะไรบ้าง?', 'แนะนำคอร์ส Python', 'สรุปสถานะระบบ', 'วิเคราะห์ตลาดวันนี้'],
     docs_sections: [

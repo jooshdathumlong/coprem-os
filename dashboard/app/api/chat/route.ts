@@ -111,8 +111,8 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Auto mode: Gemini Flash → Groq → Gemini Lite
-  const autoModels = ['gemini-2.0-flash', 'groq/llama-3.3-70b', 'gemini-2.0-flash-lite']
+  // Auto mode: Tier 0→1→2→3 (matches L1-C tier map)
+  const autoModels = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'groq/llama-3.3-70b', 'ollama/llama3.1']
   let lastError = ''
   for (const autoModel of autoModels) {
     try {
