@@ -28,17 +28,36 @@ function getCoursesIndex(): Record<string, string> {
 // Find best-match course file for a given course name
 function findCourseFile(name: string): string | null {
   const idx = getCoursesIndex()
-  // Exact match first
+  if (!name) return null
+
+  // 1. Exact match
   if (idx[name]) return join(COURSES_DIR, idx[name])
-  // Fuzzy: try matching by cleaned string
-  const clean = (s: string) => s.toLowerCase().replace(/[^ก-๙a-z0-9]/g, '')
+
+  const clean = (s: string) => s.replace(/\s+/g, '').replace(/[^฀-๿a-zA-Z0-9]/g, '').toLowerCase()
   const cleanName = clean(name)
+  if (!cleanName) return null
+
+  let bestFile = ''
+  let bestScore = 0
+
   for (const [title, file] of Object.entries(idx)) {
-    if (clean(title).includes(cleanName.slice(0, 20)) || cleanName.includes(clean(title).slice(0, 20))) {
-      return join(COURSES_DIR, file)
+    const cleanTitle = clean(title)
+    // Score: how many leading chars match
+    let score = 0
+    const minLen = Math.min(cleanName.length, cleanTitle.length)
+    for (let i = 0; i < minLen; i++) {
+      if (cleanName[i] === cleanTitle[i]) score++
+      else break
     }
+    // Also score substring match
+    if (cleanTitle.includes(cleanName.slice(0, 15)) || cleanName.includes(cleanTitle.slice(0, 15))) {
+      score += 5
+    }
+    if (score > bestScore) { bestScore = score; bestFile = file }
   }
-  return null
+
+  // Only return if match is good enough (>10 matching chars)
+  return bestScore > 10 ? join(COURSES_DIR, bestFile) : null
 }
 
 // ── Category metadata ──────────────────────────────────────────────────────

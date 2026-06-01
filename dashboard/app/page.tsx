@@ -118,16 +118,16 @@ export default function Dashboard() {
       .catch(() => setKbLoading(false))
   }, [])
 
-  const loadKbFiles = useCallback((catId: string) => {
+  const loadKbFiles = useCallback((catId: string, l: Lang) => {
     setKbLoading(true); setKbFiles([])
-    fetch(`/api/kb-docs?action=cat-files&cat=${catId}`).then(r => r.json())
+    fetch(`/api/kb-docs?action=cat-files&cat=${catId}&lang=${l}`).then(r => r.json())
       .then(d => { setKbFiles(Array.isArray(d) ? d : []); setKbLoading(false) })
       .catch(() => setKbLoading(false))
   }, [])
 
-  const openKbDoc = useCallback((file: KBFile) => {
+  const openKbDoc = useCallback((file: KBFile, l: Lang) => {
     setSelectedFile(file); setKbView('doc'); setKbDoc(null); setKbDocLoading(true)
-    fetch(`/api/kb-docs?action=doc&cat=${file.catId}&file=${file.filename}`).then(r => r.json())
+    fetch(`/api/kb-docs?action=doc&cat=${file.catId}&file=${file.filename}&lang=${l}`).then(r => r.json())
       .then(d => { setKbDoc(d); setKbDocLoading(false) })
       .catch(() => setKbDocLoading(false))
   }, [])
@@ -141,8 +141,10 @@ export default function Dashboard() {
     if (tab === 'kb') {
       fetch(`/api/kb-docs?action=pillars&lang=${kbLang}`).then(r => r.json()).then(d => setKbPillars(Array.isArray(d) ? d : [])).catch(() => {})
       if (selectedPillar === 'knowledge') loadKbCategories()
+      // reload files if a category is open and lang changed
+      if (selectedCatId && kbView !== 'grid') loadKbFiles(selectedCatId, kbLang)
     }
-  }, [tab, kbLang, loadKbCategories, selectedPillar])
+  }, [tab, kbLang, loadKbCategories, loadKbFiles, selectedPillar, selectedCatId, kbView])
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
 
@@ -503,7 +505,7 @@ export default function Dashboard() {
                         <div key={cat.id} className="bento-card" onClick={() => {
                           setSelectedCatId(cat.id)
                           setKbView('files')
-                          loadKbFiles(cat.id)
+                          loadKbFiles(cat.id, kbLang)
                         }} style={{ background: cat.gradient, borderRadius: 20, padding: '22px 20px', cursor: 'pointer', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '1px solid rgba(255,255,255,0.6)' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                             <span style={{ fontSize: 28 }}>{cat.emoji}</span>
@@ -532,7 +534,7 @@ export default function Dashboard() {
                     : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                       {kbFiles.map(file => (
-                        <div key={file.id} onClick={() => openKbDoc(file)} style={{ background: 'white', borderRadius: 14, padding: '16px 20px', cursor: 'pointer', border: '1px solid #e8e8ed', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div key={file.id} onClick={() => openKbDoc(file, kbLang)} style={{ background: 'white', borderRadius: 14, padding: '16px 20px', cursor: 'pointer', border: '1px solid #e8e8ed', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div>
                             <p style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', margin: '0 0 4px' }}>{file.title}</p>
                             <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 8, background: file.source === 'FutureSkill' ? '#e8f0fe' : file.source === 'Prem' ? '#e6f9f0' : '#f0f0f5', color: file.source === 'FutureSkill' ? '#0066cc' : file.source === 'Prem' ? '#1a7f3c' : '#424245' }}>{file.source}</span>
@@ -567,7 +569,7 @@ export default function Dashboard() {
                     {kbLoading
                       ? <p style={{ color: '#6e6e73', textAlign: 'center', padding: 40 }}>{L.kb.loading}</p>
                       : kbFiles.map(file => (
-                        <div key={file.id} onClick={() => openKbDoc(file)} style={{ background: 'white', borderRadius: 16, padding: '16px 20px', cursor: 'pointer', border: '1px solid #e8e8ed', boxShadow: '0 1px 6px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div key={file.id} onClick={() => openKbDoc(file, kbLang)} style={{ background: 'white', borderRadius: 16, padding: '16px 20px', cursor: 'pointer', border: '1px solid #e8e8ed', boxShadow: '0 1px 6px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ flex: 1 }}>
                             <p style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', margin: '0 0 6px' }}>{file.title}</p>
                             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
