@@ -94,7 +94,9 @@ export default function Dashboard() {
   const [kbDoc, setKbDoc] = useState<KBDoc | null>(null)
   const [kbLoading, setKbLoading] = useState(false)
   const [kbDocLoading, setKbDocLoading] = useState(false)
-  const [kbView, setKbView] = useState<'grid' | 'files' | 'doc'>('grid')
+  const [kbView, setKbView] = useState<'grid' | 'files' | 'doc' | 'course'>('grid')
+  const [courseDoc, setCourseDoc] = useState<{ title: string; content: string; source: string; path: string } | null>(null)
+  const [courseDocLoading, setCourseDocLoading] = useState(false)
   const [browserInput, setBrowserInput] = useState('http://localhost:5678')
   const chatEndRef = useRef<HTMLDivElement>(null)
 
@@ -630,9 +632,21 @@ export default function Dashboard() {
                                     <span style={{ fontSize: 11, color: '#6e6e73', flexShrink: 0, marginTop: 2, minWidth: 22 }}>{lnk.index}.</span>
                                     <div style={{ flex: 1 }}>
                                       <p style={{ fontSize: 13, fontWeight: 500, color: '#1d1d1f', margin: '0 0 10px', lineHeight: 1.45 }}>{lnk.name}</p>
-                                      <a href={lnk.url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#0066cc', background: '#e8f0fe', padding: '4px 10px', borderRadius: 10, textDecoration: 'none', fontWeight: 600 }}>
-                                        {lang === 'th' ? 'ดูคอร์ส ↗' : 'View course ↗'}
-                                      </a>
+                                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                        {/* Read .md content */}
+                                        <span onClick={() => {
+                                          setCourseDocLoading(true); setKbView('course'); setCourseDoc(null)
+                                          fetch(`/api/kb-docs?action=course-doc&name=${encodeURIComponent(lnk.name)}`)
+                                            .then(r => r.json()).then(d => { setCourseDoc(d.error ? null : d); setCourseDocLoading(false) })
+                                            .catch(() => setCourseDocLoading(false))
+                                        }} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#1a7f3c', background: '#e6f9f0', padding: '4px 10px', borderRadius: 10, fontWeight: 600, cursor: 'pointer' }}>
+                                          📄 {lang === 'th' ? 'อ่านเนื้อหา' : 'Read .md'}
+                                        </span>
+                                        {/* External FutureSkill link */}
+                                        <a href={lnk.url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#0066cc', background: '#e8f0fe', padding: '4px 10px', borderRadius: 10, textDecoration: 'none', fontWeight: 600 }}>
+                                          {lang === 'th' ? 'ดูคอร์ส ↗' : 'Course ↗'}
+                                        </a>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -646,6 +660,36 @@ export default function Dashboard() {
                         )}
                       </>
                     ) : null}
+                  </div>
+                </div>
+              )}
+
+              {/* ── COURSE DOC VIEW ── */}
+              {kbView === 'course' && (
+                <div>
+                  <div style={{ padding: '14px 28px', background: 'white', borderBottom: '1px solid #e8e8ed', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <button onClick={() => setKbView('doc')} style={{ fontSize: 13, color: '#0066cc', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 10px', borderRadius: 10 }}>
+                      ← {lang === 'th' ? 'กลับรายการ' : 'Back'}
+                    </button>
+                    <div style={{ width: 1, height: 20, background: '#e8e8ed' }} />
+                    <span style={{ fontSize: 11, background: '#e6f9f0', color: '#1a7f3c', padding: '2px 8px', borderRadius: 8, fontWeight: 600 }}>📄 .md</span>
+                    {courseDoc && <span style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f' }}>{courseDoc.title}</span>}
+                    {courseDoc && <span onClick={() => { const f = courseDoc.path; fetch(`/api/kb-docs?action=open&cat=DIRECT&file=${encodeURIComponent(f)}`).catch(() => {}); window.open(`file://${f}`) }} style={{ marginLeft: 'auto', fontSize: 11, color: '#6e6e73', padding: '4px 10px', borderRadius: 10, border: '1px solid #d2d2d7', cursor: 'pointer' }}>✎ {lang === 'th' ? 'แก้ไข' : 'Edit'}</span>}
+                  </div>
+                  <div style={{ padding: '24px 32px', overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
+                    {courseDocLoading ? (
+                      <p style={{ color: '#6e6e73', textAlign: 'center', padding: 40 }}>{lang === 'th' ? 'กำลังโหลด...' : 'Loading...'}</p>
+                    ) : courseDoc ? (
+                      <div style={{ background: 'white', borderRadius: 16, padding: '24px', border: '1px solid #e8e8ed' }}>
+                        {renderMd(courseDoc.content)}
+                      </div>
+                    ) : (
+                      <div style={{ textAlign: 'center', padding: 60, color: '#6e6e73' }}>
+                        <p style={{ fontSize: 32, marginBottom: 12 }}>📭</p>
+                        <p style={{ fontSize: 14 }}>{lang === 'th' ? 'ไม่พบไฟล์เนื้อหาสำหรับคอร์สนี้' : 'No .md file found for this course'}</p>
+                        <p style={{ fontSize: 12, marginTop: 8, color: '#aaa' }}>{lang === 'th' ? 'Jeff จะเพิ่มเนื้อหาเมื่อได้รับไฟล์' : 'Jeff will add content when file is available'}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

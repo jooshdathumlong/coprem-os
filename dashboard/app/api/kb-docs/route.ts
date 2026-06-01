@@ -1,11 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readFileSync, existsSync, readdirSync, statSync, writeFileSync, mkdirSync } from 'fs'
-import { join, basename, extname } from 'path'
+import { join } from 'path'
 import { execSync } from 'child_process'
 
 const ROOT = join(process.cwd(), '..')
 const KB_ROOT = join(ROOT, '02-knowledge')
 const CAT_ROOT = join(KB_ROOT, 'categories')
+const COURSES_DIR = join(KB_ROOT, 'courses')
+
+// ── Courses index: Thai title → filename ─────────────────────────────────
+let _coursesIndex: Record<string, string> | null = null
+function getCoursesIndex(): Record<string, string> {
+  if (_coursesIndex) return _coursesIndex
+  const indexPath = join(COURSES_DIR, '_index.json')
+  if (existsSync(indexPath)) {
+    try {
+      const raw = JSON.parse(readFileSync(indexPath, 'utf-8'))
+      // raw = { title: { filename, url } } → flatten to title: filename
+      _coursesIndex = Object.fromEntries(Object.entries(raw).map(([t, v]) => [t, (v as { filename: string }).filename]))
+      return _coursesIndex
+    } catch { _coursesIndex = {} }
+  }
+  _coursesIndex = {}
+  return _coursesIndex
+}
+
+// Find best-match course file for a given course name
+function findCourseFile(name: string): string | null {
+  const idx = getCoursesIndex()
+  // Exact match first
+  if (idx[name]) return join(COURSES_DIR, idx[name])
+  // Fuzzy: try matching by cleaned string
+  const clean = (s: string) => s.toLowerCase().replace(/[^ก-๙a-z0-9]/g, '')
+  const cleanName = clean(name)
+  for (const [title, file] of Object.entries(idx)) {
+    if (clean(title).includes(cleanName.slice(0, 20)) || cleanName.includes(clean(title).slice(0, 20))) {
+      return join(COURSES_DIR, file)
+    }
+  }
+  return null
+}
 
 // ── Category metadata ──────────────────────────────────────────────────────
 const CATEGORIES: Record<string, { label: string; labelTh: string; emoji: string; gradient: string }> = {
@@ -40,11 +74,17 @@ const PILLAR_FILES: Record<string, { id: string; path: string; label: string }[]
 }
 
 // ── Helper: scan .md files in a category folder ───────────────────────────
-function scanCategory(catId: string) {
+function scanCategory(catId: string, lang = 'en') {
   const dir = join(CAT_ROOT, catId)
   if (!existsSync(dir)) return []
   return readdirSync(dir)
-    .filter(f => f.endsWith('.md') && !f.startsWith('_index'))
+    .filter(f => {
+      if (!f.endsWith('.md') || f.startsWith('_index')) return false
+      // lang=th: prefer TH catalog, skip EN catalog; lang=en: skip TH catalog
+      if (lang === 'th' && f === 'futureskill-catalog.md') return false
+      if (lang !== 'th' && f === 'futureskill-catalog-th.md') return false
+      return true
+    })
     .map(f => {
       const fullPath = join(dir, f)
       const content = readFileSync(fullPath, 'utf-8')
@@ -110,7 +150,7 @@ export async function GET(req: NextRequest) {
   if (action === 'categories') {
     return NextResponse.json(
       Object.entries(CATEGORIES).map(([id, meta]) => {
-        const files = scanCategory(id)
+        const files = scanCategory(id, lang)
         const totalCourses = files.reduce((n, f) => n + f.linkCount, 0)
         return { id, label: meta.label, labelTh: meta.labelTh, emoji: meta.emoji, gradient: meta.gradient, fileCount: files.length, totalCourses }
       })
@@ -119,7 +159,7 @@ export async function GET(req: NextRequest) {
 
   // ── Files in a category ───────────────────────────────────────────────────
   if (action === 'cat-files' && catId) {
-    const files = scanCategory(catId)
+    const files = scanCategory(catId, lang)
     return NextResponse.json(files.map(f => ({
       id: `${catId}::${f.filename}`,
       catId, filename: f.filename, title: f.title,
@@ -160,11 +200,33 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'not found' }, { status: 404 })
   }
 
+  // ── Course doc: find & serve the actual .md from courses/ ────────────────
+  if (action === 'course-doc') {
+    const courseName = sp.get('name') || ''
+    const coursePath = findCourseFile(courseName)
+    if (!coursePath || !existsSync(coursePath)) {
+      return NextResponse.json({ error: 'not found', name: courseName })
+    }
+    const content = readFileSync(coursePath, 'utf-8')
+    const titleMatch = content.match(/^#\s+(.+)/m)
+    return NextResponse.json({
+      title: titleMatch ? titleMatch[1].trim() : courseName,
+      content,
+      source: 'FutureSkill',
+      path: coursePath,
+      filename: coursePath.split('/').pop(),
+    })
+  }
+
   // ── Open file in editor ───────────────────────────────────────────────────
   if (action === 'open') {
     let fullPath = ''
-    if (catId && fileParam) fullPath = join(CAT_ROOT, catId, fileParam)
-    else {
+    // Direct absolute path
+    if (catId === 'DIRECT' && fileParam && fileParam.startsWith('/')) {
+      fullPath = fileParam
+    } else if (catId && fileParam) {
+      fullPath = join(CAT_ROOT, catId, fileParam)
+    } else {
       const meta = Object.values(PILLAR_FILES).flat().find(f => f.id === fileParam)
       if (meta) fullPath = join(KB_ROOT, meta.path)
     }
