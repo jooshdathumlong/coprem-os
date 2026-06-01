@@ -10,8 +10,8 @@ type SessionStep = { time: string; action: string; result: string }
 type Session = { date: string; title: string; steps: SessionStep[] }
 type Commit = { hash: string; subject: string; time: string }
 type KBPillar = { id: string; label: string; fileCount: number }
-type KBFile = { id: string; path: string; label: string; source: string | null; exists: boolean; sectionCount: number; courseCount: number; fullPath: string }
-type KBSection = { title: string; lines: number; courseCount: number; sourceUrl: string | null }
+type KBItem = { id: string; fileId: string; title: string; type: string; lines: number; courseCount: number; globalStandard: string | null; source: string; sourceUrl: string | null; path?: string; exists?: boolean }
+type KBContent = { title: string; content: string; source: string; sourceUrl: string | null; globalStandard: string | null; courseCount: number; sectionCount?: number; links: { name: string; url: string }[] }
 type Lang = 'en' | 'th'
 
 const I18N = {
@@ -84,13 +84,11 @@ export default function Dashboard() {
   const [sessionsView, setSessionsView] = useState<'sessions' | 'commits'>('sessions')
   const [kbPillars, setKbPillars] = useState<KBPillar[]>([])
   const [selectedPillar, setSelectedPillar] = useState('knowledge')
-  const [kbFiles, setKbFiles] = useState<KBFile[]>([])
-  const [selectedFileId, setSelectedFileId] = useState('')
-  const [kbSections, setKbSections] = useState<KBSection[]>([])
-  const [selectedSection, setSelectedSection] = useState('')
-  const [sectionContent, setSectionContent] = useState('')
-  const [sectionSourceUrl, setSectionSourceUrl] = useState<string | null>(null)
+  const [kbItems, setKbItems] = useState<KBItem[]>([])
+  const [selectedItemId, setSelectedItemId] = useState('')
+  const [kbContent, setKbContent] = useState<KBContent | null>(null)
   const [kbLoading, setKbLoading] = useState(false)
+  const [kbContentLoading, setKbContentLoading] = useState(false)
   const [browserInput, setBrowserInput] = useState('http://localhost:5678')
   const chatEndRef = useRef<HTMLDivElement>(null)
 
@@ -105,21 +103,10 @@ export default function Dashboard() {
     if (l.status === 'fulfilled') setLatency(l.value)
   }, [])
 
-  const fetchKbPillars = useCallback((l: Lang) => {
-    fetch(`/api/kb-docs?action=pillars&lang=${l}`).then(r => r.json())
-      .then(d => setKbPillars(Array.isArray(d) ? d : [])).catch(() => {})
-  }, [])
-
-  const loadKbFiles = useCallback((pillar: string) => {
-    setKbFiles([]); setKbSections([]); setSelectedFileId(''); setSelectedSection(''); setSectionContent('')
-    fetch(`/api/kb-docs?action=files&pillar=${pillar}`).then(r => r.json())
-      .then(d => setKbFiles(Array.isArray(d) ? d : [])).catch(() => {})
-  }, [])
-
-  const loadKbSections = useCallback((fileId: string, lang: Lang) => {
-    setKbLoading(true); setKbSections([]); setSelectedSection(''); setSectionContent('')
-    fetch(`/api/kb-docs?action=sections&file=${fileId}&lang=${lang}`).then(r => r.json())
-      .then(data => { setKbSections(Array.isArray(data) ? data : []); setKbLoading(false) })
+  const loadKbItems = useCallback((pillar: string, l: Lang) => {
+    setKbLoading(true); setKbItems([]); setSelectedItemId(''); setKbContent(null)
+    fetch(`/api/kb-docs?action=items&pillar=${pillar}&lang=${l}`).then(r => r.json())
+      .then(d => { setKbItems(Array.isArray(d) ? d : []); setKbLoading(false) })
       .catch(() => setKbLoading(false))
   }, [])
 
@@ -129,23 +116,25 @@ export default function Dashboard() {
     if (tab === 'sessions') {
       fetch('/api/sessions').then(r => r.json()).then(d => { setSessions(d.sessions || []); setCommits(d.commits || []) }).catch(() => {})
     }
-    if (tab === 'kb') { fetchKbPillars(kbLang); loadKbFiles(selectedPillar) }
-  }, [tab, kbLang, fetchKbPillars, loadKbFiles, selectedPillar])
+    if (tab === 'kb') {
+      fetch(`/api/kb-docs?action=pillars&lang=${kbLang}`).then(r => r.json()).then(d => setKbPillars(Array.isArray(d) ? d : [])).catch(() => {})
+      loadKbItems(selectedPillar, kbLang)
+    }
+  }, [tab, kbLang, loadKbItems, selectedPillar])
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
 
   useEffect(() => {
-    if (!selectedFileId || tab !== 'kb') return
-    loadKbSections(selectedFileId, kbLang)
-  }, [selectedFileId, tab, kbLang, loadKbSections])
-
-  useEffect(() => {
-    if (!selectedSection || !selectedFileId) return
-    setSectionContent('loading...')
-    fetch(`/api/kb-docs?action=content&file=${selectedFileId}&section=${encodeURIComponent(selectedSection)}&lang=${kbLang}`)
-      .then(r => r.json()).then(d => { setSectionContent(d.content || d.error || ''); setSectionSourceUrl(d.sourceUrl || null) })
-      .catch(() => setSectionContent('Failed to load'))
-  }, [selectedSection, selectedFileId, kbLang])
+    if (!selectedItemId || tab !== 'kb') return
+    const item = kbItems.find(i => i.id === selectedItemId)
+    if (!item) return
+    setKbContentLoading(true); setKbContent(null)
+    const url = item.type === 'category'
+      ? `/api/kb-docs?action=content&file=${item.fileId}&section=${encodeURIComponent(item.title)}&lang=${kbLang}`
+      : `/api/kb-docs?action=content&file=${item.fileId}&lang=${kbLang}`
+    fetch(url).then(r => r.json()).then(d => { setKbContent(d); setKbContentLoading(false) })
+      .catch(() => setKbContentLoading(false))
+  }, [selectedItemId, kbLang, kbItems, tab])
 
   async function sendChat(msgOverride?: string) {
     const msg = (msgOverride || chatInput).trim()
@@ -411,121 +400,149 @@ export default function Dashboard() {
         )}
 
         {/* ── KB ── */}
-        {tab === 'kb' && (
+        {tab === 'kb' && (() => {
+          const SOURCE_COLOR: Record<string, { bg: string; text: string }> = {
+            FutureSkill: { bg: '#e8f0fe', text: '#0066cc' },
+            Internal:    { bg: '#f0f0f5', text: '#424245' },
+            Prem:        { bg: '#e6f9f0', text: '#1a7f3c' },
+            Team:        { bg: '#fff3e0', text: '#cc7700' },
+          }
+          return (
           <div style={{ display: 'flex', height: '100%' }}>
 
-            {/* ── Col 1: Pillars ── */}
-            <div style={{ width: 160, borderRight: '1px solid #e8e8ed', background: '#f5f5f7', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+            {/* ── Col 1: Pillars + lang toggle ── */}
+            <div style={{ width: 155, borderRight: '1px solid #e8e8ed', background: '#f5f5f7', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
               <div style={{ padding: '14px 12px 8px' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#6e6e73', textTransform: 'uppercase', letterSpacing: 1 }}>{L.kb.title}</p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: '#6e6e73', textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>{L.kb.title}</p>
               </div>
-              <div style={{ flex: 1, overflowY: 'auto' }}>
+              <div style={{ flex: 1 }}>
                 {kbPillars.map(p => (
-                  <button key={p.id} onClick={() => { setSelectedPillar(p.id); loadKbFiles(p.id) }} style={{
+                  <button key={p.id} onClick={() => { setSelectedPillar(p.id); loadKbItems(p.id, kbLang) }} style={{
                     width: '100%', textAlign: 'left', padding: '10px 12px',
                     borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #e8e8ed',
                     borderLeft: selectedPillar === p.id ? '3px solid #0066cc' : '3px solid transparent',
-                    background: selectedPillar === p.id ? 'white' : 'transparent',
-                    cursor: 'pointer',
+                    background: selectedPillar === p.id ? 'white' : 'transparent', cursor: 'pointer',
                   }}>
                     <p style={{ fontSize: 12, fontWeight: selectedPillar === p.id ? 600 : 400, color: selectedPillar === p.id ? '#0066cc' : '#1d1d1f', margin: 0 }}>{p.label}</p>
                     <p style={{ fontSize: 10, color: '#6e6e73', margin: '2px 0 0' }}>{p.fileCount} {lang === 'th' ? 'ไฟล์' : 'files'}</p>
                   </button>
                 ))}
               </div>
-              {/* Lang toggle at bottom */}
               <div style={{ padding: '10px 12px', borderTop: '1px solid #e8e8ed' }}>
-                <div style={{ display: 'flex', background: '#e8e8ed', borderRadius: 12, padding: 2, gap: 1 }}>
+                <div style={{ display: 'flex', background: '#e8e8ed', borderRadius: 12, padding: 2 }}>
                   {(['en', 'th'] as Lang[]).map(l => (
                     <button key={l} onClick={() => setKbLang(l)} style={{
                       flex: 1, fontSize: 10, fontWeight: 700, padding: '3px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
-                      background: kbLang === l ? '#0066cc' : 'transparent',
-                      color: kbLang === l ? 'white' : '#6e6e73',
+                      background: kbLang === l ? '#0066cc' : 'transparent', color: kbLang === l ? 'white' : '#6e6e73',
                     }}>{l.toUpperCase()}</button>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* ── Col 2: Files + Sections ── */}
-            <div style={{ width: 240, borderRight: '1px solid #e8e8ed', display: 'flex', flexDirection: 'column', background: '#fafafa', flexShrink: 0 }}>
-              {/* Files */}
-              <div style={{ borderBottom: '1px solid #e8e8ed' }}>
-                {kbFiles.map(f => (
-                  <div key={f.id} onClick={() => setSelectedFileId(selectedFileId === f.id ? '' : f.id)} style={{
-                    padding: '10px 14px', cursor: 'pointer',
+            {/* ── Col 2: Category / item list ── */}
+            <div style={{ width: 230, borderRight: '1px solid #e8e8ed', display: 'flex', flexDirection: 'column', background: '#fafafa', flexShrink: 0, overflowY: 'auto' }}>
+              {kbLoading && <p style={{ fontSize: 12, color: '#6e6e73', padding: 12 }}>{L.kb.loading}</p>}
+              {kbItems.map(item => {
+                const sc = SOURCE_COLOR[item.source] || SOURCE_COLOR.Team
+                return (
+                  <button key={item.id} onClick={() => setSelectedItemId(item.id)} style={{
+                    width: '100%', textAlign: 'left', padding: '11px 14px',
                     borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #e8e8ed',
-                    borderLeft: selectedFileId === f.id ? '3px solid #0066cc' : '3px solid transparent',
-                    background: selectedFileId === f.id ? 'white' : 'transparent',
+                    borderLeft: selectedItemId === item.id ? '3px solid #0066cc' : '3px solid transparent',
+                    background: selectedItemId === item.id ? 'white' : 'transparent', cursor: 'pointer',
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <p style={{ fontSize: 12, fontWeight: 500, color: f.exists ? '#1d1d1f' : '#6e6e73', margin: 0 }}>{f.label}</p>
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        {f.source && <span style={{ fontSize: 9, background: '#e8f0fe', color: '#0066cc', padding: '1px 5px', borderRadius: 6 }}>↗</span>}
-                        <span onClick={e => { e.stopPropagation(); fetch(`/api/kb-docs?action=open&file=${f.id}`) }} title="Open in editor" style={{ fontSize: 10, background: '#f5f5f7', color: '#6e6e73', border: '1px solid #d2d2d7', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>✎</span>
-                      </div>
-                    </div>
-                    <p style={{ fontSize: 10, color: '#6e6e73', margin: '2px 0 0', fontFamily: 'monospace' }}>{f.path?.split('/').slice(-1)[0]}</p>
-                    {f.courseCount > 0 && <p style={{ fontSize: 10, color: '#0066cc', margin: '2px 0 0' }}>{f.courseCount} courses</p>}
-                  </div>
-                ))}
-              </div>
-              {/* Sections */}
-              <div style={{ flex: 1, overflowY: 'auto' }}>
-                {kbLoading && <p style={{ fontSize: 12, color: '#6e6e73', padding: 12 }}>{L.kb.loading}</p>}
-                {kbSections.map(s => (
-                  <button key={s.title} onClick={() => setSelectedSection(s.title)} style={{
-                    width: '100%', textAlign: 'left', padding: '9px 14px',
-                    borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #f0f0f5',
-                    borderLeft: selectedSection === s.title ? '3px solid #0066cc' : '3px solid transparent',
-                    background: selectedSection === s.title ? 'white' : 'transparent', cursor: 'pointer',
-                  }}>
-                    <p style={{ fontSize: 12, color: '#1d1d1f', margin: 0, lineHeight: 1.4 }}>{s.title}</p>
-                    <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
-                      <span style={{ fontSize: 10, color: '#6e6e73' }}>{L.kb.lines(s.lines)}</span>
-                      {s.courseCount > 0 && <span style={{ fontSize: 10, color: '#0066cc' }}>{s.courseCount} courses</span>}
+                    <p style={{ fontSize: 12, fontWeight: 500, color: '#1d1d1f', margin: '0 0 4px', lineHeight: 1.4 }}>{item.title}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 9, fontWeight: 600, padding: '1px 6px', borderRadius: 8, background: sc.bg, color: sc.text }}>{item.source}</span>
+                      {item.courseCount > 0 && <span style={{ fontSize: 10, color: '#0066cc' }}>{item.courseCount} courses</span>}
+                      {item.lines > 0 && item.courseCount === 0 && <span style={{ fontSize: 10, color: '#6e6e73' }}>{item.lines} lines</span>}
                     </div>
                   </button>
-                ))}
-              </div>
+                )
+              })}
             </div>
 
-            {/* ── Col 3: Content ── */}
+            {/* ── Col 3: Article view ── */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              {selectedSection ? (
-                <>
-                  {/* Header */}
-                  <div style={{ padding: '12px 24px', borderBottom: '1px solid #e8e8ed', background: 'white', flexShrink: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div>
-                        <p style={{ fontSize: 11, color: '#6e6e73', margin: '0 0 3px' }}>
-                          {kbPillars.find(p => p.id === selectedPillar)?.label} / {kbFiles.find(f => f.id === selectedFileId)?.label}
-                        </p>
-                        <p style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f', margin: 0 }}>{selectedSection}</p>
-                      </div>
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        {sectionSourceUrl && (
-                          <a href={sectionSourceUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#0066cc', padding: '5px 12px', borderRadius: 16, border: '1px solid #0066cc', textDecoration: 'none' }}>
-                            {lang === 'th' ? 'ดูที่มา ↗' : 'Source ↗'}
+              {kbContentLoading ? (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6e6e73' }}>
+                  <p style={{ fontSize: 14 }}>{L.kb.loading}</p>
+                </div>
+              ) : kbContent ? (() => {
+                const sc = SOURCE_COLOR[kbContent.source] || SOURCE_COLOR.Team
+                const selectedItem = kbItems.find(i => i.id === selectedItemId)
+                return (
+                  <>
+                    {/* Article header */}
+                    <div style={{ padding: '20px 28px 16px', borderBottom: '1px solid #e8e8ed', background: 'white', flexShrink: 0 }}>
+                      {/* Row 1: breadcrumb */}
+                      <p style={{ fontSize: 11, color: '#6e6e73', margin: '0 0 6px' }}>
+                        {kbPillars.find(p => p.id === selectedPillar)?.label}
+                        {selectedItem?.type === 'category' ? ' / FutureSkill Courses' : ''}
+                      </p>
+                      {/* Row 2: title */}
+                      <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1d1d1f', margin: '0 0 12px' }}>{kbContent.title}</h2>
+                      {/* Row 3: metadata */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                        {/* Source badge */}
+                        <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 12, background: sc.bg, color: sc.text }}>
+                          📌 {lang === 'th' ? 'ที่มา' : 'Source'}: {kbContent.source}
+                        </span>
+                        {/* Source link */}
+                        {kbContent.sourceUrl && (
+                          <a href={kbContent.sourceUrl} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: '#0066cc', textDecoration: 'none', padding: '3px 10px', borderRadius: 12, border: '1px solid #0066cc' }}>
+                            {lang === 'th' ? 'ดูที่มา ↗' : 'View Source ↗'}
                           </a>
                         )}
-                        <button onClick={() => navigator.clipboard.writeText(sectionContent)} style={{ fontSize: 12, color: '#6e6e73', padding: '5px 14px', borderRadius: 16, border: '1px solid #d2d2d7', background: 'none', cursor: 'pointer' }}>{L.kb.copy}</button>
+                        {/* Global standard */}
+                        {kbContent.globalStandard && (
+                          <span style={{ fontSize: 11, color: '#6e6e73', padding: '3px 10px', borderRadius: 12, background: '#f5f5f7' }}>
+                            {kbContent.globalStandard}
+                          </span>
+                        )}
+                        {/* Open .md */}
+                        {selectedItem && (
+                          <span onClick={() => fetch(`/api/kb-docs?action=open&file=${selectedItem.fileId}`)} style={{ fontSize: 11, color: '#6e6e73', padding: '3px 10px', borderRadius: 12, background: '#f5f5f7', cursor: 'pointer', border: '1px solid #e8e8ed' }}>
+                            ✎ {lang === 'th' ? 'เปิดไฟล์ .md' : 'Open .md'}
+                          </span>
+                        )}
+                        {/* Copy */}
+                        <span onClick={() => navigator.clipboard.writeText(kbContent.content)} style={{ fontSize: 11, color: '#6e6e73', padding: '3px 10px', borderRadius: 12, background: '#f5f5f7', cursor: 'pointer', border: '1px solid #e8e8ed' }}>
+                          {L.kb.copy}
+                        </span>
                       </div>
                     </div>
-                  </div>
-                  {/* Body */}
-                  <div style={{ flex: 1, overflowY: 'auto', padding: '20px 32px' }}>
-                    {sectionContent === 'loading...'
-                      ? <p style={{ color: '#6e6e73' }}>{L.kb.loading}</p>
-                      : <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{renderMd(sectionContent)}</div>}
-                  </div>
-                </>
-              ) : selectedFileId && kbSections.length === 0 && !kbLoading ? (
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 10, color: '#6e6e73' }}>
-                  <p style={{ fontSize: 28 }}>📄</p>
-                  <p style={{ fontSize: 14 }}>{lang === 'th' ? 'เลือกหัวข้อเพื่ออ่าน' : 'No sections found in this file'}</p>
-                </div>
-              ) : (
+
+                    {/* Article body */}
+                    <div style={{ flex: 1, overflowY: 'auto', padding: '20px 28px' }}>
+                      {/* MD content */}
+                      <div style={{ marginBottom: 24 }}>
+                        {renderMd(kbContent.content)}
+                      </div>
+
+                      {/* Extras: top course links */}
+                      {kbContent.links && kbContent.links.length > 0 && (
+                        <div style={{ borderTop: '1px solid #e8e8ed', paddingTop: 20 }}>
+                          <p style={{ fontSize: 12, fontWeight: 600, color: '#6e6e73', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 }}>
+                            {lang === 'th' ? 'ลิงค์คอร์ส' : 'Course Links'} ({kbContent.links.length})
+                          </p>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 8 }}>
+                            {kbContent.links.map((lnk, i) => (
+                              <a key={i} href={lnk.url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 10, background: '#f5f5f7', border: '1px solid #e8e8ed', textDecoration: 'none', transition: 'box-shadow 0.15s' }}
+                                onMouseEnter={e => ((e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)')}
+                                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.boxShadow = 'none')}>
+                                <span style={{ fontSize: 11, color: '#6e6e73', flexShrink: 0, minWidth: 20, textAlign: 'right' }}>{i + 1}.</span>
+                                <span style={{ fontSize: 12, color: '#0066cc', lineHeight: 1.4 }}>{lnk.name}</span>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )
+              })() : (
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 10, color: '#6e6e73' }}>
                   <p style={{ fontSize: 32 }}>📚</p>
                   <p style={{ fontSize: 14 }}>{L.kb.select}</p>
@@ -533,7 +550,8 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-        )}
+          )
+        })()}
 
         {/* ── BROWSER ── */}
         {tab === 'browser' && (
