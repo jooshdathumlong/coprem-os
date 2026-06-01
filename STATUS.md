@@ -418,3 +418,19 @@ GitHub CI  → coprem-mac runner
 
 Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง baseline จาก real usage
 
+
+## Session 2026-06-01 Session 8 — Log Integrity Hash Chain
+
+| Time | Action | Result |
+|---|---|---|
+| 2026-06-01 09:47 | Migration 008 hash chain | ✅ prev_hash + row_hash + trigger on audit_log |
+| 2026-06-01 09:47 | Backfill 105 existing rows | ✅ chain intact |
+| 2026-06-01 09:47 | verify_log_integrity.py | ✅ 106 rows verified, 0 errors |
+
+## Month 2 Tasks — COMPLETE
+| Task | Status |
+|---|---|
+| Dependabot | ✅ |
+| Agent eval script | ✅ |
+| SLO migration | ✅ |
+| Log integrity hash chain | ✅ |
