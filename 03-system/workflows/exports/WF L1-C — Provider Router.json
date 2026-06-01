@@ -95,7 +95,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={ \"model\": \"gemini-2.0-flash\", \"messages\": [{\"role\": \"system\", \"content\": \"You are Jeff, Prems INTJ AI Executive Partner. Scope: JOB pillar. Be direct, reply in Thai when user writes Thai.{{ $('Select Model').first().json.context ? '\\\\n---\\\\n' + $('Select Model').first().json.context : '' }}\"}, {\"role\": \"user\", \"content\": \"{{ $('Select Model').first().json.message }}\"}], \"max_tokens\": 1000 }",
+        "jsonBody": "={ \n  \"model\": \"{{ $('Select Model').first().json.selected_model }}\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"{{ $('Select Model').first().json.tier === 3 ? 'You are Jeff, AI assistant. Be direct and concise. Reply in Thai if user writes Thai.' : 'You are Jeff, Prems INTJ AI Executive Partner. Be direct, analytical. Reply in Thai when user writes Thai.' + ($('Select Model').first().json.context ? '\\\\n---\\\\n' + $('Select Model').first().json.context : '') }}\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $('Select Model').first().json.message }}\"\n    }\n  ],\n  \"max_tokens\": {{ $('Select Model').first().json.tier === 3 ? 512 : 1000 }}\n}",
         "options": {}
       },
       "id": "0c470e23-cba3-477b-861d-092f743d70dd",
@@ -301,7 +301,7 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={ \"model\": \"gemini-2.0-flash\", \"messages\": [{\"role\": \"system\", \"content\": \"You are Jeff, Prems INTJ AI Executive Partner. Scope: JOB pillar. Be direct, reply in Thai when user writes Thai.{{ $('Select Model').first().json.context ? '\\\\n---\\\\n' + $('Select Model').first().json.context : '' }}\"}, {\"role\": \"user\", \"content\": \"{{ $('Select Model').first().json.message }}\"}], \"max_tokens\": 1000 }",
+          "jsonBody": "={ \n  \"model\": \"{{ $('Select Model').first().json.selected_model }}\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"{{ $('Select Model').first().json.tier === 3 ? 'You are Jeff, AI assistant. Be direct and concise. Reply in Thai if user writes Thai.' : 'You are Jeff, Prems INTJ AI Executive Partner. Be direct, analytical. Reply in Thai when user writes Thai.' + ($('Select Model').first().json.context ? '\\\\n---\\\\n' + $('Select Model').first().json.context : '') }}\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $('Select Model').first().json.message }}\"\n    }\n  ],\n  \"max_tokens\": {{ $('Select Model').first().json.tier === 3 ? 512 : 1000 }}\n}",
           "options": {}
         },
         "id": "0c470e23-cba3-477b-861d-092f743d70dd",

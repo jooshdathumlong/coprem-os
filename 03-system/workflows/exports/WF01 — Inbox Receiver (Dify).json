@@ -353,7 +353,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\nlet reply = data.dify_reply\n  || (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content)\n  || data.answer || data.text\n  || 'ขออภัย ไม่สามารถตอบได้ตอนนี้ครับ';\nif (reply.length > 4096) reply = reply.substring(0, 4090) + '...[ต่อ]';\nconst agent = data.assigned_agent || (data.model ? 'litellm' : 'unknown');\nreturn [{ json: { reply, reply_text: reply, agent, model: data.selected_model || data.model } }];\n"
+        "jsCode": "const data = $input.first().json;\nlet reply = data.dify_reply\n  || (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content)\n  || data.answer || data.text\n  || 'ขออภัย ไม่สามารถตอบได้ตอนนี้ครับ';\nif (reply.length > 4096) reply = reply.substring(0, 4090) + '...[ต่อ]';\nconst agent = data.assigned_agent || (data.model ? 'litellm' : 'unknown');\nconst model = data.selected_model || data.model || '';\n\n// S4: Tier 3 (Ollama) gets fallback prefix\nif (model.startsWith('ollama/')) {\n  reply = '[Fallback mode — response may be shorter than usual]\\n\\n' + reply;\n}\n\nreturn [{ json: { reply, reply_text: reply, agent, model } }];"
       },
       "id": "l25-normalize",
       "name": "L2.5 Normalize Output",
@@ -1717,7 +1717,7 @@
       },
       {
         "parameters": {
-          "jsCode": "const data = $input.first().json;\nlet reply = data.dify_reply\n  || (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content)\n  || data.answer || data.text\n  || 'ขออภัย ไม่สามารถตอบได้ตอนนี้ครับ';\nif (reply.length > 4096) reply = reply.substring(0, 4090) + '...[ต่อ]';\nconst agent = data.assigned_agent || (data.model ? 'litellm' : 'unknown');\nreturn [{ json: { reply, reply_text: reply, agent, model: data.selected_model || data.model } }];\n"
+          "jsCode": "const data = $input.first().json;\nlet reply = data.dify_reply\n  || (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content)\n  || data.answer || data.text\n  || 'ขออภัย ไม่สามารถตอบได้ตอนนี้ครับ';\nif (reply.length > 4096) reply = reply.substring(0, 4090) + '...[ต่อ]';\nconst agent = data.assigned_agent || (data.model ? 'litellm' : 'unknown');\nconst model = data.selected_model || data.model || '';\n\n// S4: Tier 3 (Ollama) gets fallback prefix\nif (model.startsWith('ollama/')) {\n  reply = '[Fallback mode — response may be shorter than usual]\\n\\n' + reply;\n}\n\nreturn [{ json: { reply, reply_text: reply, agent, model } }];"
         },
         "id": "l25-normalize",
         "name": "L2.5 Normalize Output",
