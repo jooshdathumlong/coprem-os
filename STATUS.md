@@ -567,3 +567,7 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 ---
 ## 2026-06-01 Session End — Complete
 ทุก service UP | git clean | 70 commits
+
+## 2026-06-01 Session — UI Redesign
+| 2026-06-01 21:22 | UI REDESIGN: dashboard/app/page.tsx redesigned in Apple Web style — white bg, SF Pro, #0066cc blue, frosted nav, card layout | DONE |
+| 2026-06-01 21:22 | LANG: All Thai UI text converted to English (nav labels, placeholders, messages, error strings) | DONE |
