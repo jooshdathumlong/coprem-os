@@ -215,4 +215,5 @@ New machine: `sh scripts/setup.sh`
 - **No-Spec Rule:** ~~No Blueprint v8.3+ until WF01 stable for 1 week~~ — **UNLOCKED by Prem 2026-06-01**
 - **Job-First Window:** First 3 months → JOB + PERSONAL only. Ego Era / Music / Peabuntid suspended.
 - **Month 3 ACTIVE:** Next.js Dashboard + WebSocket + Ollama tuning + Chaos experiment
-- **Deferred:** Prompt Shadow Testing / Discord integration / Big Tech DNA veto.
+- **Deferred:** Discord integration (WF13 [INACTIVE]) / Big Tech DNA veto.
+- **Active:** Prompt Shadow Testing ✅ (10% JOB traffic → jeff v2.1-shadow)

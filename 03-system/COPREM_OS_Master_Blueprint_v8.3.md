@@ -57,22 +57,20 @@ L9   — Command Center Dashboard Next.js (port 3001) — Chat / HITL / KB / Bro
 
 ---
 
-### 1.3 Tiered Graceful Degradation
-
-Replaces the binary Cloud→Ollama fallback from v8.1.
+### 1.3 Tiered Graceful Degradation (actual L1-C config)
 
 ```
-Tier 0  Full capability     Claude Sonnet + all KBs + Vector search
-Tier 1  Cost alert          Thinking tasks → Gemini Pro | Utility tasks unchanged
-Tier 2  Cost limit          All tasks → Gemini Flash | Drafts → Ollama
-Tier 3  Emergency           Ollama only | No vector search | Keyword-only memory
-Tier 4  Killswitch          No AI | Queue all tasks to Failed_Tasks_DB | Alert boss
+Tier 0  Normal              gemini-2.0-flash  (Groq primary via usage-based-routing-v2)
+Tier 1  Cost >$1/day        gemini-2.0-flash-lite
+Tier 2  Gemini throttled    groq/llama-3.3-70b
+Tier 3  All cloud down      ollama/llama3.1:8b  (local, free, num_ctx:4096)
+Tier 4  Killswitch          No AI | queue to Failed_Tasks_DB | alert boss
 ```
 
 **Trigger thresholds:**
-- Tier 1: daily cost > $0.30
-- Tier 2: daily cost > $0.50 OR monthly cost > $15
-- Tier 3: daily cost > $1.00 OR monthly cost > $20
+- Tier 1: daily cost > $1.00
+- Tier 2: gemini-2.0-flash + gemini-2.0-flash-lite both throttled
+- Tier 3: all cloud providers throttled/down
 - Tier 4: `coprem.killswitch()` manual only
 
 ---
@@ -179,15 +177,23 @@ Runs on every agent output before delivery to user.
 | idea | Vector DB / Obsidian | Loose ideas queued for synthesis |
 | decision | KB-05 (Vector) | Boss decisions — auto-overwrites on update |
 
-**Knowledge Bases (Dify.ai) — 5 KBs:**
+**Knowledge Bases (Dify.ai) — 6 KBs:**
 
-| KB | Name | Content | Embedding | Retrieval |
-|----|------|---------|-----------|-----------|
-| KB-01 | brand_constitution | Eilinaire + Peabuntid constitutions | text-embedding-3-large | Hybrid, Top K=5 |
-| KB-02 | ego_era_bible | ego_era_bible.md + character files | text-embedding-3-large | Hybrid, Top K=5 |
-| KB-03 | trading_rules | Prop firm rules, risk limits | text-embedding-3-large | Hybrid, Top K=5 |
-| KB-04 | job_knowledge | dept_marketing.md, dept_ops.md | text-embedding-3-large | Hybrid, Top K=5 |
-| KB-05 | decision_memory | Decision history — auto-overwrites | text-embedding-3-large | Hybrid, Top K=5 |
+| KB | Name | Content | Retrieval |
+|----|------|---------|-----------|
+| KB-01 | brand_constitution | Eilinaire + Peabuntid constitutions | pgvector semantic → BM25 fallback |
+| KB-02 | ego_era_bible | ego_era_bible.md + character files | pgvector semantic → BM25 fallback |
+| KB-03 | trading_rules | Prop firm rules, risk limits | pgvector semantic → BM25 fallback |
+| KB-04 | job_knowledge | dept_marketing.md, frameworks | pgvector semantic → BM25 fallback |
+| KB-05 | decision_memory | Boss decisions — auto-overwrites | pgvector semantic → BM25 fallback |
+| KB-06 | futureskill_courses | 584 courses, 14 categories | pgvector semantic → BM25 fallback |
+
+**KB Routing (actual L1-C config):**
+- JOB → KB-04 + KB-01
+- PERSONAL → KB-05 + KB-01
+- CREATIVE → KB-02 + KB-01
+- SKILL / COURSE / LEARNING → KB-06 + KB-04
+- TRADING → KB-03 + KB-05
 
 **KB Sync Protocol [NEW — Workflow-10]:**
 - Trigger: Google Drive file change webhook OR `coprem.kb.sync("KB-ID")`
@@ -613,17 +619,9 @@ coprem.killswitch()                     # Emergency stop — all automation halt
 WEBHOOK_URL=https://[ngrok-url] N8N_SECURE_COOKIE=false n8n start
 ```
 
-### Discord (Secondary — Server ready)
+### Discord (Deferred — Month 4-6 backlog)
 
-**Server:** Coprem
-
-| Channel | Purpose |
-|---------|---------|
-| #universal-inbox | Monitoring + alerts |
-| #hitl-gate | Future HITL approve/reject |
-| #system-alerts | Critical errors, cost spikes |
-| #executive-dashboard | OKR status |
-| #daily-checklist | Daily task tracking |
+Server "Coprem" exists. WF13 created but [INACTIVE] — deferred until further notice.
 
 ---
 
@@ -1089,7 +1087,7 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 - **KB IDs retrieved** for all 5 knowledge bases (segments verified, content exists)
 - **L1-C system prompt** injected with KB context — Jeff now answers with COPREM knowledge
 - **Ollama Tier 3 fallback** live — llama3.1:8b + qwen2.5:7b via LiteLLM routing
-- **WF01**: 24 nodes, exec 159, 100% success rate
+- **WF01**: 39 nodes, exec 159, 100% success rate
 - **Cost**: $0.15/day (well within Tier 1 threshold)
 
 ### Bugs Fixed
@@ -1098,7 +1096,7 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 - KB segments=0 from Dify retrieve API → switched to Segments API + keyword match
 
 ### System State
-- WF01 active: 24 nodes, ID W11IKLoxmN2BzImS
+- WF01 active: 39 nodes, ID 4uVEG8SEM23BDrdu
 - Active model: Ollama Tier 3 (llama3.1:8b / qwen2.5:7b)
 - Stability window: Day 1/7 (gate before any new feature)
 - KB: 5 sources active, keyword-match retrieval
@@ -1198,13 +1196,12 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 ### Done
 - **L4 Content Library — Ego Era:** 12/12 characters fully seeded (ego_anchor, power_desc, arc_state, location, key_event) | Chapter 1 "The Day the World Didn't Look Back" (520 words) imported into chapters table
 - **Novels table:** EGO ERA novel record active
-- **WF13 Discord Monitor:** created (id: YP5lk2C4gzJbTQJv) — routes system_alert/hitl/daily events to Discord webhooks | awaiting DISCORD_WEBHOOK_* env vars from Prem
-- **.env.example:** DISCORD_WEBHOOK_SYSTEM_ALERTS / HITL / DAILY added with setup instructions
-- **Month 4-6 targets:** L4 Content Library ✅ | Discord infra ✅ (pending Prem webhook URLs)
+- **Month 4-6 targets:** L4 Content Library ✅ | Discord deferred
 
 ### System State
-- Workflows: 14 total (WF01–WF13 + WF L1-C + WF L1.5 + WF L8) | 13 active, 1 pending (WF13 needs Discord URLs)
+- Workflows: 15 total | 14 active | WF13 [INACTIVE] Discord deferred
 - L4: novels(1) | chapters(1) | character_tracker(12/12) — fully seeded from ego_era_bible.md
-- Discord: WF13 ready — activate after adding DISCORD_WEBHOOK_* to .env
-- Month 4-6: L4 ✅ | Memory TTL ✅ | KB auto-sync ✅ | Shadow Testing ✅ | Discord infra ✅
+- L3: pgvector semantic search (nomic-embed-text) → BM25 fallback | KB routing updated
+- Tier map: 0=gemini-flash | 1=flash-lite | 2=groq | 3=ollama | routing: usage-based-routing-v2
+- Month 4-6: L4 ✅ | Memory TTL ✅ | KB auto-sync ✅ | Shadow Testing ✅
 

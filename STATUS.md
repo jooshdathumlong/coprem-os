@@ -682,3 +682,15 @@ PENDING ต่อ session หน้า:
 PENDING (ต้อง Prem):
 - สร้าง Discord webhooks ใน Server Coprem → ใส่ใน .env → activate WF13
 - เพิ่ม chapters 2+ เมื่อมีเนื้อหา
+
+## 2026-06-02 — File sync (actual system state)
+| Action | ผล |
+|---|---|
+| Blueprint v8.3: Tier map แก้ (0=flash/1=lite/2=groq/3=ollama) | ✅ |
+| Blueprint v8.3: L3 pgvector + BM25 fallback | ✅ |
+| Blueprint v8.3: KB routing SKILL/TRADING เพิ่ม | ✅ |
+| Blueprint v8.3: WF01 24→39 nodes | ✅ |
+| Blueprint v8.3: Discord section → deferred | ✅ |
+| SYSTEM_STATE.md: full sync (Tier map, WF list, Dashboard tabs) | ✅ |
+| CLAUDE.md: Discord deferred, Shadow Testing active | ✅ |
+| WF13: renamed [INACTIVE] WF13 — Discord Monitor | ✅ |
