@@ -1205,3 +1205,23 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 - Tier map: 0=gemini-flash | 1=flash-lite | 2=groq | 3=ollama | routing: usage-based-routing-v2
 - Month 4-6: L4 ✅ | Memory TTL ✅ | KB auto-sync ✅ | Shadow Testing ✅
 
+
+---
+
+## Part 15 — Session 2026-06-02 (Session 12 — v8.4 Phase 4 Agents)
+
+### Done
+- **T1 LiteLLM restart:** verified alive ✅
+- **T2 KB embed:** 116 chunks → pgvector via nomic-embed-text | KB-04(JOB) + KB-06(SKILL) + KB-03(PERSONAL) + KB-02(JOB)
+- **T3 E2E test:** 3 messages → WEBHOOK_RECEIVED + AGENT_CALLED ✅
+- **T4 Phase 4 Agents:** Marketing / Writing / Trading / Skill agents wired in L1-C domain routing | prompts seeded in prompt_library | agent_type in output
+- **T5 WF02 v2:** Daily Brief now includes top 3 tasks + HITL count + OKR progress + Bangkok date
+- **T6 WF10 auto-embed:** Code node runs embed_kb.py after sync + logs KB_EMBED_COMPLETE to audit_log
+
+### Pending
+- Jeff hallucination fix — KB gate + no_kb_data flag + business_context.md template
+
+### System State
+- Version: v8.4 | All services UP | 15 active workflows
+- Phase 4 Agents: Marketing + Writing + Trading + Skill live in L1-C
+- prompt_library: 6 prompts (jeff v2.0/v2.1-shadow, eilinaire, marketing, writing, trading agents)

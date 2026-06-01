@@ -694,3 +694,18 @@ PENDING (ต้อง Prem):
 | SYSTEM_STATE.md: full sync (Tier map, WF list, Dashboard tabs) | ✅ |
 | CLAUDE.md: Discord deferred, Shadow Testing active | ✅ |
 | WF13: renamed [INACTIVE] WF13 — Discord Monitor | ✅ |
+
+## 2026-06-02 Session End — v8.4 Phase 4
+| Action | ผล |
+|---|---|
+| T1: LiteLLM restart + verify | ✅ |
+| T2: KB embed 116 chunks → pgvector | ✅ nomic-embed-text pulled |
+| T3: E2E test 3 messages | ✅ pipeline ทำงาน |
+| T4: Phase 4 Agents — Marketing/Writing/Trading/Skill | ✅ L1-C domain routing + prompt_library |
+| T5: WF02 Daily Brief v2 (tasks+HITL+OKR+date) | ✅ |
+| T6: WF10 auto-embed after KB sync | ✅ Code node + KB_EMBED_COMPLETE log |
+| Master Context: v8.3 → v8.4 | ✅ |
+
+PENDING ต่อ session หน้า:
+- Jeff hallucination fix (KB gate + no_kb_data flag + business_context.md)
+- Test anti-hallucination: "ยอดขาย Scrub Daddy เป็นยังไงบ้าง"
