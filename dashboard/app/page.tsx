@@ -9,8 +9,9 @@ type Tab = 'chat' | 'hitl' | 'kb' | 'browser' | 'docs' | 'system' | 'sessions'
 type SessionStep = { time: string; action: string; result: string }
 type Session = { date: string; title: string; steps: SessionStep[] }
 type Commit = { hash: string; subject: string; time: string }
-type KBSection = { title: string; preview: string; lines: number }
-type KBDoc = { id: string; label: string; pillar: string; sections: string[] }
+type KBPillar = { id: string; label: string; fileCount: number }
+type KBFile = { id: string; path: string; label: string; source: string | null; exists: boolean; sectionCount: number; courseCount: number; fullPath: string }
+type KBSection = { title: string; lines: number; courseCount: number; sourceUrl: string | null }
 type Lang = 'en' | 'th'
 
 const I18N = {
@@ -81,11 +82,14 @@ export default function Dashboard() {
   const [commits, setCommits] = useState<Commit[]>([])
   const [expandedSession, setExpandedSession] = useState<string | null>(null)
   const [sessionsView, setSessionsView] = useState<'sessions' | 'commits'>('sessions')
-  const [kbDocs, setKbDocs] = useState<KBDoc[]>([])
-  const [selectedKb, setSelectedKb] = useState('KB-06')
+  const [kbPillars, setKbPillars] = useState<KBPillar[]>([])
+  const [selectedPillar, setSelectedPillar] = useState('knowledge')
+  const [kbFiles, setKbFiles] = useState<KBFile[]>([])
+  const [selectedFileId, setSelectedFileId] = useState('')
   const [kbSections, setKbSections] = useState<KBSection[]>([])
   const [selectedSection, setSelectedSection] = useState('')
   const [sectionContent, setSectionContent] = useState('')
+  const [sectionSourceUrl, setSectionSourceUrl] = useState<string | null>(null)
   const [kbLoading, setKbLoading] = useState(false)
   const [browserInput, setBrowserInput] = useState('http://localhost:5678')
   const chatEndRef = useRef<HTMLDivElement>(null)
@@ -101,12 +105,22 @@ export default function Dashboard() {
     if (l.status === 'fulfilled') setLatency(l.value)
   }, [])
 
-  const fetchKB = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/kb-docs?list=1`)
-      const data = await res.json()
-      setKbDocs(Array.isArray(data) ? data : [])
-    } catch { setKbDocs([]) }
+  const fetchKbPillars = useCallback((l: Lang) => {
+    fetch(`/api/kb-docs?action=pillars&lang=${l}`).then(r => r.json())
+      .then(d => setKbPillars(Array.isArray(d) ? d : [])).catch(() => {})
+  }, [])
+
+  const loadKbFiles = useCallback((pillar: string) => {
+    setKbFiles([]); setKbSections([]); setSelectedFileId(''); setSelectedSection(''); setSectionContent('')
+    fetch(`/api/kb-docs?action=files&pillar=${pillar}`).then(r => r.json())
+      .then(d => setKbFiles(Array.isArray(d) ? d : [])).catch(() => {})
+  }, [])
+
+  const loadKbSections = useCallback((fileId: string, lang: Lang) => {
+    setKbLoading(true); setKbSections([]); setSelectedSection(''); setSectionContent('')
+    fetch(`/api/kb-docs?action=sections&file=${fileId}&lang=${lang}`).then(r => r.json())
+      .then(data => { setKbSections(Array.isArray(data) ? data : []); setKbLoading(false) })
+      .catch(() => setKbLoading(false))
   }, [])
 
   useEffect(() => { fetchAll(); const t = setInterval(fetchAll, 30000); return () => clearInterval(t) }, [fetchAll])
@@ -115,29 +129,23 @@ export default function Dashboard() {
     if (tab === 'sessions') {
       fetch('/api/sessions').then(r => r.json()).then(d => { setSessions(d.sessions || []); setCommits(d.commits || []) }).catch(() => {})
     }
-  }, [tab])
+    if (tab === 'kb') { fetchKbPillars(kbLang); loadKbFiles(selectedPillar) }
+  }, [tab, kbLang, fetchKbPillars, loadKbFiles, selectedPillar])
+
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
-  useEffect(() => { if (tab === 'kb') { fetchKB() } }, [tab, fetchKB])
-
-  const loadKbSections = useCallback((kb: string, lang: Lang = 'en') => {
-    setKbLoading(true); setKbSections([]); setSelectedSection(''); setSectionContent('')
-    fetch(`/api/kb-docs?kb=${kb}&lang=${lang}`).then(r => r.json())
-      .then(data => { setKbSections(Array.isArray(data) ? data : []); setKbLoading(false) })
-      .catch(() => setKbLoading(false))
-  }, [])
 
   useEffect(() => {
-    if (!selectedKb || tab !== 'kb') return
-    loadKbSections(selectedKb, kbLang)
-  }, [selectedKb, tab, kbLang, loadKbSections])
+    if (!selectedFileId || tab !== 'kb') return
+    loadKbSections(selectedFileId, kbLang)
+  }, [selectedFileId, tab, kbLang, loadKbSections])
 
   useEffect(() => {
-    if (!selectedSection) return
+    if (!selectedSection || !selectedFileId) return
     setSectionContent('loading...')
-    fetch(`/api/kb-docs?kb=${selectedKb}&section=${encodeURIComponent(selectedSection)}&lang=${kbLang}`)
-      .then(r => r.json()).then(d => setSectionContent(d.content || d.error || ''))
+    fetch(`/api/kb-docs?action=content&file=${selectedFileId}&section=${encodeURIComponent(selectedSection)}&lang=${kbLang}`)
+      .then(r => r.json()).then(d => { setSectionContent(d.content || d.error || ''); setSectionSourceUrl(d.sourceUrl || null) })
       .catch(() => setSectionContent('Failed to load'))
-  }, [selectedSection, selectedKb, kbLang])
+  }, [selectedSection, selectedFileId, kbLang])
 
   async function sendChat(msgOverride?: string) {
     const msg = (msgOverride || chatInput).trim()
@@ -405,75 +413,124 @@ export default function Dashboard() {
         {/* ── KB ── */}
         {tab === 'kb' && (
           <div style={{ display: 'flex', height: '100%' }}>
-            {/* Sidebar */}
-            <div style={{ width: 260, borderRight: '1px solid #e8e8ed', display: 'flex', flexDirection: 'column', flexShrink: 0, background: '#f5f5f7' }}>
-              <div style={{ padding: '16px 12px', borderBottom: '1px solid #e8e8ed' }}>
-                <p style={{ fontSize: 11, color: '#6e6e73', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>{L.kb.title}</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {['KB-06', 'COPREM'].map(id => (
-                    <button key={id} onClick={() => { setSelectedKb(id); loadKbSections(id, kbLang) }} style={{
-                      width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 10, fontSize: 13, cursor: 'pointer', border: 'none', transition: 'all 0.15s',
-                      background: selectedKb === id ? 'white' : 'transparent',
-                      color: selectedKb === id ? '#0066cc' : '#424245',
-                      fontWeight: selectedKb === id ? 500 : 400,
-                      boxShadow: selectedKb === id ? '0 1px 4px rgba(0,0,0,0.08)' : 'none'
-                    }}>
-                      {id === 'KB-06' ? L.kb.kb06 : L.kb.coprem}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {/* KB content language toggle */}
-              <div style={{ padding: '10px 12px', borderBottom: '1px solid #e8e8ed', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 11, color: '#6e6e73' }}>{L.kb.kbLang}</span>
-                <div style={{ display: 'flex', background: '#f5f5f7', borderRadius: 16, padding: 2, gap: 2, border: '1px solid #d2d2d7' }}>
-                  {(['en', 'th'] as Lang[]).map(l => (
-                    <button key={l} onClick={() => { setKbLang(l); loadKbSections(selectedKb, l) }} style={{
-                      fontSize: 11, fontWeight: 600, padding: '2px 10px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                      background: kbLang === l ? '#0066cc' : 'transparent',
-                      color: kbLang === l ? 'white' : '#6e6e73',
-                    }}>{l === 'en' ? L.kb.viewEN : L.kb.viewTH}</button>
-                  ))}
-                </div>
+
+            {/* ── Col 1: Pillars ── */}
+            <div style={{ width: 160, borderRight: '1px solid #e8e8ed', background: '#f5f5f7', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+              <div style={{ padding: '14px 12px 8px' }}>
+                <p style={{ fontSize: 10, fontWeight: 700, color: '#6e6e73', textTransform: 'uppercase', letterSpacing: 1 }}>{L.kb.title}</p>
               </div>
               <div style={{ flex: 1, overflowY: 'auto' }}>
-                {kbLoading && <p style={{ color: '#6e6e73', fontSize: 13, padding: 12 }}>{L.kb.loading}</p>}
+                {kbPillars.map(p => (
+                  <button key={p.id} onClick={() => { setSelectedPillar(p.id); loadKbFiles(p.id) }} style={{
+                    width: '100%', textAlign: 'left', padding: '10px 12px',
+                    borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #e8e8ed',
+                    borderLeft: selectedPillar === p.id ? '3px solid #0066cc' : '3px solid transparent',
+                    background: selectedPillar === p.id ? 'white' : 'transparent',
+                    cursor: 'pointer',
+                  }}>
+                    <p style={{ fontSize: 12, fontWeight: selectedPillar === p.id ? 600 : 400, color: selectedPillar === p.id ? '#0066cc' : '#1d1d1f', margin: 0 }}>{p.label}</p>
+                    <p style={{ fontSize: 10, color: '#6e6e73', margin: '2px 0 0' }}>{p.fileCount} {lang === 'th' ? 'ไฟล์' : 'files'}</p>
+                  </button>
+                ))}
+              </div>
+              {/* Lang toggle at bottom */}
+              <div style={{ padding: '10px 12px', borderTop: '1px solid #e8e8ed' }}>
+                <div style={{ display: 'flex', background: '#e8e8ed', borderRadius: 12, padding: 2, gap: 1 }}>
+                  {(['en', 'th'] as Lang[]).map(l => (
+                    <button key={l} onClick={() => setKbLang(l)} style={{
+                      flex: 1, fontSize: 10, fontWeight: 700, padding: '3px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
+                      background: kbLang === l ? '#0066cc' : 'transparent',
+                      color: kbLang === l ? 'white' : '#6e6e73',
+                    }}>{l.toUpperCase()}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Col 2: Files + Sections ── */}
+            <div style={{ width: 240, borderRight: '1px solid #e8e8ed', display: 'flex', flexDirection: 'column', background: '#fafafa', flexShrink: 0 }}>
+              {/* Files */}
+              <div style={{ borderBottom: '1px solid #e8e8ed' }}>
+                {kbFiles.map(f => (
+                  <div key={f.id}>
+                    <button onClick={() => setSelectedFileId(selectedFileId === f.id ? '' : f.id)} style={{
+                      width: '100%', textAlign: 'left', padding: '10px 14px',
+                      borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #e8e8ed',
+                      borderLeft: selectedFileId === f.id ? '3px solid #0066cc' : '3px solid transparent',
+                      background: selectedFileId === f.id ? 'white' : 'transparent', cursor: 'pointer',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <p style={{ fontSize: 12, fontWeight: 500, color: f.exists ? '#1d1d1f' : '#6e6e73', margin: 0 }}>{f.label}</p>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          {f.source && <span style={{ fontSize: 9, background: '#e8f0fe', color: '#0066cc', padding: '1px 5px', borderRadius: 6 }}>↗</span>}
+                          <button onClick={e => { e.stopPropagation(); fetch(`/api/kb-docs?action=open&file=${f.id}`) }} title="Open in editor" style={{ fontSize: 10, background: '#f5f5f7', color: '#6e6e73', border: '1px solid #d2d2d7', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>✎</button>
+                        </div>
+                      </div>
+                      <p style={{ fontSize: 10, color: '#6e6e73', margin: '2px 0 0', fontFamily: 'monospace' }}>{f.path?.split('/').slice(-1)[0]}</p>
+                      {f.courseCount > 0 && <p style={{ fontSize: 10, color: '#0066cc', margin: '2px 0 0' }}>{f.courseCount} courses</p>}
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {/* Sections */}
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                {kbLoading && <p style={{ fontSize: 12, color: '#6e6e73', padding: 12 }}>{L.kb.loading}</p>}
                 {kbSections.map(s => (
                   <button key={s.title} onClick={() => setSelectedSection(s.title)} style={{
-                    width: '100%', textAlign: 'left', padding: '11px 14px',
-                    borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #e8e8ed',
+                    width: '100%', textAlign: 'left', padding: '9px 14px',
+                    borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #f0f0f5',
                     borderLeft: selectedSection === s.title ? '3px solid #0066cc' : '3px solid transparent',
-                    background: selectedSection === s.title ? 'white' : 'transparent',
-                    cursor: 'pointer', transition: 'all 0.1s',
+                    background: selectedSection === s.title ? 'white' : 'transparent', cursor: 'pointer',
                   }}>
-                    <p style={{ fontSize: 13, color: '#1d1d1f', margin: 0 }}>{s.title}</p>
-                    <p style={{ fontSize: 11, color: '#6e6e73', marginTop: 2, margin: 0 }}>{L.kb.lines(s.lines)}</p>
+                    <p style={{ fontSize: 12, color: '#1d1d1f', margin: 0, lineHeight: 1.4 }}>{s.title}</p>
+                    <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
+                      <span style={{ fontSize: 10, color: '#6e6e73' }}>{L.kb.lines(s.lines)}</span>
+                      {s.courseCount > 0 && <span style={{ fontSize: 10, color: '#0066cc' }}>{s.courseCount} courses</span>}
+                    </div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Content */}
+            {/* ── Col 3: Content ── */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               {selectedSection ? (
                 <>
-                  <div style={{ padding: '14px 24px', borderBottom: '1px solid #e8e8ed', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-                    <div>
-                      <span style={{ fontSize: 12, color: '#6e6e73' }}>{selectedKb} / </span>
-                      <span style={{ fontSize: 14, fontWeight: 500, color: '#1d1d1f' }}>{selectedSection}</span>
+                  {/* Header */}
+                  <div style={{ padding: '12px 24px', borderBottom: '1px solid #e8e8ed', background: 'white', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <p style={{ fontSize: 11, color: '#6e6e73', margin: '0 0 3px' }}>
+                          {kbPillars.find(p => p.id === selectedPillar)?.label} / {kbFiles.find(f => f.id === selectedFileId)?.label}
+                        </p>
+                        <p style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f', margin: 0 }}>{selectedSection}</p>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        {sectionSourceUrl && (
+                          <a href={sectionSourceUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#0066cc', padding: '5px 12px', borderRadius: 16, border: '1px solid #0066cc', textDecoration: 'none' }}>
+                            {lang === 'th' ? 'ดูที่มา ↗' : 'Source ↗'}
+                          </a>
+                        )}
+                        <button onClick={() => navigator.clipboard.writeText(sectionContent)} style={{ fontSize: 12, color: '#6e6e73', padding: '5px 14px', borderRadius: 16, border: '1px solid #d2d2d7', background: 'none', cursor: 'pointer' }}>{L.kb.copy}</button>
+                      </div>
                     </div>
-                    <button onClick={() => navigator.clipboard.writeText(sectionContent)} style={{ fontSize: 12, color: '#6e6e73', padding: '5px 14px', borderRadius: 16, border: '1px solid #d2d2d7', background: 'none', cursor: 'pointer' }}>{L.kb.copy}</button>
                   </div>
-                  <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
-                    {sectionContent === 'loading...' ? <p style={{ color: '#6e6e73' }}>{L.kb.loading}</p> : <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{renderMd(sectionContent)}</div>}
+                  {/* Body */}
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '20px 32px' }}>
+                    {sectionContent === 'loading...'
+                      ? <p style={{ color: '#6e6e73' }}>{L.kb.loading}</p>
+                      : <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{renderMd(sectionContent)}</div>}
                   </div>
                 </>
+              ) : selectedFileId && kbSections.length === 0 && !kbLoading ? (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 10, color: '#6e6e73' }}>
+                  <p style={{ fontSize: 28 }}>📄</p>
+                  <p style={{ fontSize: 14 }}>{lang === 'th' ? 'เลือกหัวข้อเพื่ออ่าน' : 'No sections found in this file'}</p>
+                </div>
               ) : (
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6e6e73' }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontSize: 32, marginBottom: 10 }}>📚</p>
-                    <p style={{ fontSize: 14 }}>{L.kb.select}</p>
-                  </div>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 10, color: '#6e6e73' }}>
+                  <p style={{ fontSize: 32 }}>📚</p>
+                  <p style={{ fontSize: 14 }}>{L.kb.select}</p>
                 </div>
               )}
             </div>
