@@ -452,23 +452,21 @@ export default function Dashboard() {
               {/* Files */}
               <div style={{ borderBottom: '1px solid #e8e8ed' }}>
                 {kbFiles.map(f => (
-                  <div key={f.id}>
-                    <button onClick={() => setSelectedFileId(selectedFileId === f.id ? '' : f.id)} style={{
-                      width: '100%', textAlign: 'left', padding: '10px 14px',
-                      borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #e8e8ed',
-                      borderLeft: selectedFileId === f.id ? '3px solid #0066cc' : '3px solid transparent',
-                      background: selectedFileId === f.id ? 'white' : 'transparent', cursor: 'pointer',
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <p style={{ fontSize: 12, fontWeight: 500, color: f.exists ? '#1d1d1f' : '#6e6e73', margin: 0 }}>{f.label}</p>
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          {f.source && <span style={{ fontSize: 9, background: '#e8f0fe', color: '#0066cc', padding: '1px 5px', borderRadius: 6 }}>↗</span>}
-                          <button onClick={e => { e.stopPropagation(); fetch(`/api/kb-docs?action=open&file=${f.id}`) }} title="Open in editor" style={{ fontSize: 10, background: '#f5f5f7', color: '#6e6e73', border: '1px solid #d2d2d7', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>✎</button>
-                        </div>
+                  <div key={f.id} onClick={() => setSelectedFileId(selectedFileId === f.id ? '' : f.id)} style={{
+                    padding: '10px 14px', cursor: 'pointer',
+                    borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #e8e8ed',
+                    borderLeft: selectedFileId === f.id ? '3px solid #0066cc' : '3px solid transparent',
+                    background: selectedFileId === f.id ? 'white' : 'transparent',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <p style={{ fontSize: 12, fontWeight: 500, color: f.exists ? '#1d1d1f' : '#6e6e73', margin: 0 }}>{f.label}</p>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {f.source && <span style={{ fontSize: 9, background: '#e8f0fe', color: '#0066cc', padding: '1px 5px', borderRadius: 6 }}>↗</span>}
+                        <span onClick={e => { e.stopPropagation(); fetch(`/api/kb-docs?action=open&file=${f.id}`) }} title="Open in editor" style={{ fontSize: 10, background: '#f5f5f7', color: '#6e6e73', border: '1px solid #d2d2d7', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>✎</span>
                       </div>
-                      <p style={{ fontSize: 10, color: '#6e6e73', margin: '2px 0 0', fontFamily: 'monospace' }}>{f.path?.split('/').slice(-1)[0]}</p>
-                      {f.courseCount > 0 && <p style={{ fontSize: 10, color: '#0066cc', margin: '2px 0 0' }}>{f.courseCount} courses</p>}
-                    </button>
+                    </div>
+                    <p style={{ fontSize: 10, color: '#6e6e73', margin: '2px 0 0', fontFamily: 'monospace' }}>{f.path?.split('/').slice(-1)[0]}</p>
+                    {f.courseCount > 0 && <p style={{ fontSize: 10, color: '#0066cc', margin: '2px 0 0' }}>{f.courseCount} courses</p>}
                   </div>
                 ))}
               </div>
