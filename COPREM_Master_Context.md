@@ -272,3 +272,10 @@ ollama serve &
 - Next.js Dashboard (P1), WebSocket (P2), Ollama tuning (P2), Chaos experiment (P3)
 - FutureSkill KB-06: ✅ DONE — Postgres 584 rows + KB-06.md (88KB) + Dify indexed | 127 unsorted = ระยะยาว
 | 04:30 | Timezone fix (GENERIC_TIMEZONE=Asia/Bangkok) | ✅ |
+
+## Session Log (2026-06-01)
+
+| 2026-06-01 | Phase 1–4 Complete | T1-T5 tactical + S1-S7 structural + Dashboard + 3 Agents |
+| 2026-06-01 | Dashboard v2 | 6 tabs: Chat(model selector) / HITL / KB / Browser / Docs / System |
+| 2026-06-01 | Mac Launcher | COPREM OS.app + start_coprem.sh on Desktop |
+| 2026-06-01 | Semantic Search | nomic-embed-text 116 segments in pgvector |

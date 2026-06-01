@@ -531,3 +531,8 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 | 2026-06-01 | Phase 4 complete | MARKETING/WRITING/TRADING agent modes wired into L1-B + L1-C + L3 Prepare |
 | 2026-06-01 | PENDING | litellm container restart required for T1 to activate |
 | 2026-06-01 | PENDING | python3 scripts/embed_kb.py needed for S1 semantic search to return results |
+
+| 2026-06-01 | Browser panel | Tab เว็บเบราว์เซอร์ใน Dashboard — iframe + URL bar + bookmarks |
+| 2026-06-01 | Mac Launcher | COPREM OS.app บน Desktop + scripts/start_coprem.sh + stop_coprem.sh |
+| 2026-06-01 | Documentation | Tab คู่มือภาษาไทยใน Dashboard |
+| 2026-06-01 | Model selector | Chat panel เลือก AI model ได้ 6 ตัว (Auto/Gemini/Groq/Ollama) |
