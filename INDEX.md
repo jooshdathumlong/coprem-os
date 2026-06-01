@@ -84,8 +84,9 @@
 ## 04-outputs/ — Deliverables
 Finished work without a specific project home.
 
-## app/ — Module 4 UI
-Next.js dashboard (localhost:3000) — not yet built.
+## dashboard/ — COPREM Dashboard (Phase 3)
+Next.js dashboard (localhost:3000) — live. Chat, KB, HITL, Status tabs.
+> app/ (old coprem-ui) → archived to _archive/app/
 
 ---
 

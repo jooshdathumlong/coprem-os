@@ -556,3 +556,10 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 | LiteLLM "No connected db" | ไม่มี DATABASE_URL + ใช้ coprem_os DB ที่มีตารางอื่น | สร้าง DB litellm แยก + inject env |
 | Jeff Auto ตอบ {"message":"Workflow was started"} | n8n webhook async ส่งผลไป Telegram | เปลี่ยน Auto → LiteLLM direct |
 | Browser iframe ขาว | X-Frame-Options block ทุกเว็บ | ลบ iframe ใส่ Quick Links แทน |
+
+---
+| 2026-06-01 19:55 | CLEANUP: blobs/ (9.2GB) → ~/.ollama/models/blobs/ | ✅ |
+| 2026-06-01 19:55 | CLEANUP: manifests/ → ~/.ollama/models/manifests/ | ✅ |
+| 2026-06-01 19:55 | CLEANUP: app/ (139MB old coprem-ui) → _archive/app/ | ✅ |
+| 2026-06-01 19:55 | CLEANUP: IMPROVEMENT_SUMMARY_v2.md → _archive/ | ✅ |
+| 2026-06-01 19:55 | NOTE: Restart Ollama.app from System Tray to rescan models | ⚠️ |

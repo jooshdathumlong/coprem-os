@@ -43,5 +43,5 @@ data/
 English/
 Thai/
 _archive/
-blobs/
-manifests/
+# blobs/ and manifests/ moved to ~/.ollama/models/ (2026-06-01)
+Futureskill/*.zip
