@@ -257,7 +257,7 @@ ollama serve &
 
 | Issue | Workaround |
 |---|---|
-| Dify KB vector search ไม่ทำงาน | Segments API + BM25 keyword match (live) |
+| Dify vector search (free tier) | ใช้ pgvector + nomic-embed-text แทน ✅ |
 | Dify Cloud GPT-4 trial | ใช้ LiteLLM โดยตรง |
 | ~~L1-B confidence < 0.7 path~~ | ✅ Low Confidence Reply wired (HITL Gate → Switch node) |
 
@@ -287,7 +287,7 @@ ollama serve &
 | 17:20 | Memory: feedback_litellm_health | ห้ามเรียก /health — ใช้ /health/liveliness เท่านั้น |
 
 **Month 3 — COMPLETE ✅**
-**Month 4 — COMPLETE ✅** (Memory TTL + Shadow Testing + KB auto-sync + L4 + Discord infra)
+**Month 4 — COMPLETE ✅** (Memory TTL + Shadow Testing + KB auto-sync + L4)
 
 ## Session Log (2026-06-02)
 
