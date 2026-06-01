@@ -10,8 +10,9 @@ type SessionStep = { time: string; action: string; result: string }
 type Session = { date: string; title: string; steps: SessionStep[] }
 type Commit = { hash: string; subject: string; time: string }
 type KBPillar = { id: string; label: string; fileCount: number }
-type KBItem = { id: string; fileId: string; title: string; type: string; lines: number; courseCount: number; globalStandard: string | null; source: string; sourceUrl: string | null; path?: string; exists?: boolean }
-type KBContent = { title: string; content: string; source: string; sourceUrl: string | null; globalStandard: string | null; courseCount: number; sectionCount?: number; links: { name: string; url: string }[] }
+type KBCategory = { id: string; label: string; labelTh: string; emoji: string; gradient: string; fileCount: number; totalCourses: number }
+type KBFile = { id: string; catId: string; filename: string; title: string; source: string; wordCount: number; linkCount: number; modified: string; isCatalog: boolean }
+type KBDoc = { content: string; links: { index: number; name: string; url: string }[]; source: string; globalStandard: string | null; sourceUrl: string | null; courseCount: number; filename: string; path: string }
 type Lang = 'en' | 'th'
 
 const I18N = {
@@ -86,12 +87,14 @@ export default function Dashboard() {
   const [sessionsView, setSessionsView] = useState<'sessions' | 'commits'>('sessions')
   const [kbPillars, setKbPillars] = useState<KBPillar[]>([])
   const [selectedPillar, setSelectedPillar] = useState('knowledge')
-  const [kbItems, setKbItems] = useState<KBItem[]>([])
-  const [selectedItemId, setSelectedItemId] = useState('')
-  const [kbContent, setKbContent] = useState<KBContent | null>(null)
+  const [kbCategories, setKbCategories] = useState<KBCategory[]>([])
+  const [selectedCatId, setSelectedCatId] = useState('')
+  const [kbFiles, setKbFiles] = useState<KBFile[]>([])
+  const [selectedFile, setSelectedFile] = useState<KBFile | null>(null)
+  const [kbDoc, setKbDoc] = useState<KBDoc | null>(null)
   const [kbLoading, setKbLoading] = useState(false)
-  const [kbContentLoading, setKbContentLoading] = useState(false)
-  const [kbView, setKbView] = useState<'grid' | 'detail'>('grid')
+  const [kbDocLoading, setKbDocLoading] = useState(false)
+  const [kbView, setKbView] = useState<'grid' | 'files' | 'doc'>('grid')
   const [browserInput, setBrowserInput] = useState('http://localhost:5678')
   const chatEndRef = useRef<HTMLDivElement>(null)
 
@@ -106,11 +109,25 @@ export default function Dashboard() {
     if (l.status === 'fulfilled') setLatency(l.value)
   }, [])
 
-  const loadKbItems = useCallback((pillar: string, l: Lang) => {
-    setKbLoading(true); setKbItems([]); setSelectedItemId(''); setKbContent(null)
-    fetch(`/api/kb-docs?action=items&pillar=${pillar}&lang=${l}`).then(r => r.json())
-      .then(d => { setKbItems(Array.isArray(d) ? d : []); setKbLoading(false) })
+  const loadKbCategories = useCallback(() => {
+    setKbLoading(true)
+    fetch('/api/kb-docs?action=categories').then(r => r.json())
+      .then(d => { setKbCategories(Array.isArray(d) ? d : []); setKbLoading(false) })
       .catch(() => setKbLoading(false))
+  }, [])
+
+  const loadKbFiles = useCallback((catId: string) => {
+    setKbLoading(true); setKbFiles([])
+    fetch(`/api/kb-docs?action=cat-files&cat=${catId}`).then(r => r.json())
+      .then(d => { setKbFiles(Array.isArray(d) ? d : []); setKbLoading(false) })
+      .catch(() => setKbLoading(false))
+  }, [])
+
+  const openKbDoc = useCallback((file: KBFile) => {
+    setSelectedFile(file); setKbView('doc'); setKbDoc(null); setKbDocLoading(true)
+    fetch(`/api/kb-docs?action=doc&cat=${file.catId}&file=${file.filename}`).then(r => r.json())
+      .then(d => { setKbDoc(d); setKbDocLoading(false) })
+      .catch(() => setKbDocLoading(false))
   }, [])
 
   useEffect(() => { fetchAll(); const t = setInterval(fetchAll, 30000); return () => clearInterval(t) }, [fetchAll])
@@ -121,23 +138,11 @@ export default function Dashboard() {
     }
     if (tab === 'kb') {
       fetch(`/api/kb-docs?action=pillars&lang=${kbLang}`).then(r => r.json()).then(d => setKbPillars(Array.isArray(d) ? d : [])).catch(() => {})
-      loadKbItems(selectedPillar, kbLang)
+      if (selectedPillar === 'knowledge') loadKbCategories()
     }
-  }, [tab, kbLang, loadKbItems, selectedPillar])
+  }, [tab, kbLang, loadKbCategories, selectedPillar])
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
-
-  useEffect(() => {
-    if (!selectedItemId || tab !== 'kb') return
-    const item = kbItems.find(i => i.id === selectedItemId)
-    if (!item) return
-    setKbContentLoading(true); setKbContent(null)
-    const url = item.type === 'category'
-      ? `/api/kb-docs?action=content&file=${item.fileId}&section=${encodeURIComponent(item.title)}&lang=${kbLang}`
-      : `/api/kb-docs?action=content&file=${item.fileId}&lang=${kbLang}`
-    fetch(url).then(r => r.json()).then(d => { setKbContent(d); setKbContentLoading(false) })
-      .catch(() => setKbContentLoading(false))
-  }, [selectedItemId, kbLang, kbItems, tab])
 
   async function sendChat(msgOverride?: string) {
     const msg = (msgOverride || chatInput).trim()
@@ -441,33 +446,7 @@ export default function Dashboard() {
         )}
 
         {/* ── KB ── */}
-        {tab === 'kb' && (() => {
-          // Category metadata: emoji + gradient + Thai label
-          const CAT_META: Record<string, { emoji: string; gradient: string; labelTh: string }> = {
-            'Artificial Intelligence & Machine Learning': { emoji: '🤖', gradient: 'linear-gradient(135deg,#e8f0fe,#d0e4ff)', labelTh: 'AI & Machine Learning' },
-            'Data Science & Analytics':                  { emoji: '📊', gradient: 'linear-gradient(135deg,#f3e8ff,#e4d0ff)', labelTh: 'วิทยาศาสตร์ข้อมูล' },
-            'Software Development':                       { emoji: '💻', gradient: 'linear-gradient(135deg,#e0f7fa,#b2ebf2)', labelTh: 'พัฒนาซอฟต์แวร์' },
-            'IT Infrastructure, Cloud & DevOps':          { emoji: '☁️', gradient: 'linear-gradient(135deg,#e1f5fe,#b3e5fc)', labelTh: 'Cloud & DevOps' },
-            'Cybersecurity':                              { emoji: '🔒', gradient: 'linear-gradient(135deg,#fce4ec,#f8bbd0)', labelTh: 'ความมั่นคงไซเบอร์' },
-            'Digital Marketing & E-Commerce':             { emoji: '📱', gradient: 'linear-gradient(135deg,#fce8e6,#fad2cf)', labelTh: 'การตลาดดิจิทัล' },
-            'Business & Entrepreneurship':                { emoji: '🏢', gradient: 'linear-gradient(135deg,#fff8e1,#ffecb3)', labelTh: 'ธุรกิจ & ผู้ประกอบการ' },
-            'Management, HR & Leadership':                { emoji: '👥', gradient: 'linear-gradient(135deg,#e8f5e9,#c8e6c9)', labelTh: 'จัดการ & ภาวะผู้นำ' },
-            'Productivity & Office Tools':                { emoji: '⚡', gradient: 'linear-gradient(135deg,#fffde7,#fff9c4)', labelTh: 'เครื่องมือเพิ่มประสิทธิภาพ' },
-            'Content Creation & Creative Skills':         { emoji: '🎨', gradient: 'linear-gradient(135deg,#f3e5f5,#e1bee7)', labelTh: 'สร้างคอนเทนต์ & ครีเอทีฟ' },
-            'Communication & Soft Skills':                { emoji: '💬', gradient: 'linear-gradient(135deg,#e3f2fd,#bbdefb)', labelTh: 'การสื่อสาร & Soft Skills' },
-            'Language Learning':                          { emoji: '🌏', gradient: 'linear-gradient(135deg,#e8f5e9,#dcedc8)', labelTh: 'เรียนภาษา' },
-            'Career Development':                         { emoji: '🎯', gradient: 'linear-gradient(135deg,#fff3e0,#ffe0b2)', labelTh: 'พัฒนาอาชีพ' },
-            'Health, Wellbeing & Lifestyle':              { emoji: '🌿', gradient: 'linear-gradient(135deg,#f1f8e9,#dcedc8)', labelTh: 'สุขภาพ & ไลฟ์สไตล์' },
-            'Miscellaneous':                              { emoji: '📦', gradient: 'linear-gradient(135deg,#f5f5f5,#eeeeee)', labelTh: 'อื่นๆ' },
-          }
-          const SOURCE_COLOR: Record<string, { bg: string; text: string; label: string }> = {
-            FutureSkill: { bg: '#e8f0fe', text: '#0066cc', label: 'FutureSkill' },
-            Internal:    { bg: '#f0f0f5', text: '#424245', label: lang === 'th' ? 'ภายใน' : 'Internal' },
-            Prem:        { bg: '#e6f9f0', text: '#1a7f3c', label: lang === 'th' ? 'เปรมอัปโหลด' : 'Uploaded by Prem' },
-            Team:        { bg: '#fff3e0', text: '#cc7700', label: lang === 'th' ? 'ทีมงาน' : 'Team Research' },
-          }
-          const selectedItem = kbItems.find(i => i.id === selectedItemId)
-          return (
+        {tab === 'kb' && (
           <div style={{ display: 'flex', height: '100%' }}>
 
             {/* ── Left sidebar: Pillars ── */}
@@ -477,7 +456,21 @@ export default function Dashboard() {
               </div>
               <div style={{ flex: 1 }}>
                 {kbPillars.map(p => (
-                  <button key={p.id} onClick={() => { setSelectedPillar(p.id); setKbView('grid'); setSelectedItemId(''); setKbContent(null); loadKbItems(p.id, kbLang) }} style={{
+                  <button key={p.id} onClick={() => {
+                    setSelectedPillar(p.id)
+                    setKbView('grid')
+                    setSelectedCatId('')
+                    setSelectedFile(null)
+                    setKbDoc(null)
+                    if (p.id === 'knowledge') loadKbCategories()
+                    else {
+                      setKbLoading(true)
+                      fetch(`/api/kb-docs?action=items&pillar=${p.id}`)
+                        .then(r => r.json())
+                        .then(d => { setKbFiles(Array.isArray(d) ? d : []); setKbLoading(false) })
+                        .catch(() => setKbLoading(false))
+                    }
+                  }} style={{
                     width: '100%', textAlign: 'left', padding: '10px 12px',
                     borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #e8e8ed',
                     borderLeft: selectedPillar === p.id ? '3px solid #0066cc' : '3px solid transparent',
@@ -490,112 +483,155 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* ── Main content: Bento grid OR Detail ── */}
+            {/* ── Main content area ── */}
             <div style={{ flex: 1, overflowY: 'auto', background: '#f5f5f7' }}>
 
-              {kbView === 'grid' ? (
-                /* ── BENTO GRID VIEW ── */
+              {/* VIEW 1: Bento category grid (knowledge pillar) */}
+              {kbView === 'grid' && selectedPillar === 'knowledge' && (
                 <div style={{ padding: '24px 28px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                     <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1d1d1f', margin: 0 }}>{kbPillars.find(p => p.id === selectedPillar)?.label}</h2>
-                    <span style={{ fontSize: 12, color: '#6e6e73' }}>{kbItems.length} {lang === 'th' ? 'หมวดหมู่' : 'categories'}</span>
+                    <span style={{ fontSize: 12, color: '#6e6e73' }}>{kbCategories.length} {lang === 'th' ? 'หมวดหมู่' : 'categories'}</span>
                   </div>
                   {kbLoading
                     ? <p style={{ color: '#6e6e73', textAlign: 'center', padding: 40 }}>{L.kb.loading}</p>
                     : (
                     <div className="bento-grid">
-                      {kbItems.map(item => {
-                        const meta = CAT_META[item.title] || { emoji: '📄', gradient: 'linear-gradient(135deg,#f5f5f7,#ebebeb)', labelTh: item.title }
-                        const sc = SOURCE_COLOR[item.source] || SOURCE_COLOR.Team
-                        const displayTitle = lang === 'th' ? (meta.labelTh || item.title) : item.title
-                        return (
-                          <div key={item.id} className="bento-card" onClick={() => { setSelectedItemId(item.id); setKbView('detail'); setKbContent(null); setKbContentLoading(true)
-                            const url = item.type === 'category'
-                              ? `/api/kb-docs?action=content&file=${item.fileId}&section=${encodeURIComponent(item.title)}&lang=${kbLang}`
-                              : `/api/kb-docs?action=content&file=${item.fileId}&lang=${kbLang}`
-                            fetch(url).then(r => r.json()).then(d => { setKbContent(d); setKbContentLoading(false) }).catch(() => setKbContentLoading(false))
-                          }} style={{ background: meta.gradient, borderRadius: 20, padding: '22px 20px', cursor: 'pointer', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '1px solid rgba(255,255,255,0.6)' }}>
-                            {/* Icon row */}
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                              <span style={{ fontSize: 28 }}>{meta.emoji}</span>
-                              <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: 'rgba(255,255,255,0.7)', color: sc.text }}>{sc.label}</span>
-                            </div>
-                            {/* Title */}
-                            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1d1d1f', margin: '0 0 8px', lineHeight: 1.35 }}>{displayTitle}</h3>
-                            {/* Stats */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                              {item.courseCount > 0 && <span style={{ fontSize: 12, color: '#424245' }}>{item.courseCount} {lang === 'th' ? 'คอร์ส' : 'courses'}</span>}
-                              {item.courseCount === 0 && item.lines > 0 && <span style={{ fontSize: 12, color: '#424245' }}>{item.lines} {lang === 'th' ? 'บรรทัด' : 'lines'}</span>}
-                              {item.globalStandard && <span style={{ fontSize: 10, color: '#6e6e73' }}>· {item.globalStandard?.split('>').pop()?.trim()}</span>}
-                            </div>
-                            {/* CTA */}
-                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.8)', borderRadius: 12, padding: '6px 14px', fontSize: 12, fontWeight: 600, color: '#0066cc' }}>
-                              {lang === 'th' ? 'ดูรายละเอียด' : 'View details'} →
-                            </div>
+                      {kbCategories.map(cat => (
+                        <div key={cat.id} className="bento-card" onClick={() => {
+                          setSelectedCatId(cat.id)
+                          setKbView('files')
+                          loadKbFiles(cat.id)
+                        }} style={{ background: cat.gradient, borderRadius: 20, padding: '22px 20px', cursor: 'pointer', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '1px solid rgba(255,255,255,0.6)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                            <span style={{ fontSize: 28 }}>{cat.emoji}</span>
                           </div>
-                        )
-                      })}
+                          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1d1d1f', margin: '0 0 8px', lineHeight: 1.35 }}>{cat.labelTh}</h3>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                            <span style={{ fontSize: 12, color: '#424245' }}>{cat.fileCount} {lang === 'th' ? 'ไฟล์' : 'files'}</span>
+                            {cat.totalCourses > 0 && <span style={{ fontSize: 12, color: '#424245' }}>· {cat.totalCourses} {lang === 'th' ? 'คอร์ส' : 'courses'}</span>}
+                          </div>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.8)', borderRadius: 12, padding: '6px 14px', fontSize: 12, fontWeight: 600, color: '#0066cc' }}>
+                            {lang === 'th' ? 'ดูรายละเอียด' : 'View details'} →
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
-              ) : (
-                /* ── DETAIL VIEW ── */
+              )}
+
+              {/* VIEW 1b: File list for non-knowledge pillars */}
+              {kbView === 'grid' && selectedPillar !== 'knowledge' && (
+                <div style={{ padding: '24px 28px' }}>
+                  <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1d1d1f', marginBottom: 20 }}>{kbPillars.find(p => p.id === selectedPillar)?.label}</h2>
+                  {kbLoading
+                    ? <p style={{ color: '#6e6e73', textAlign: 'center', padding: 40 }}>{L.kb.loading}</p>
+                    : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {kbFiles.map(file => (
+                        <div key={file.id} onClick={() => openKbDoc(file)} style={{ background: 'white', borderRadius: 14, padding: '16px 20px', cursor: 'pointer', border: '1px solid #e8e8ed', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div>
+                            <p style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', margin: '0 0 4px' }}>{file.title}</p>
+                            <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 8, background: file.source === 'FutureSkill' ? '#e8f0fe' : file.source === 'Prem' ? '#e6f9f0' : '#f0f0f5', color: file.source === 'FutureSkill' ? '#0066cc' : file.source === 'Prem' ? '#1a7f3c' : '#424245' }}>{file.source}</span>
+                          </div>
+                          <span style={{ fontSize: 12, color: '#0066cc', fontWeight: 600 }}>{lang === 'th' ? 'เปิดเอกสาร' : 'Open'} →</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* VIEW 2: File list in category */}
+              {kbView === 'files' && (
                 <div style={{ padding: '0' }}>
-                  {/* Detail header */}
                   <div style={{ padding: '16px 28px', background: 'white', borderBottom: '1px solid #e8e8ed', display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <button onClick={() => { setKbView('grid'); setKbContent(null) }} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#0066cc', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 10px', borderRadius: 10 }}>
+                    <button onClick={() => { setKbView('grid'); setKbFiles([]) }} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#0066cc', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 10px', borderRadius: 10 }}>
                       ← {lang === 'th' ? 'กลับ' : 'Back'}
                     </button>
                     <div style={{ width: 1, height: 20, background: '#e8e8ed' }} />
-                    {selectedItem && (() => {
-                      const meta = CAT_META[selectedItem.title] || { emoji: '📄', gradient: '', labelTh: selectedItem.title }
-                      const sc = SOURCE_COLOR[selectedItem.source] || SOURCE_COLOR.Team
-                      return (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
-                          <span style={{ fontSize: 22 }}>{meta.emoji}</span>
-                          <div>
-                            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#1d1d1f', margin: 0 }}>{lang === 'th' ? (meta.labelTh || selectedItem.title) : selectedItem.title}</h2>
-                            <div style={{ display: 'flex', gap: 8, marginTop: 3 }}>
-                              <span style={{ fontSize: 11, fontWeight: 600, padding: '1px 8px', borderRadius: 8, background: sc.bg, color: sc.text }}>📌 {sc.label}</span>
-                              {kbContent?.globalStandard && <span style={{ fontSize: 11, color: '#6e6e73' }}>{kbContent.globalStandard}</span>}
-                            </div>
-                          </div>
-                          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-                            {kbContent?.sourceUrl && (
-                              <a href={kbContent.sourceUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#0066cc', textDecoration: 'none', padding: '5px 12px', borderRadius: 12, border: '1px solid #0066cc' }}>
-                                {lang === 'th' ? 'ดูที่มา ↗' : 'Source ↗'}
-                              </a>
-                            )}
-                            <span onClick={() => fetch(`/api/kb-docs?action=open&file=${selectedItem.fileId}`)} style={{ fontSize: 12, color: '#6e6e73', padding: '5px 12px', borderRadius: 12, border: '1px solid #d2d2d7', cursor: 'pointer' }}>
-                              ✎ .md
-                            </span>
-                          </div>
+                    {(() => {
+                      const cat = kbCategories.find(c => c.id === selectedCatId)
+                      return cat ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{ fontSize: 22 }}>{cat.emoji}</span>
+                          <h2 style={{ fontSize: 17, fontWeight: 700, color: '#1d1d1f', margin: 0 }}>{cat.labelTh}</h2>
                         </div>
-                      )
+                      ) : null
                     })()}
                   </div>
+                  <div style={{ padding: '20px 28px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {kbLoading
+                      ? <p style={{ color: '#6e6e73', textAlign: 'center', padding: 40 }}>{L.kb.loading}</p>
+                      : kbFiles.map(file => (
+                        <div key={file.id} onClick={() => openKbDoc(file)} style={{ background: 'white', borderRadius: 16, padding: '16px 20px', cursor: 'pointer', border: '1px solid #e8e8ed', boxShadow: '0 1px 6px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ flex: 1 }}>
+                            <p style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', margin: '0 0 6px' }}>{file.title}</p>
+                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                              <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 8, background: file.source === 'FutureSkill' ? '#e8f0fe' : file.source === 'Prem' ? '#e6f9f0' : '#f0f0f5', color: file.source === 'FutureSkill' ? '#0066cc' : file.source === 'Prem' ? '#1a7f3c' : '#424245' }}>{file.source}</span>
+                              <span style={{ fontSize: 12, color: '#6e6e73' }}>
+                                {file.isCatalog ? `${file.linkCount} ${lang === 'th' ? 'คอร์ส' : 'courses'}` : `${file.wordCount} ${lang === 'th' ? 'คำ' : 'words'}`}
+                              </span>
+                            </div>
+                          </div>
+                          <span style={{ fontSize: 12, color: '#0066cc', fontWeight: 600, flexShrink: 0 }}>{lang === 'th' ? 'เปิดเอกสาร' : 'Open'} →</span>
+                        </div>
+                      ))
+                    }
+                  </div>
+                </div>
+              )}
 
-                  {/* Detail body */}
+              {/* VIEW 3: Document reader */}
+              {kbView === 'doc' && (
+                <div style={{ padding: '0' }}>
+                  {/* Doc header */}
+                  <div style={{ padding: '16px 28px', background: 'white', borderBottom: '1px solid #e8e8ed', display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <button onClick={() => { setKbView(selectedPillar === 'knowledge' ? 'files' : 'grid'); setKbDoc(null) }} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#0066cc', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 10px', borderRadius: 10 }}>
+                      ← {lang === 'th' ? 'กลับ' : 'Back'}
+                    </button>
+                    <div style={{ width: 1, height: 20, background: '#e8e8ed' }} />
+                    {selectedFile && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
+                        <div style={{ flex: 1 }}>
+                          <h2 style={{ fontSize: 17, fontWeight: 700, color: '#1d1d1f', margin: 0 }}>{selectedFile.title}</h2>
+                          <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 8, background: selectedFile.source === 'FutureSkill' ? '#e8f0fe' : selectedFile.source === 'Prem' ? '#e6f9f0' : '#f0f0f5', color: selectedFile.source === 'FutureSkill' ? '#0066cc' : selectedFile.source === 'Prem' ? '#1a7f3c' : '#424245' }}>{selectedFile.source}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          {kbDoc?.sourceUrl && (
+                            <a href={kbDoc.sourceUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#0066cc', textDecoration: 'none', padding: '5px 12px', borderRadius: 12, border: '1px solid #0066cc' }}>
+                              {lang === 'th' ? 'ดูที่มา ↗' : 'Source ↗'}
+                            </a>
+                          )}
+                          <span onClick={() => fetch(`/api/kb-docs?action=open&cat=${selectedFile.catId}&file=${encodeURIComponent(selectedFile.filename)}`)} style={{ fontSize: 12, color: '#6e6e73', padding: '5px 12px', borderRadius: 12, border: '1px solid #d2d2d7', cursor: 'pointer' }}>
+                            ✎ .md
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Doc body */}
                   <div style={{ padding: '24px 28px' }}>
-                    {kbContentLoading ? (
+                    {kbDocLoading ? (
                       <p style={{ color: '#6e6e73', textAlign: 'center', padding: 40 }}>{L.kb.loading}</p>
-                    ) : kbContent ? (
+                    ) : kbDoc ? (
                       <>
-                        {/* Course cards grid */}
-                        {kbContent.links && kbContent.links.length > 0 ? (
+                        {kbDoc.links && kbDoc.links.length > 0 ? (
                           <>
                             <p style={{ fontSize: 13, color: '#6e6e73', marginBottom: 16 }}>
-                              {kbContent.courseCount} {lang === 'th' ? 'คอร์ส' : 'courses'} {lang === 'th' ? 'ในหมวดนี้' : 'in this category'}
+                              {kbDoc.courseCount} {lang === 'th' ? 'คอร์สในหมวดนี้' : 'courses in this category'}
                             </p>
                             <div className="course-grid">
-                              {kbContent.links.map((lnk, i) => (
+                              {kbDoc.links.map((lnk, i) => (
                                 <div key={i} style={{ background: 'white', borderRadius: 16, padding: '16px', border: '1px solid #e8e8ed', boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
                                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                                    <span style={{ fontSize: 11, color: '#6e6e73', flexShrink: 0, marginTop: 2, minWidth: 22 }}>{i + 1}.</span>
+                                    <span style={{ fontSize: 11, color: '#6e6e73', flexShrink: 0, marginTop: 2, minWidth: 22 }}>{lnk.index}.</span>
                                     <div style={{ flex: 1 }}>
                                       <p style={{ fontSize: 13, fontWeight: 500, color: '#1d1d1f', margin: '0 0 10px', lineHeight: 1.45 }}>{lnk.name}</p>
                                       <a href={lnk.url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#0066cc', background: '#e8f0fe', padding: '4px 10px', borderRadius: 10, textDecoration: 'none', fontWeight: 600 }}>
-                                        {lang === 'th' ? 'ดูรายละเอียด ↗' : 'Learn more ↗'}
+                                        {lang === 'th' ? 'ดูคอร์ส ↗' : 'View course ↗'}
                                       </a>
                                     </div>
                                   </div>
@@ -604,9 +640,8 @@ export default function Dashboard() {
                             </div>
                           </>
                         ) : (
-                          /* Non-course content: render MD */
                           <div style={{ background: 'white', borderRadius: 16, padding: '24px', border: '1px solid #e8e8ed' }}>
-                            {renderMd(kbContent.content)}
+                            {renderMd(kbDoc.content)}
                           </div>
                         )}
                       </>
@@ -614,10 +649,10 @@ export default function Dashboard() {
                   </div>
                 </div>
               )}
+
             </div>
           </div>
-          )
-        })()}
+        )}
 
         {/* ── BROWSER ── */}
         {tab === 'browser' && (
