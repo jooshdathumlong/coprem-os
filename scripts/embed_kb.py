@@ -14,7 +14,7 @@ EMBED_MODEL = "nomic-embed-text"
 PG_HOST, PG_PORT, PG_DB = "localhost", "5432", "coprem_os"
 PG_USER = "coprem"
 
-DIFY_API_KEY = os.getenv("DIFY_KB_API_KEY") or os.getenv("DIFY_API_KEY", "")
+DIFY_API_KEY = ""  # resolved in main() after load_env()
 DIFY_BASE    = "https://api.dify.ai/v1"
 
 # KB datasets to embed: {dataset_id: (pillar, kb_id_label)}
@@ -85,9 +85,11 @@ def pg_upsert(pg_cid: str, content: str, pillar: str, kb_id: str, embedding: lis
     )
 
 def main():
+    global DIFY_API_KEY
     load_env()
+    DIFY_API_KEY = os.environ.get("DIFY_KB_API_KEY") or os.environ.get("DIFY_API_KEY", "")
     if not DIFY_API_KEY:
-        print("ERROR: DIFY_DATASET_KEY not set"); sys.exit(1)
+        print("ERROR: DIFY_KB_API_KEY not set in .env"); sys.exit(1)
 
     pg_cid = get_pg_container()
     print(f"Postgres container: {pg_cid[:12]}")
