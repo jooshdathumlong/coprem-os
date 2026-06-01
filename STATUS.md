@@ -620,3 +620,15 @@ PENDING ต่อ session หน้า:
 - WebSocket live status (replaces polling ทุก 30s)
 - Chaos experiment (kill n8n → verify auto-recovery)
 - PERSONAL pillar activation (1-Pillar Rule unlocked แล้ว)
+
+## 2026-06-02 Chaos Experiment — n8n Kill/Recovery
+| เวลา | Action | ผล |
+|---|---|---|
+| 2026-06-02 | Kill n8n (docker stop) | ✅ |
+| 2026-06-02 | SSE detect n8n=false | ✅ ภายใน 10s |
+| 2026-06-02 | Restart n8n (docker start) | ✅ |
+| 2026-06-02 | SSE detect n8n=true | ✅ ภายใน 10s |
+| 2026-06-02 | WF01 active after restart | ✅ |
+| 2026-06-02 | Telegram webhook survives restart | ✅ |
+
+RESULT: ระบบ self-recover ได้ 100% — WF01 + webhook active ทันทีหลัง n8n start
