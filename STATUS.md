@@ -721,3 +721,15 @@ PENDING ต่อ session หน้า:
 PENDING (ต้อง Prem):
 - กรอก 02-knowledge/work/business_context.md → รัน embed_kb.py
 - Jeff จะรู้ยอดขาย/OKR/แคมเปญจริงทันที
+
+## 2026-06-02 Session End — CLAUDE.md v8.4 + business_context
+| Action | ผล |
+|---|---|
+| CLAUDE.md: v8.4, Anti-Hallucination Rule, embed_kb paths, Month 4 ACTIVE | ✅ |
+| business_context.md: กรอกข้อมูลจาก SSOT + marketing plan | ✅ |
+| embed_kb.py: 116 segments → pgvector | ✅ |
+| TS: clean | ✅ |
+| Services: ทุกตัว UP | ✅ |
+
+PENDING (ต้อง Prem):
+- กรอกตัวเลขจริง (ยอดขาย/revenue/งบ) ใน business_context.md → รัน embed_kb.py

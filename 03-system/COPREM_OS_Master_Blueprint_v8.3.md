@@ -1225,3 +1225,16 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 - Version: v8.4 | All services UP | 15 active workflows
 - Phase 4 Agents: Marketing + Writing + Trading + Skill live in L1-C
 - prompt_library: 6 prompts (jeff v2.0/v2.1-shadow, eilinaire, marketing, writing, trading agents)
+
+---
+
+## Part 15 — Session 2026-06-02 (Session 13 — CLAUDE.md v8.4 + Anti-Hallucination)
+
+### Done
+- **CLAUDE.md v8.4:** header bumped, Anti-Hallucination Rule added (Section 5), embed_kb.py + business_context.md in Key Paths (Section 8), Month 4 ACTIVE (Section 12)
+- **business_context.md:** filled from royal-shammi-ssot.md + marketing-plan-2026-2027.md — Positioning, OKR, Q1-Q4 plan, budget split, target audience, competitors
+- **embed_kb.py:** re-run → 116 segments in pgvector ✅
+- **TS:** clean | Services: all UP
+
+### Pending
+- Prem กรอกตัวเลขจริง (ยอดขาย/revenue/งบ) ใน business_context.md → รัน embed_kb.py
