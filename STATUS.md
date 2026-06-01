@@ -372,3 +372,19 @@ GitHub CI  → coprem-mac runner
 | L3 JSON body invalid | Thai chars in context broke string interpolation | JSON.stringify($json) approach |
 | L1-C Respond invalid JSON | Thai dify_reply broke responseBody string | JSON.stringify in responseBody |
 | KB segments=0 from retrieve API | Dify Cloud free tier: no vector embedding | Use Segments API + keyword match instead |
+
+## Session 2026-06-01 Session 8 — Cron Cleanup + WF11 Fix
+
+| Time | Action | Result |
+|---|---|---|
+| 2026-06-01 09:33 | WF06 Health Ping | ✅ deactivated — no value |
+| 2026-06-01 09:33 | WF08 Self-Optimization Loop | ✅ deactivated — no value |
+| 2026-06-01 09:33 | WF11 DLQ Processor credential | ✅ swapped 226PbeVgki0neEi4 → rdxzBrj9putuOkku |
+| 2026-06-01 09:33 | Migrations 002-004 | ✅ applied to live DB |
+| 2026-06-01 09:33 | WF01 webhook test | ✅ WEBHOOK_RECEIVED logged in audit_log |
+
+## Architecture Decision
+
+- Cron workflows ยังคงไว้ — รันตอน Mac เปิด = on-demand by nature
+- WF06/WF08 ปิด (ไม่มีคุณค่า)
+- WF11 แก้ credential แล้ว รอ cron fire รอบถัดไป (ทุก 4h) เพื่อ verify
