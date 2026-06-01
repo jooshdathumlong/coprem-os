@@ -6,7 +6,7 @@
 ## 1. สถานะระบบตอนนี้
 
 **WF01 ทำงาน end-to-end สมบูรณ์** — Telegram → Jeff ตอบกลับได้จริง
-- Execution ล่าสุด: success, 24 nodes, 0 errors
+- Execution ล่าสุด: success, 39 nodes, 0 errors
 - Jeff ตอบได้ทั้ง Thai/English พร้อม KB context จาก Dify
 
 ---
@@ -18,7 +18,7 @@ Telegram Bot (@Coprem_Bot, chat_id: 7731591925)
   ↓ webhook POST https://n8n.peabuntid.com/webhook/telegram-coprem
 
 n8n 2.22.5 (localhost:5678 / n8n.peabuntid.com)
-  ↓ WF01 Inbox Receiver (ID: 4uVEG8SEM23BDrdu, 24 nodes)
+  ↓ WF01 Inbox Receiver (ID: 4uVEG8SEM23BDrdu, 39 nodes)
 
   L7 Security:
     → Audit WEBHOOK_RECEIVED (Postgres audit_log)
@@ -42,7 +42,7 @@ n8n 2.22.5 (localhost:5678 / n8n.peabuntid.com)
     → L3 Prepare (Code: select KB IDs by pillar)
     → L3 Fetch KB (HTTP → Dify datasets API)
     → L3 Get Segments (HTTP → Dify segments API, top 100)
-    → L3 Inject Context (Code: BM25 keyword match → top 3 chunks)
+    → L3 Inject Context (Code: pgvector semantic search (nomic-embed-text) → BM25 fallback → top 3 chunks)
     → L3 Build Body (Code: build L1-C request with context)
 
   L1-C + L2 + L2.5:
@@ -54,7 +54,7 @@ n8n 2.22.5 (localhost:5678 / n8n.peabuntid.com)
     → Log to Inbox (Postgres)
 
 LiteLLM (localhost:4000 / litellm.peabuntid.com)
-  routing: least-busy | cooldown: 60s | rpm_limit: 14/key | health_check_interval: 0
+  routing: usage-based-routing-v2 | cooldown: 60s | rpm_limit: 14/key | health_check_interval: 0
   → groq/llama-3.3-70b (PRIMARY — อยู่ position แรก) ✅
   → gemini-2.0-flash × 6 keys (rpm_limit:14) ✅
   → ollama/llama3.1:8b (Tier 3 local) ✅
@@ -98,7 +98,7 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 | WF10 — KB Sync (Auto-Librarian) | `FmX5xonGLsfnzrIG` | ✅ daily cron |
 | WF11 — DLQ Processor | `6ZnSJ4l9TqtKhJ0H` | ✅ |
 | WF12 — Memory TTL Enforcer | `B0Ev2dCDSmFsZiqW` | ✅ daily 03:00 |
-| WF13 — Discord Monitor | `YP5lk2C4gzJbTQJv` | ⏳ รอ DISCORD_WEBHOOK_* |
+| WF-HITL-Resolver | `DQh1dFrcWhwowtpj` | ✅ |
 | WF L8 — Daily Monitor Report | `fVDJvPERCO23iM4M` | ✅ |
 
 ---
@@ -116,10 +116,10 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 | L2 Eilinaire Agent | ✅ | PERSONAL pillar active |
 | L2 Ollama Tier 3 | ✅ | llama3.1:8b + qwen2.5:7b (num_ctx:4096) |
 | L2.5 Output Normalizer | ✅ | lang gate + length enforcer |
-| L3 KB Retrieval | ✅ | Dify Segments + BM25 keyword match |
+| L3 KB Retrieval | ✅ | pgvector semantic search (nomic-embed-text) → BM25 fallback |
 | L4 Content Library | ✅ | novels(1) + chapters(1) + characters(12/12) |
 | L5 Feedback Loop | ✅ | WF07+WF08 active |
-| L6 Cron 13/13 | ✅ | WF02-WF12 + WF L8 all active |
+| L6 Cron 12/12 | ✅ | WF02-WF12 + WF L8 all active |
 | L7 Security + HITL | ✅ | sig validation + HITL gate + audit log |
 | L8 Monitoring | ✅ | Daily report + Feedback Collector |
 | L9 Command Center | ✅ | Next.js port 3001 + chat sessions + SSE |
@@ -140,11 +140,11 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 Service API Key: ดูใน `.env` (DIFY_KB_API_KEY)
 
 **KB Routing:**
-- JOB → KB-04 + KB-05
-- PERSONAL → KB-01 + KB-05
-- CREATIVE → KB-02 + KB-05
-
-**Note:** Vector search ไม่ทำงาน (Dify free tier ไม่มี embedding) → ใช้ keyword matching แทน
+- JOB → KB-04 + KB-01
+- PERSONAL → KB-05 + KB-01
+- CREATIVE → KB-02 + KB-01
+- SKILL / COURSE / LEARNING → KB-06 + KB-04
+- TRADING → KB-03 + KB-05
 
 ---
 
@@ -179,8 +179,6 @@ Keys ที่สำคัญ (masked):
 - `DIFY_KB_API_KEY` — Dify Knowledge API key
 - `GROQ_API_KEY` — Groq fallback
 - `EILINAIRE_GOOGLE_API_KEY` + 5 more — Gemini keys
-- `DISCORD_BOT_TOKEN` — Jeff bot (MTU***TVlTg) | Guild: Coprem (1510190240248369212)
-- `DISCORD_WEBHOOK_*` — pending: สร้าง webhooks แล้วใส่ใน .env → activate WF13
 
 ### n8n Postgres Credential IDs
 - `226PbeVgki0neEi4` = Postgres COPREM (coprem_os)
@@ -193,9 +191,9 @@ Keys ที่สำคัญ (masked):
 | Tier | Trigger | Model |
 |---|---|---|
 | 0 | Normal | `gemini-2.0-flash` |
-| 1 | Cost >$1/day | `gemini-2.0-flash` |
-| 2 | Gemini throttled | `gemini-2.0-flash-lite` |
-| 3 | All cloud throttled | `ollama/llama3.1` (local, free) |
+| 1 | Cost >$1/day | `gemini-2.0-flash-lite` |
+| 2 | Gemini throttled | `groq/llama-3.3-70b` |
+| 3 | All cloud down | `ollama/llama3.1:8b` (local, free) |
 
 ---
 
@@ -307,7 +305,4 @@ ollama serve &
 | Shadow Testing 10% JOB traffic | ✅ |
 | WF10 KB auto-sync: KB_MAP + daily cron | ✅ |
 | L4 Ego Era: 12 characters + Ch.1 seeded | ✅ |
-| WF13 Discord Monitor: created | ✅ รอ webhook URLs |
-| Discord Bot Token: Jeff bot connected | ✅ MTU***TVlTg |
-
-**เหลือ:** ใส่ DISCORD_WEBHOOK_* ใน .env → activate WF13
+| WF13 Discord Monitor | ⛔ deactivated + renamed [INACTIVE] |
