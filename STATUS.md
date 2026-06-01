@@ -607,3 +607,16 @@ PENDING ต่อ session หน้า:
 
 | 2026-06-02 00:05 | CHAT: Jeff system prompt อ่าน work/ KB ทุกครั้ง — รู้จัก Royal Shammi, Batiste, Scrub Daddy | ✅ |
 | 2026-06-02 00:05 | Session End — จบ session | ✅ |
+
+## 2026-06-02 Session — Chat Sessions + Blueprint v8.3
+| เวลา | Action | ผล |
+|---|---|---|
+| 2026-06-02 | Chat Sessions: PostgreSQL tables + API routes + UI sidebar | ✅ |
+| 2026-06-02 | Chat sessions wire to Chat tab — ChatGPT-style session list | ✅ |
+| 2026-06-02 | Blueprint v8.3: L9 layer, Module 4 updated, DB schema, roadmap | ✅ |
+| 2026-06-02 | INDEX.md: v8.2 → v8.3 references updated | ✅ |
+
+PENDING ต่อ session หน้า:
+- WebSocket live status (replaces polling ทุก 30s)
+- Chaos experiment (kill n8n → verify auto-recovery)
+- PERSONAL pillar activation (1-Pillar Rule unlocked แล้ว)

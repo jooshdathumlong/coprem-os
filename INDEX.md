@@ -19,7 +19,7 @@
 | File | Purpose | How to Read |
 |------|---------|-------------|
 | `INDEX.md` | This file — map of everything | Full (short) |
-| `03-system/COPREM_OS_Master_Blueprint_v8.2.md` | Full system spec | `tail -30` for build log; `grep "## "` for TOC |
+| `03-system/COPREM_OS_Master_Blueprint_v8.3.md` | Full system spec | `tail -30` for build log; `grep "## "` for TOC |
 
 ---
 
@@ -47,7 +47,7 @@
 ## 03-system/ — COPREM OS Operational
 | File/Folder | Content | Status |
 |-------------|---------|--------|
-| `COPREM_OS_Master_Blueprint_v8.2.md` | Full system spec (v8.2) | ✅ CEO Approved |
+| `COPREM_OS_Master_Blueprint_v8.3.md` | Full system spec (v8.2) | ✅ CEO Approved |
 | `docker-compose.yml` | Docker stack: n8n+Postgres+Redis+Cloudflared | ✅ Live |
 | `database/schemas.sql` | 15 DB tables (full schema) | ✅ Created |
 | `workflows/specs/` | WF01–11 specifications (markdown) | Reference |
@@ -95,7 +95,7 @@ Next.js dashboard (localhost:3000) — live. Chat, KB, HITL, Status tabs.
 |------|-----------|
 | `CLAUDE.md` | Jeff brain — rules + context pyramid |
 | `STATUS.md` | Current state + next session tasks |
-| `03-system/COPREM_OS_Master_Blueprint_v8.2.md` | Full architecture spec |
+| `03-system/COPREM_OS_Master_Blueprint_v8.3.md` | Full architecture spec |
 | `03-system/database/schemas.sql` | All 15 DB table definitions |
 | `COPREM_Master_Context.md` | Full system snapshot — stack, KBs, scripts, quirks, session log |
 | `03-system/docker-compose.yml` | Docker stack config |
