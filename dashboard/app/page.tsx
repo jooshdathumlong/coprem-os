@@ -72,13 +72,17 @@ export default function Dashboard() {
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
   useEffect(() => { if (tab === 'kb') { fetchKB() } }, [tab, fetchKB])
 
-  useEffect(() => {
-    if (!selectedKb || tab !== 'kb') return
+  const loadKbSections = useCallback((kb: string) => {
     setKbLoading(true); setKbSections([]); setSelectedSection(''); setSectionContent('')
-    fetch(`/api/kb-docs?kb=${selectedKb}`).then(r => r.json())
+    fetch(`/api/kb-docs?kb=${kb}`).then(r => r.json())
       .then(data => { setKbSections(Array.isArray(data) ? data : []); setKbLoading(false) })
       .catch(() => setKbLoading(false))
-  }, [selectedKb, tab])
+  }, [])
+
+  useEffect(() => {
+    if (!selectedKb || tab !== 'kb') return
+    loadKbSections(selectedKb)
+  }, [selectedKb, tab, loadKbSections])
 
   useEffect(() => {
     if (!selectedSection) return
@@ -349,7 +353,7 @@ export default function Dashboard() {
                 <p style={{ fontSize: 11, color: '#6e6e73', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>Knowledge Base</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {['KB-06', 'COPREM'].map(id => (
-                    <button key={id} onClick={() => { setSelectedKb(id); setSelectedSection('') }} style={{
+                    <button key={id} onClick={() => { setSelectedKb(id); loadKbSections(id) }} style={{
                       width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 10, fontSize: 13, cursor: 'pointer', border: 'none', transition: 'all 0.15s',
                       background: selectedKb === id ? 'white' : 'transparent',
                       color: selectedKb === id ? '#0066cc' : '#424245',
@@ -365,11 +369,11 @@ export default function Dashboard() {
                 {kbLoading && <p style={{ color: '#6e6e73', fontSize: 13, padding: 12 }}>Loading...</p>}
                 {kbSections.map(s => (
                   <button key={s.title} onClick={() => setSelectedSection(s.title)} style={{
-                    width: '100%', textAlign: 'left', padding: '11px 14px', borderBottom: '1px solid #e8e8ed',
-                    background: selectedSection === s.title ? 'white' : 'transparent',
+                    width: '100%', textAlign: 'left', padding: '11px 14px',
+                    borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #e8e8ed',
                     borderLeft: selectedSection === s.title ? '3px solid #0066cc' : '3px solid transparent',
-                    cursor: 'pointer', border: 'none', transition: 'all 0.1s',
-                    borderBottomColor: '#e8e8ed', borderBottomWidth: 1, borderBottomStyle: 'solid'
+                    background: selectedSection === s.title ? 'white' : 'transparent',
+                    cursor: 'pointer', transition: 'all 0.1s',
                   }}>
                     <p style={{ fontSize: 13, color: '#1d1d1f', margin: 0 }}>{s.title}</p>
                     <p style={{ fontSize: 11, color: '#6e6e73', marginTop: 2, margin: 0 }}>{s.lines} lines</p>
