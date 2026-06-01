@@ -1,5 +1,5 @@
 # COPREM OS — Master Context
-> อัปเดต: 2026-06-02 | Version: Blueprint v8.3 | Status: **LIVE ✅** | Month 4 ACTIVE
+> อัปเดต: 2026-06-02 | Version: Blueprint v8.4 | Status: **LIVE ✅** | Month 4 ACTIVE — Phase 4 Agents
 
 ---
 
@@ -87,7 +87,7 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 | WF01 — Inbox Receiver | `4uVEG8SEM23BDrdu` | ✅ |
 | WF L1-C — Provider Router | `XUweHQoQ1fm34d01` | ✅ |
 | WF L1.5 — Session Manager | `2jU4tdTiP1lhNucK` | ✅ |
-| WF02 — Daily Morning Brief | `sou01B1RK3u5HZDV` | ✅ |
+| WF02 — Daily Morning Brief | `sou01B1RK3u5HZDV` | ✅ v2: tasks+HITL+OKR+date |
 | WF03 — Market Pulse Scanner | `HFKavzP2rQGrHYAS` | ✅ |
 | WF04 — Weekly OKR Review | `3cGfyp4wgNEXKkFu` | ✅ |
 | WF05 — HITL Decision Saver | `7699qQjwmPmkl5cZ` | ✅ |
@@ -95,7 +95,7 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 | WF07 — Feedback Collector | `uJVllR5FRNkYkwzS` | ✅ |
 | WF08 — Self-Optimization Loop | `NktiCpwAjT7wrGkj` | ✅ |
 | WF09 — Automated Backup | `TuPhYI81MjPd79ED` | ✅ |
-| WF10 — KB Sync (Auto-Librarian) | `FmX5xonGLsfnzrIG` | ✅ daily cron |
+| WF10 — KB Sync (Auto-Librarian) | `FmX5xonGLsfnzrIG` | ✅ daily cron + auto-embed after sync |
 | WF11 — DLQ Processor | `6ZnSJ4l9TqtKhJ0H` | ✅ |
 | WF12 — Memory TTL Enforcer | `B0Ev2dCDSmFsZiqW` | ✅ daily 03:00 |
 | WF-HITL-Resolver | `DQh1dFrcWhwowtpj` | ✅ |
@@ -114,6 +114,10 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 | L1.5 Session Context | ✅ | Redis TTL 30min + Postgres persist |
 | L2 Jeff Agent | ✅ | v2.0 prod + v2.1-shadow (10% traffic) |
 | L2 Eilinaire Agent | ✅ | PERSONAL pillar active |
+| L2 Marketing Agent | ✅ | domain=marketing → KB-01+KB-04 | propose-first behavior |
+| L2 Writing Agent | ✅ | domain=novel/story/chapter → KB-02 | section-by-section drafts |
+| L2 Trading Agent | ✅ | domain=trading → KB-03+KB-05 | analyst-only, no execution |
+| L2 Skill Agent | ✅ | domain=course/learning/data → KB-06+KB-04 | course recommendations |
 | L2 Ollama Tier 3 | ✅ | llama3.1:8b + qwen2.5:7b (num_ctx:4096) |
 | L2.5 Output Normalizer | ✅ | lang gate + length enforcer |
 | L3 KB Retrieval | ✅ | pgvector semantic search (nomic-embed-text) → BM25 fallback |
@@ -288,6 +292,7 @@ ollama serve &
 
 **Month 3 — COMPLETE ✅**
 **Month 4 — COMPLETE ✅** (Memory TTL + Shadow Testing + KB auto-sync + L4)
+**Phase 4 Agents — COMPLETE ✅** (Marketing + Writing + Trading + Skill agents live in L1-C)
 
 ## Session Log (2026-06-02)
 
