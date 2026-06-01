@@ -5,6 +5,7 @@ type HITLItem = { id: number; chat_id: string; message: string; created_at: stri
 type LatencyRow = { event_type: string; avg_ms: number; max_ms: number; requests: number; slow_count: number }
 type Status = { litellm: boolean; ollama: boolean; n8n: boolean; timestamp: string }
 type ChatMsg = { role: 'user' | 'assistant'; text: string; model?: string }
+type ChatSession = { id: number; title: string; created_at: string; updated_at: string }
 type Tab = 'chat' | 'hitl' | 'kb' | 'browser' | 'docs' | 'system' | 'sessions'
 type SessionStep = { time: string; action: string; result: string }
 type Session = { date: string; title: string; steps: SessionStep[] }
@@ -76,6 +77,8 @@ export default function Dashboard() {
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([])
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([])
+  const [activeChatSessionId, setActiveChatSessionId] = useState<number | null>(null)
   const [hitlItems, setHITLItems] = useState<HITLItem[]>([])
   const [latency, setLatency] = useState<LatencyRow[]>([])
   const [status, setStatus] = useState<Status | null>(null)
@@ -136,19 +139,41 @@ export default function Dashboard() {
       .catch(() => setKbDocLoading(false))
   }, [])
 
+  const loadChatSessions = useCallback(() => {
+    fetch('/api/chat-sessions').then(r => r.json()).then(d => setChatSessions(Array.isArray(d) ? d : [])).catch(() => {})
+  }, [])
+
+  const switchChatSession = useCallback((id: number) => {
+    setActiveChatSessionId(id)
+    fetch(`/api/chat-sessions/${id}`).then(r => r.json()).then(d => {
+      setChatMessages((d.messages || []).map((m: { role: string; text: string; model?: string }) => ({ role: m.role as 'user' | 'assistant', text: m.text, model: m.model })))
+    }).catch(() => {})
+  }, [])
+
+  const newChatSession = useCallback(async () => {
+    const res = await fetch('/api/chat-sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: 'New Chat' }) }).then(r => r.json())
+    if (res.id) { setChatMessages([]); setActiveChatSessionId(res.id); loadChatSessions() }
+  }, [loadChatSessions])
+
+  const deleteChatSession = useCallback(async (id: number) => {
+    await fetch('/api/chat-sessions', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    loadChatSessions()
+    if (activeChatSessionId === id) { setChatMessages([]); setActiveChatSessionId(null) }
+  }, [activeChatSessionId, loadChatSessions])
+
   useEffect(() => { fetchAll(); const t = setInterval(fetchAll, 30000); return () => clearInterval(t) }, [fetchAll])
 
   useEffect(() => {
+    if (tab === 'chat') loadChatSessions()
     if (tab === 'sessions') {
       fetch('/api/sessions').then(r => r.json()).then(d => { setSessions(d.sessions || []); setCommits(d.commits || []) }).catch(() => {})
     }
     if (tab === 'kb') {
       fetch(`/api/kb-docs?action=pillars&lang=${kbLang}`).then(r => r.json()).then(d => setKbPillars(Array.isArray(d) ? d : [])).catch(() => {})
       if (selectedPillar === 'knowledge') loadKbCategories()
-      // reload files if a category is open and lang changed
       if (selectedCatId && kbView !== 'grid') loadKbFiles(selectedCatId, kbLang)
     }
-  }, [tab, kbLang, loadKbCategories, loadKbFiles, selectedPillar, selectedCatId, kbView])
+  }, [tab, kbLang, loadKbCategories, loadKbFiles, loadChatSessions, selectedPillar, selectedCatId, kbView])
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
 
@@ -158,6 +183,17 @@ export default function Dashboard() {
     setChatInput('')
     setChatMessages(m => [...m, { role: 'user', text: msg }])
     setChatLoading(true)
+
+    // Ensure a session exists
+    let sid = activeChatSessionId
+    if (!sid) {
+      const s = await fetch('/api/chat-sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: 'New Chat' }) }).then(r => r.json()).catch(() => null)
+      if (s?.id) { sid = s.id; setActiveChatSessionId(s.id); loadChatSessions() }
+    }
+
+    // Save user message
+    if (sid) fetch(`/api/chat-sessions/${sid}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: 'user', content: msg, model, updateTitle: true }) }).catch(() => {})
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -171,6 +207,10 @@ export default function Dashboard() {
         replyText = replyText.split('\n')[0].replace(/litellm\.\w+:\s*/g, '')
       }
       setChatMessages(m => [...m, { role: 'assistant', text: replyText, model: data.model }])
+      // Save assistant reply
+      if (sid) fetch(`/api/chat-sessions/${sid}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: 'assistant', content: replyText, model: data.model || model }) }).catch(() => {})
+      // Refresh session list (title may have updated)
+      loadChatSessions()
     } catch (e) { setChatMessages(m => [...m, { role: 'assistant', text: `Error: ${e}` }]) }
     setChatLoading(false)
   }
@@ -302,7 +342,39 @@ export default function Dashboard() {
 
         {/* ── CHAT ── */}
         {tab === 'chat' && (
-          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <div style={{ display: 'flex', height: '100%' }}>
+
+            {/* Session sidebar */}
+            <div style={{ width: 220, borderRight: '1px solid #e8e8ed', background: '#f5f5f7', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+              <div style={{ padding: '12px 10px 8px' }}>
+                <button onClick={newChatSession} style={{ width: '100%', background: '#0066cc', color: 'white', border: 'none', borderRadius: 10, padding: '8px 0', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                  + {lang === 'th' ? 'แชทใหม่' : 'New Chat'}
+                </button>
+              </div>
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                {chatSessions.length === 0 && (
+                  <p style={{ fontSize: 12, color: '#6e6e73', textAlign: 'center', padding: '20px 12px' }}>{lang === 'th' ? 'ยังไม่มีประวัติ' : 'No history yet'}</p>
+                )}
+                {chatSessions.map(s => (
+                  <div key={s.id} onClick={() => switchChatSession(s.id)} style={{
+                    padding: '10px 10px 10px 12px', cursor: 'pointer', borderLeft: activeChatSessionId === s.id ? '3px solid #0066cc' : '3px solid transparent',
+                    background: activeChatSessionId === s.id ? 'white' : 'transparent',
+                    borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #e8e8ed',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6
+                  }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 12, fontWeight: activeChatSessionId === s.id ? 600 : 400, color: activeChatSessionId === s.id ? '#0066cc' : '#1d1d1f', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</p>
+                      <p style={{ fontSize: 10, color: '#6e6e73', margin: '2px 0 0' }}>{new Date(s.updated_at).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}</p>
+                    </div>
+                    <button onClick={e => { e.stopPropagation(); deleteChatSession(s.id) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6e6e73', fontSize: 14, padding: '2px 4px', borderRadius: 4, flexShrink: 0 }}
+                      onMouseEnter={e => (e.currentTarget.style.color = '#cc0000')} onMouseLeave={e => (e.currentTarget.style.color = '#6e6e73')}>×</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Chat main area */}
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
             {/* Model selector */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderBottom: '1px solid #e8e8ed', background: '#f5f5f7', overflowX: 'auto', flexShrink: 0 }}>
               <span style={{ fontSize: 12, color: '#6e6e73', flexShrink: 0, fontWeight: 500 }}>{L.chat.model}</span>
@@ -374,6 +446,7 @@ export default function Dashboard() {
                 }}>{L.chat.send}</button>
               </div>
             </div>
+            </div>{/* end chat main area */}
           </div>
         )}
 
