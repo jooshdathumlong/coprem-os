@@ -1,5 +1,5 @@
 # COPREM OS — Master Context
-> อัปเดต: 2026-06-02 | Version: Blueprint v8.3 | Status: **LIVE ✅** | Month 3 ACTIVE
+> อัปเดต: 2026-06-02 | Version: Blueprint v8.3 | Status: **LIVE ✅** | Month 4 ACTIVE
 
 ---
 
@@ -82,34 +82,47 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 
 ## 3. Active Workflow IDs
 
-| Workflow | ID |
-|---|---|
-| WF01 — Inbox Receiver | `4uVEG8SEM23BDrdu` |
-| WF L1-C — Provider Router | path: `/webhook/l1c-route` |
-| WF L1.5 — Session Manager | `2jU4tdTiP1lhNucK` |
-| WF02–WF11, L8 | ตาม STATUS.md |
+| Workflow | ID | Status |
+|---|---|---|
+| WF01 — Inbox Receiver | `4uVEG8SEM23BDrdu` | ✅ |
+| WF L1-C — Provider Router | `XUweHQoQ1fm34d01` | ✅ |
+| WF L1.5 — Session Manager | `2jU4tdTiP1lhNucK` | ✅ |
+| WF02 — Daily Morning Brief | `sou01B1RK3u5HZDV` | ✅ |
+| WF03 — Market Pulse Scanner | `HFKavzP2rQGrHYAS` | ✅ |
+| WF04 — Weekly OKR Review | `3cGfyp4wgNEXKkFu` | ✅ |
+| WF05 — HITL Decision Saver | `7699qQjwmPmkl5cZ` | ✅ |
+| WF06 — Health Ping | `XOwT8imiSTKWDJDf` | ✅ |
+| WF07 — Feedback Collector | `uJVllR5FRNkYkwzS` | ✅ |
+| WF08 — Self-Optimization Loop | `NktiCpwAjT7wrGkj` | ✅ |
+| WF09 — Automated Backup | `TuPhYI81MjPd79ED` | ✅ |
+| WF10 — KB Sync (Auto-Librarian) | `FmX5xonGLsfnzrIG` | ✅ daily cron |
+| WF11 — DLQ Processor | `6ZnSJ4l9TqtKhJ0H` | ✅ |
+| WF12 — Memory TTL Enforcer | `B0Ev2dCDSmFsZiqW` | ✅ daily 03:00 |
+| WF13 — Discord Monitor | `YP5lk2C4gzJbTQJv` | ⏳ รอ DISCORD_WEBHOOK_* |
+| WF L8 — Daily Monitor Report | `fVDJvPERCO23iM4M` | ✅ |
 
 ---
 
-## 4. Blueprint Layer Status (v8.3 — 10 layers)
+## 4. Blueprint Layer Status (v8.3 — 10 layers COMPLETE)
 
-| Layer | Status |
-|---|---|
-| L0 Telegram Inbox | ✅ |
-| L1-A Preprocessor | ✅ |
-| L1-B Intent Classifier (LLM) | ✅ |
-| L1-C Provider Router (Tier 0-3) | ✅ |
-| L1.5 Session Context (Redis+Postgres) | ✅ |
-| L2 Jeff Agent (LiteLLM + system prompt) | ✅ |
-| L2 Ollama Tier 3 (llama3.1 + qwen2.5) | ✅ |
-| L2.5 Output Normalizer | ✅ |
-| L3 KB Retrieval (Dify Segments + BM25) | ✅ |
-| L4 Content Library | ✅ |
-| L5 Feedback Loop | ✅ |
-| L6 Cron 11/11 | ✅ |
-| L7 Security + HITL Gate | ✅ |
-| L8 Monitoring | ✅ |
-| L9 Command Center Dashboard (Next.js port 3001) | ✅ NEW v8.3 |
+| Layer | Status | รายละเอียด |
+|---|---|---|
+| L0 Telegram Inbox | ✅ | @Coprem_Bot webhook live |
+| L1-A Preprocessor | ✅ | dedup + lang detect + sig validation |
+| L1-B Intent Classifier | ✅ | pillar/domain/confidence/hitl via LiteLLM |
+| L1-C Provider Router | ✅ | Tier 0-3 + Shadow Testing 10% |
+| L1.5 Session Context | ✅ | Redis TTL 30min + Postgres persist |
+| L2 Jeff Agent | ✅ | v2.0 prod + v2.1-shadow (10% traffic) |
+| L2 Eilinaire Agent | ✅ | PERSONAL pillar active |
+| L2 Ollama Tier 3 | ✅ | llama3.1:8b + qwen2.5:7b (num_ctx:4096) |
+| L2.5 Output Normalizer | ✅ | lang gate + length enforcer |
+| L3 KB Retrieval | ✅ | Dify Segments + BM25 keyword match |
+| L4 Content Library | ✅ | novels(1) + chapters(1) + characters(12/12) |
+| L5 Feedback Loop | ✅ | WF07+WF08 active |
+| L6 Cron 13/13 | ✅ | WF02-WF12 + WF L8 all active |
+| L7 Security + HITL | ✅ | sig validation + HITL gate + audit log |
+| L8 Monitoring | ✅ | Daily report + Feedback Collector |
+| L9 Command Center | ✅ | Next.js port 3001 + chat sessions + SSE |
 
 ---
 
@@ -166,6 +179,8 @@ Keys ที่สำคัญ (masked):
 - `DIFY_KB_API_KEY` — Dify Knowledge API key
 - `GROQ_API_KEY` — Groq fallback
 - `EILINAIRE_GOOGLE_API_KEY` + 5 more — Gemini keys
+- `DISCORD_BOT_TOKEN` — Jeff bot (MTU***TVlTg) | Guild: Coprem (1510190240248369212)
+- `DISCORD_WEBHOOK_*` — pending: สร้าง webhooks แล้วใส่ใน .env → activate WF13
 
 ### n8n Postgres Credential IDs
 - `226PbeVgki0neEi4` = Postgres COPREM (coprem_os)
@@ -190,8 +205,11 @@ Keys ที่สำคัญ (masked):
 users, audit_log, inbox_log, dedup_cache, session_store,
 rate_limit_registry, blocked_ips, failed_tasks_db, quarantine_db,
 task_board, okr_scoreboard, market_signal_log, kb_sync_log,
-prompt_library, decision_memory_log, memory_embeddings (pgvector),
-chat_sessions, chat_messages  ← NEW v8.3 (L9 Dashboard persistent chat history)
+prompt_library (jeff v2.0✅ / v2.1-shadow✅ / eilinaire v1.0✅),
+decision_memory_log (TTL 90d, auto-archive via WF12),
+memory_embeddings (pgvector),
+chat_sessions, chat_messages,   ← v8.3 Dashboard
+novels(1), chapters(1), character_tracker(12/12)  ← L4 Ego Era
 ```
 
 ---
@@ -270,22 +288,26 @@ ollama serve &
 | 17:10 | CLAUDE.md updated | Auto-Update Rule + Token Diet Rules enforced |
 | 17:20 | Memory: feedback_litellm_health | ห้ามเรียก /health — ใช้ /health/liveliness เท่านั้น |
 
-**Month 3 Backlog (ACTIVE):**
-- Next.js Dashboard ✅ | Chat sessions ✅ | SSE live status ✅ | Chaos experiment ✅
-- FutureSkill KB-06: ✅ DONE — Postgres 584 rows + KB-06.md (88KB) + Dify indexed
-- **NEXT:** Ollama tuning | PERSONAL pillar activation
-| 04:30 | Timezone fix (GENERIC_TIMEZONE=Asia/Bangkok) | ✅ |
-
-## Session Log (2026-06-01)
-
-| 2026-06-01 | Phase 1–4 Complete | T1-T5 tactical + S1-S7 structural + Dashboard + 3 Agents |
-| 2026-06-01 | Dashboard v2 | 6 tabs: Chat(model selector) / HITL / KB / Browser / Docs / System |
+**Month 3 — COMPLETE ✅**
+**Month 4 — COMPLETE ✅** (Memory TTL + Shadow Testing + KB auto-sync + L4 + Discord infra)
 
 ## Session Log (2026-06-02)
 
-| 2026-06-02 | Chat sessions sidebar (ChatGPT-style) | ✅ PostgreSQL + API + UI sidebar |
-| 2026-06-02 | Blueprint v8.3 | ✅ L9 layer, Module 4, DB schema, roadmap updated |
-| 2026-06-02 | SSE live status (/api/status-stream) | ✅ 10s push replaces 30s polling |
-| 2026-06-02 | Chaos experiment (n8n kill/recovery) | ✅ SSE detect DOWN+UP <10s, WF01 survives |
-| 2026-06-01 | Mac Launcher | COPREM OS.app + start_coprem.sh on Desktop |
-| 2026-06-01 | Semantic Search | nomic-embed-text 116 segments in pgvector |
+| งาน | ผล |
+|---|---|
+| Chat sessions sidebar (ChatGPT-style) | ✅ |
+| Blueprint v8.3 (L9, Module 4, DB schema) | ✅ |
+| SSE live status — server push 10s | ✅ |
+| Chaos experiment (n8n kill/recovery <10s) | ✅ |
+| PERSONAL pillar + Eilinaire agent live | ✅ |
+| WF06+WF08 activated (12/12 workflows) | ✅ |
+| Ollama llama3.1:8b + qwen2.5:7b (tuned) | ✅ |
+| WF12 Memory TTL Enforcer (daily 03:00) | ✅ |
+| Prompt Library: jeff v2.0/v2.1-shadow/eilinaire v1.0 | ✅ |
+| Shadow Testing 10% JOB traffic | ✅ |
+| WF10 KB auto-sync: KB_MAP + daily cron | ✅ |
+| L4 Ego Era: 12 characters + Ch.1 seeded | ✅ |
+| WF13 Discord Monitor: created | ✅ รอ webhook URLs |
+| Discord Bot Token: Jeff bot connected | ✅ MTU***TVlTg |
+
+**เหลือ:** ใส่ DISCORD_WEBHOOK_* ใน .env → activate WF13
