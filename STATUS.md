@@ -583,3 +583,8 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 | 2026-06-01 23:xx | KB UI: Bento grid → File list → Document reader (3-level navigation) | DONE |
 | 2026-06-01 23:xx | HITL: Kanban board (รอตอบ | เสร็จแล้ว) | DONE |
 | 2026-06-01 23:xx | I18N: TH/EN toggle, kbLang syncs with lang | DONE |
+
+| 2026-06-01 23:45 | KB TH: futureskill-catalog-th.md สร้างทุก 15 หมวด — ชื่อคอร์สไทย | DONE |
+| 2026-06-01 23:45 | KB courses index: 478 ไฟล์ index title→filename | DONE |
+| 2026-06-01 23:45 | KB course-doc API: fuzzy match → serve .md จาก courses/ | DONE |
+| 2026-06-01 23:45 | Session End: services UP, TS clean | ✅ |
