@@ -45,3 +45,5 @@ Thai/
 _archive/
 # blobs/ and manifests/ moved to ~/.ollama/models/ (2026-06-01)
 Futureskill/*.zip
+Futureskill/*/
+Futureskill/*.pdf
