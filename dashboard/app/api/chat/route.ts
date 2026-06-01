@@ -39,23 +39,37 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Auto mode: go through WF01 pipeline (session memory + KB context + audit)
-  const payload = {
-    body: {
-      message: {
-        text: message,
-        from: { id: 7731591925, first_name: 'Dashboard', username: 'dashboard' },
-        chat: { id: 7731591925 }
+  // Auto mode: call LiteLLM directly with auto model selection (Gemini Flash → Groq fallback)
+  const autoModels = ['gemini-2.0-flash', 'groq/llama-3.3-70b', 'gemini-2.0-flash-lite']
+  try {
+    const { execSync } = await import('child_process')
+    const key = execSync(`grep LITELLM_MASTER_KEY /Users/eilinaire/Desktop/Coprem/.env | cut -d= -f2`, { encoding: 'utf8' }).trim()
+    let lastError = ''
+    for (const autoModel of autoModels) {
+      try {
+        const res = await fetch(LITELLM_URL, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: autoModel,
+            messages: [
+              { role: 'system', content: SYSTEM_PROMPT },
+              { role: 'user', content: message }
+            ],
+            max_tokens: 1200,
+            temperature: 0.7
+          }),
+          signal: AbortSignal.timeout(30000)
+        })
+        const data = await res.json()
+        const reply = data?.choices?.[0]?.message?.content
+        if (reply) return NextResponse.json({ reply, model: autoModel, source: 'litellm-auto' })
+        lastError = data?.error?.message || 'no reply'
+      } catch (e) {
+        lastError = e instanceof Error ? e.message : String(e)
       }
     }
-  }
-  try {
-    const res = await fetch(N8N_WEBHOOK, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload), signal: AbortSignal.timeout(30000)
-    })
-    const text = await res.text()
-    return NextResponse.json({ reply: text || '(ไม่มีการตอบกลับ)', model: 'auto (Jeff)', source: 'wf01' })
+    return NextResponse.json({ error: lastError }, { status: 502 })
   } catch (e: unknown) {
     return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 })
   }

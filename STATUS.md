@@ -536,3 +536,23 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 | 2026-06-01 | Mac Launcher | COPREM OS.app บน Desktop + scripts/start_coprem.sh + stop_coprem.sh |
 | 2026-06-01 | Documentation | Tab คู่มือภาษาไทยใน Dashboard |
 | 2026-06-01 | Model selector | Chat panel เลือก AI model ได้ 6 ตัว (Auto/Gemini/Groq/Ollama) |
+
+---
+## 2026-06-01 Session End
+
+| เวลา | Action | ผล |
+|---|---|---|
+| 19:xx | Dashboard: Dify links → cloud.dify.ai | ✅ |
+| 19:xx | LiteLLM: symlink .env + DATABASE_URL (litellm DB แยก) | ✅ Login ได้ |
+| 19:xx | Chat: Jeff Auto → LiteLLM direct (Gemini→Groq fallback) | ✅ ไม่แสดง Workflow JSON |
+| 19:xx | Chat: error display clean (Gemini quota → ข้อความสั้น) | ✅ |
+| 19:xx | KB: renderMd → table HTML + [link](url) clickable | ✅ |
+| 19:xx | Browser tab: ลบ iframe → Quick Links page | ✅ |
+| 19:xx | COPREM_Reference_Guide.md: ปรับ minimal | ✅ |
+
+| BUG | ROOT | FIX |
+|---|---|---|
+| LiteLLM login ไม่ได้ | docker-compose ใน 03-system/ ไม่เห็น root .env | symlink 03-system/.env → ../.env |
+| LiteLLM "No connected db" | ไม่มี DATABASE_URL + ใช้ coprem_os DB ที่มีตารางอื่น | สร้าง DB litellm แยก + inject env |
+| Jeff Auto ตอบ {"message":"Workflow was started"} | n8n webhook async ส่งผลไป Telegram | เปลี่ยน Auto → LiteLLM direct |
+| Browser iframe ขาว | X-Frame-Options block ทุกเว็บ | ลบ iframe ใส่ Quick Links แทน |

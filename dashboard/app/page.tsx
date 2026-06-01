@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 
 type HITLItem = { id: number; chat_id: string; message: string; created_at: string; resolved_at: string | null; resolution: string | null }
 type LatencyRow = { event_type: string; avg_ms: number; max_ms: number; requests: number; slow_count: number }
@@ -57,6 +57,7 @@ export default function Dashboard() {
   const [browserUrl, setBrowserUrl] = useState('http://localhost:5678')
   const [browserInput, setBrowserInput] = useState('http://localhost:5678')
   const [browserKey, setBrowserKey] = useState(0)
+  const [iframeBlocked, setIframeBlocked] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
@@ -111,7 +112,13 @@ export default function Dashboard() {
         body: JSON.stringify({ message: msg, model })
       })
       const data = await res.json()
-      setChatMessages(m => [...m, { role: 'assistant', text: data.reply || data.error || '(ไม่มีการตอบกลับ)', model: data.model }])
+      let replyText = data.reply || data.error || '(ไม่มีการตอบกลับ)'
+      if (replyText.includes('RateLimitError') || replyText.includes('RESOURCE_EXHAUSTED')) {
+        replyText = '⚠️ Quota หมดสำหรับโมเดลนี้ — ลองโมเดลอื่นครับ (Groq 70B ยังใช้ได้)'
+      } else if (replyText.includes('litellm.') && replyText.length > 200) {
+        replyText = '⚠️ ' + replyText.split('\n')[0].replace(/litellm\.\w+:\s*/g, '')
+      }
+      setChatMessages(m => [...m, { role: 'assistant', text: replyText, model: data.model }])
     } catch (e) { setChatMessages(m => [...m, { role: 'assistant', text: `⚠️ Error: ${e}` }]) }
     setChatLoading(false)
   }
@@ -125,19 +132,63 @@ export default function Dashboard() {
   function navigate(url?: string) {
     const target = url || browserInput
     const full = target.startsWith('http') ? target : `https://${target}`
-    setBrowserUrl(full); setBrowserInput(full); setBrowserKey(k => k + 1)
+    setBrowserUrl(full); setBrowserInput(full); setBrowserKey(k => k + 1); setIframeBlocked(false)
+  }
+
+  function inlineMd(text: string, key?: string | number): React.ReactNode {
+    const parts: React.ReactNode[] = []
+    const re = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)|(\*\*([^*]+)\*\*)/g
+    let last = 0, m: RegExpExecArray | null
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > last) parts.push(text.slice(last, m.index))
+      if (m[1]) parts.push(<a key={m.index} href={m[2]} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300 underline">{m[1]}</a>)
+      else if (m[4]) parts.push(<strong key={m.index} className="text-white font-semibold">{m[4]}</strong>)
+      last = m.index + m[0].length
+    }
+    if (last < text.length) parts.push(text.slice(last))
+    return <span key={key}>{parts}</span>
   }
 
   function renderMd(text: string) {
-    return text.split('\n').map((line, i) => {
-      if (line.startsWith('## ')) return <h2 key={i} className="text-base font-bold text-white mt-5 mb-2">{line.slice(3)}</h2>
-      if (line.startsWith('# ')) return <h1 key={i} className="text-lg font-bold text-blue-300 mt-4 mb-2">{line.slice(2)}</h1>
-      if (line.startsWith('> ')) return <p key={i} className="text-gray-400 italic border-l-2 border-gray-600 pl-3 my-1 text-sm">{line.slice(2)}</p>
-      if (line.startsWith('| ')) return <p key={i} className="text-xs text-gray-300 font-mono leading-relaxed">{line}</p>
-      if (line.startsWith('- ') || line.startsWith('* ')) return <p key={i} className="text-sm text-gray-300 ml-3">• {line.slice(2)}</p>
-      if (!line.trim()) return <div key={i} className="h-2" />
-      return <p key={i} className="text-sm text-gray-300 leading-relaxed">{line}</p>
-    })
+    const lines = text.split('\n')
+    const out: React.ReactNode[] = []
+    let i = 0
+    while (i < lines.length) {
+      const line = lines[i]
+      if (line.startsWith('## ')) { out.push(<h2 key={i} className="text-base font-bold text-white mt-5 mb-2">{line.slice(3)}</h2>); i++; continue }
+      if (line.startsWith('# ')) { out.push(<h1 key={i} className="text-lg font-bold text-blue-300 mt-4 mb-2">{line.slice(2)}</h1>); i++; continue }
+      if (line.startsWith('> ')) { out.push(<p key={i} className="text-gray-400 italic border-l-2 border-gray-600 pl-3 my-1 text-sm">{inlineMd(line.slice(2))}</p>); i++; continue }
+      if (line.startsWith('- ') || line.startsWith('* ')) { out.push(<p key={i} className="text-sm text-gray-300 ml-3">• {inlineMd(line.slice(2))}</p>); i++; continue }
+      if (line.startsWith('| ')) {
+        const tableLines: string[] = []
+        while (i < lines.length && lines[i].startsWith('| ')) { tableLines.push(lines[i]); i++ }
+        const rows = tableLines.filter(l => !l.match(/^\|[\s|-]+\|$/))
+        out.push(
+          <div key={`t${i}`} className="overflow-x-auto my-3">
+            <table className="w-full text-xs text-left border-collapse">
+              <tbody>
+                {rows.map((row, ri) => {
+                  const cells = row.split('|').slice(1, -1)
+                  const isHeader = ri === 0
+                  return (
+                    <tr key={ri} className={ri % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800/50'}>
+                      {cells.map((cell, ci) => isHeader
+                        ? <th key={ci} className="px-2 py-1 text-gray-400 font-semibold border-b border-gray-700 whitespace-nowrap">{cell.trim()}</th>
+                        : <td key={ci} className="px-2 py-1 text-gray-300 border-b border-gray-800">{inlineMd(cell.trim(), ci)}</td>
+                      )}
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )
+        continue
+      }
+      if (!line.trim()) { out.push(<div key={i} className="h-2" />); i++; continue }
+      out.push(<p key={i} className="text-sm text-gray-300 leading-relaxed">{inlineMd(line)}</p>); i++
+    }
+    return out
   }
 
   const pending = hitlItems.filter(i => !i.resolved_at)
@@ -313,36 +364,50 @@ export default function Dashboard() {
 
         {/* ── BROWSER ── */}
         {tab === 'browser' && (
-          <div className="flex flex-col h-full">
-            {/* URL bar */}
+          <div className="flex flex-col h-full overflow-y-auto">
+            {/* Search bar */}
             <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-800 bg-gray-900 shrink-0">
-              <button onClick={() => iframeRef.current && (iframeRef.current.src = iframeRef.current.src)} className="text-gray-400 hover:text-white text-lg px-1">↻</button>
-              <div className="flex gap-1.5 shrink-0">
-                {BOOKMARKS.map(b => (
-                  <button key={b.label} onClick={() => navigate(b.url)} className="text-xs text-gray-400 hover:text-white px-2 py-1 rounded border border-gray-800 hover:border-gray-600 transition whitespace-nowrap">{b.label}</button>
-                ))}
-              </div>
               <div className="flex gap-2 flex-1">
                 <input value={browserInput} onChange={e => setBrowserInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && navigate()}
-                  placeholder="พิมพ์ URL... (Enter ไป)"
+                  onKeyDown={e => { if (e.key === 'Enter') { const q = browserInput.trim(); const url = q.startsWith('http') ? q : `https://www.google.com/search?q=${encodeURIComponent(q)}`; window.open(url, '_blank') } }}
+                  placeholder="ค้นหาหรือพิมพ์ URL แล้วกด Enter เพื่อเปิดแท็บใหม่..."
                   className="flex-1 bg-gray-800 text-sm text-white px-3 py-1.5 rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500 min-w-0" />
-                <button onClick={() => navigate()} className="bg-blue-600 hover:bg-blue-500 text-white text-sm px-4 py-1.5 rounded-lg transition whitespace-nowrap">ไป</button>
+                <button onClick={() => { const q = browserInput.trim(); const url = q.startsWith('http') ? q : `https://www.google.com/search?q=${encodeURIComponent(q)}`; window.open(url, '_blank') }} className="bg-blue-600 hover:bg-blue-500 text-white text-sm px-4 py-1.5 rounded-lg transition whitespace-nowrap">↗ เปิด</button>
               </div>
             </div>
-            {/* Iframe */}
-            <div className="flex-1 relative bg-white">
-              <iframe
-                key={browserKey}
-                ref={iframeRef}
-                src={browserUrl}
-                className="w-full h-full border-0"
-                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads"
-                title="browser"
-              />
-              {/* Overlay message for blocked sites */}
-              <div className="absolute bottom-3 right-3 bg-black/60 text-gray-400 text-xs px-3 py-1.5 rounded-lg pointer-events-none">
-                บางเว็บอาจไม่แสดงเนื่องจาก X-Frame-Options
+            {/* Quick links grid */}
+            <div className="p-6 space-y-6">
+              <div>
+                <p className="text-xs text-gray-500 mb-3 uppercase tracking-wider">ระบบ COPREM</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: '⚙ n8n Workflows', url: 'http://localhost:5678/workflows', desc: 'จัดการ Workflow อัตโนมัติ' },
+                    { label: '📊 LiteLLM UI', url: 'http://localhost:4000/ui', desc: 'ตรวจสอบโมเดล + ค่าใช้จ่าย' },
+                    { label: '📚 Dify Datasets', url: 'https://cloud.dify.ai/datasets', desc: 'จัดการชุดข้อมูล Dify' },
+                    { label: '🤖 Dify Apps', url: 'https://cloud.dify.ai/apps', desc: 'แอป AI บน Dify' },
+                  ].map(({ label, url, desc }) => (
+                    <button key={label} onClick={() => window.open(url, '_blank')} className="text-left bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-500 rounded-xl p-4 transition group">
+                      <div className="text-sm font-medium text-white group-hover:text-blue-300">{label} ↗</div>
+                      <div className="text-xs text-gray-500 mt-1">{desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-3 uppercase tracking-wider">ทั่วไป</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: '🔍 Google', url: 'https://www.google.com', desc: 'ค้นหาข้อมูล' },
+                    { label: '💻 GitHub', url: 'https://github.com', desc: 'Source code' },
+                    { label: '📖 NotebookLM', url: 'https://notebooklm.google.com', desc: 'AI Knowledge Base' },
+                    { label: '🎓 FutureSkill', url: 'https://learn.futureskill.co', desc: 'คอร์สเรียนออนไลน์' },
+                  ].map(({ label, url, desc }) => (
+                    <button key={label} onClick={() => window.open(url, '_blank')} className="text-left bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-500 rounded-xl p-4 transition group">
+                      <div className="text-sm font-medium text-white group-hover:text-blue-300">{label} ↗</div>
+                      <div className="text-xs text-gray-500 mt-1">{desc}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -419,7 +484,7 @@ export default function Dashboard() {
             <div className="bg-gray-900 rounded-xl p-5">
               <h2 className="font-semibold mb-3">เปิดระบบ</h2>
               <div className="grid grid-cols-2 gap-2">
-                {[['⚙ n8n Workflows','http://localhost:5678/workflows'],['📊 LiteLLM UI','http://localhost:4000/ui'],['📚 Dify Datasets','http://localhost/datasets'],['🤖 Dify Apps','http://localhost/apps']].map(([l,u])=>(
+                {[['⚙ n8n Workflows','http://localhost:5678/workflows'],['📊 LiteLLM UI','http://localhost:4000/ui'],['📚 Dify Datasets','https://cloud.dify.ai/datasets'],['🤖 Dify Apps','https://cloud.dify.ai/apps']].map(([l,u])=>(
                   <a key={l} href={u} target="_blank" rel="noreferrer" className="text-sm text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 px-4 py-3 rounded-lg border border-gray-700 transition">{l}</a>
                 ))}
               </div>
