@@ -1172,3 +1172,21 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 - Pillars: JOB + PERSONAL active | CREATIVE suspended
 - Month 3: ALL targets complete ✅
 
+
+---
+
+## Part 15 — Session 2026-06-02 (Session 10 — Month 4 Features)
+
+### Done
+- **WF12 Memory TTL Enforcer:** created + active — daily 03:00 cron, archives expired decision_memory_log entries to audit_log
+- **Prompt Library seeded:** jeff v2.0 (active) + jeff v2.1-shadow (shadow) + eilinaire v1.0 (active)
+- **Prompt Shadow Testing (L5):** 10% of JOB traffic uses jeff v2.1-shadow prompt — tagged `shadow_test:true` in L1-C output
+- **WF10 KB Auto-Sync:** KB_MAP updated (KB-01 to KB-06 with Dify dataset IDs), daily cron trigger added — 8 nodes
+- **`coprem memory.audit`:** upgraded to archive expired entries (was SELECT-only)
+
+### System State
+- Workflows: 13 active (WF01-WF12 + WF L1-C + WF L1.5 + WF L8)
+- Prompt Library: jeff v2.0 prod | jeff v2.1 shadow (10% traffic) | eilinaire v1.0 prod
+- KB Auto-sync: daily cron active → Dify datasets KB-01 to KB-06
+- Memory TTL: daily 03:00 auto-archive expired entries
+- Month 4: KB auto-sync ✅ | Memory TTL ✅ | Prompt Shadow Testing ✅

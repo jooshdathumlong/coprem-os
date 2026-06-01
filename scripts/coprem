@@ -103,7 +103,11 @@ case "${1:-help}" in
 
   memory.audit)
     echo "🔍 Running 90-day TTL audit..."
-    run_sql "SELECT id, decision, created_at, expires_at FROM decision_memory_log WHERE expires_at < NOW() AND archived = false ORDER BY expires_at ASC;"
+    EXPIRED=$(run_sql "SELECT COUNT(*) FROM decision_memory_log WHERE expires_at < NOW() AND archived = false;")
+    echo "Expired entries: $EXPIRED"
+    run_sql "UPDATE decision_memory_log SET archived = true WHERE expires_at < NOW() AND archived = false;"
+    echo "✅ Archived $EXPIRED expired entries"
+    run_sql "SELECT agent, version, is_active, feedback_avg, shadow_score FROM prompt_library ORDER BY agent, version;"
     ;;
 
   # ── Prompts ───────────────────────────────
