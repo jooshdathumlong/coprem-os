@@ -159,7 +159,7 @@ export async function GET(req: NextRequest) {
         sourceUrl: found.firstCourseUrl || meta?.sourceUrl || null,
         globalStandard: found.globalStandard,
         courseCount: found.courseCount,
-        links: links.slice(0, 20), // top 20 links for extras panel
+        links, // all course links
       })
     }
 

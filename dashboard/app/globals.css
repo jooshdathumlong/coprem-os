@@ -1,3 +1,43 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+* { box-sizing: border-box; }
+
+/* Bento card hover */
+.bento-card { transition: transform 0.18s ease, box-shadow 0.18s ease; }
+.bento-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.10) !important; }
+
+/* Responsive bento grid */
+.bento-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width: 900px) {
+  .bento-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .bento-grid { grid-template-columns: 1fr; }
+}
+
+/* Course detail grid */
+.course-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (max-width: 700px) {
+  .course-grid { grid-template-columns: 1fr; }
+}
+
+/* Kanban columns */
+.kanban-board {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
+  align-items: start;
+}
+@media (max-width: 640px) {
+  .kanban-board { grid-template-columns: 1fr; }
+}
