@@ -40,7 +40,7 @@
 | `trading/` | Investment research | KB-03 |
 | `job/` | Marketing + Ops dept knowledge | KB-04 |
 | `personal/` | Mindset, learning, me SSOT + prem-profile | — |
-| `Futureskill/kb/` | 584 คอร์ส จัดหมวด 14 categories (PENDING — Prem กำลังจัด) | KB-06 (planned) |
+| `Futureskill/kb/` | 584 คอร์ส จัดหมวด 14 categories (PENDING — Prem กำลังจัด) | KB-06 ACTIVE — 457 courses ✅ |
 | `Futureskill/CATEGORY_RULES.md` | Taxonomy rules v2.0 (LinkedIn/Coursera/ESCO aligned) | — |
 | `02-knowledge/PLAN_FutureSkill_KB.md` | Integration plan 4 phases (CSV→Postgres→Dify) | PENDING |
 

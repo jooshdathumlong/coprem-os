@@ -513,3 +513,8 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 **Pending:**
 - Review _unsorted.md (127 คอร์ส) → จัดหมวดหมู่เพิ่มเติม
 - Import Futureskill/kb/ → Postgres + Dify Knowledge Base (Phase 2)
+
+| 2026-06-01 | Phase 1: Postgres import | 584 rows → futureskill_courses table ✅ |
+| 2026-06-01 | Phase 2: KB-06.md generated | 02-knowledge/KB-06_FutureSkill_Courses.md (88 KB) ✅ |
+| 2026-06-01 | Phase 4: Dify upload | KB-06 dataset_id=044558e7 | indexing: waiting → active soon ✅ |
+| 2026-06-01 | .env updated | DIFY_KB_06=044558e7 ✅ |
