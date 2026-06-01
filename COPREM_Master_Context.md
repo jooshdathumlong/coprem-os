@@ -263,9 +263,10 @@ ollama serve &
 | 16:45 | Postgres import futureskill_courses | ✅ 584 rows, has_pdf mapped |
 | 16:45 | KB-06_FutureSkill_Courses.md generated | ✅ 88 KB |
 | 16:50 | Dify KB-06 created + uploaded | ✅ dataset_id=044558e7, indexing |
-| 17:10 | LiteLLM quota diagnosis | Gemini 6 keys all RateLimitError — daily quota burned |
-| 17:10 | LiteLLM config fix | usage-based-routing + rpm_limit:14 + cooldown:3600 + Groq primary |
+| 17:10 | LiteLLM root cause found | Jeff เรียก /health 3×12 keys = 36 req → ชน RPM — Gemini ไม่เคยถูกใช้จริง |
+| 17:10 | LiteLLM config fix | health_check_interval:0 + rpm_limit:14/key + Groq primary + cooldown:60s |
 | 17:10 | CLAUDE.md updated | Auto-Update Rule + Token Diet Rules enforced |
+| 17:20 | Memory: feedback_litellm_health | ห้ามเรียก /health — ใช้ /health/liveliness เท่านั้น |
 
 **Month 3 Backlog (ACTIVE):**
 - Next.js Dashboard (P1), WebSocket (P2), Ollama tuning (P2), Chaos experiment (P3)
