@@ -109,16 +109,18 @@ model_list:
       api_base: http://host.docker.internal:11434
 
 router_settings:
-  routing_strategy: usage-based-routing
-  retry_after: 30
-  num_retries: 6
+  routing_strategy: least-busy
+  retry_after: 60
+  num_retries: 3
   allowed_fails: 2
-  cooldown_time: 3600
+  cooldown_time: 60
 
 litellm_settings:
   drop_params: true
   success_callback: []
   failure_callback: []
+  # disable background health probes — /health ยิง Gemini ทุก key ทุกครั้ง = burn RPM
+  health_check_interval: 0
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY

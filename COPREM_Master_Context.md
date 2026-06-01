@@ -54,11 +54,12 @@ n8n 2.22.5 (localhost:5678 / n8n.peabuntid.com)
     → Log to Inbox (Postgres)
 
 LiteLLM (localhost:4000 / litellm.peabuntid.com)
-  routing: usage-based-routing | cooldown: 3600s | rpm_limit: 14/key
-  → groq/llama-3.3-70b (PRIMARY — ไม่มี daily limit) ✅
-  → gemini-2.0-flash × 6 keys (rpm_limit:14, cooldown:3600s) — currently rate-limited, reset ~midnight
+  routing: least-busy | cooldown: 60s | rpm_limit: 14/key | health_check_interval: 0
+  → groq/llama-3.3-70b (PRIMARY — อยู่ position แรก) ✅
+  → gemini-2.0-flash × 6 keys (rpm_limit:14) ✅
   → ollama/llama3.1:8b (Tier 3 local) ✅
   → ollama/qwen2.5:7b (Tier 3 fallback) ✅
+  ⚠️ ห้ามเรียก GET /health — ใช้ GET /health/liveliness แทน (ไม่ยิง Gemini)
 
 Ollama (localhost:11434 — Mac)
   → llama3.1:8b (4.9GB) ✅

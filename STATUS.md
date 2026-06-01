@@ -521,3 +521,6 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 
 | 2026-06-01 | LiteLLM config fix | routing_strategy: usage-based-routing + rpm_limit:14/key + cooldown:3600 + Groq primary |
 | 2026-06-01 | Gemini 6 keys | ทุก key RateLimitError — คาดว่า reset เที่ยงคืน PST | Groq fallback active ✅ |
+
+| 2026-06-01 | BUG: Gemini "RateLimitError" | ROOT: LiteLLM /health endpoint ยิง test API call จริงทุก key ทุกครั้ง Jeff เรียก 3×12=36 req | FIX: health_check_interval:0 + ใช้ /health/liveliness แทน |
+| 2026-06-01 | LiteLLM config corrected | routing กลับ least-busy, cooldown: 60s, rpm_limit ยังอยู่ |
