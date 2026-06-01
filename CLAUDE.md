@@ -125,6 +125,15 @@ Jeff knows system state from SYSTEM_STATE.md + health_check.sh only. Never assum
 - Summary = done + status + next steps
 - Header: English. Body to Prem: Thai.
 
+**Auto-Update Rule (mandatory — never skip):**
+Every task that changes system state → update these files in the **same commit**, without waiting for Prem to ask:
+1. `COPREM_Master_Context.md` — KB table, stack, session log
+2. `STATUS.md` — append state-changing events
+3. `INDEX.md` — register any new file
+4. `SYSTEM_STATE.md` — if infra/service state changed
+
+Violation = reporting done before docs are synced = incomplete task.
+
 ---
 
 ## 7. Context Pyramid (Token Budget)
@@ -136,6 +145,13 @@ Jeff knows system state from SYSTEM_STATE.md + health_check.sh only. Never assum
   - Blueprint Part 1–14 → grep only, never Read — violation = wasted session
 - Bash output >50 lines → `| tail -20` or summarize only
 - Turn >15 or context heavy → propose new session immediately
+
+**Token Diet Rules (strict):**
+- Never Read a file you already read this session — use grep/offset instead
+- Never re-verify a write that succeeded — Edit/Write errors if it fails
+- Batch all doc updates (Master Context + STATUS + INDEX) into 1 commit, never separate commits
+- No `cat` on large files — always `grep + offset + limit`
+- Script output: capture only what's needed, pipe to `tail -20` or `| grep -E "ERROR|OK|Done"`
 
 ---
 
