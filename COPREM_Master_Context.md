@@ -54,10 +54,11 @@ n8n 2.22.5 (localhost:5678 / n8n.peabuntid.com)
     → Log to Inbox (Postgres)
 
 LiteLLM (localhost:4000 / litellm.peabuntid.com)
-  → gemini-2.0-flash × 6 keys (round-robin per minute)
-  → groq/llama-3.3-70b (fallback)
-  → ollama/llama3.1 (Tier 3 local)
-  → ollama/qwen2.5 (Tier 3 fallback)
+  routing: usage-based-routing | cooldown: 3600s | rpm_limit: 14/key
+  → groq/llama-3.3-70b (PRIMARY — ไม่มี daily limit) ✅
+  → gemini-2.0-flash × 6 keys (rpm_limit:14, cooldown:3600s) — currently rate-limited, reset ~midnight
+  → ollama/llama3.1:8b (Tier 3 local) ✅
+  → ollama/qwen2.5:7b (Tier 3 fallback) ✅
 
 Ollama (localhost:11434 — Mac)
   → llama3.1:8b (4.9GB) ✅
@@ -261,6 +262,9 @@ ollama serve &
 | 16:45 | Postgres import futureskill_courses | ✅ 584 rows, has_pdf mapped |
 | 16:45 | KB-06_FutureSkill_Courses.md generated | ✅ 88 KB |
 | 16:50 | Dify KB-06 created + uploaded | ✅ dataset_id=044558e7, indexing |
+| 17:10 | LiteLLM quota diagnosis | Gemini 6 keys all RateLimitError — daily quota burned |
+| 17:10 | LiteLLM config fix | usage-based-routing + rpm_limit:14 + cooldown:3600 + Groq primary |
+| 17:10 | CLAUDE.md updated | Auto-Update Rule + Token Diet Rules enforced |
 
 **Month 3 Backlog (ACTIVE):**
 - Next.js Dashboard (P1), WebSocket (P2), Ollama tuning (P2), Chaos experiment (P3)

@@ -1,78 +1,103 @@
 model_list:
-  # ── Gemini 2.0 Flash — 6 keys rotate ────────────────────────
-  - model_name: gemini-2.0-flash
-    litellm_params:
-      model: gemini/gemini-2.0-flash
-      api_key: os.environ/EILINAIRE_GOOGLE_API_KEY
-
-  - model_name: gemini-2.0-flash
-    litellm_params:
-      model: gemini/gemini-2.0-flash
-      api_key: os.environ/JOOSHDATHUMLONG_GOOGLE_API_KEY
-
-  - model_name: gemini-2.0-flash
-    litellm_params:
-      model: gemini/gemini-2.0-flash
-      api_key: os.environ/MAHITTISAK_GOOGLE_API_KEY
-
-  - model_name: gemini-2.0-flash
-    litellm_params:
-      model: gemini/gemini-2.0-flash
-      api_key: os.environ/SUNSETSOL_GOOGLE_API_KEY
-
-  - model_name: gemini-2.0-flash
-    litellm_params:
-      model: gemini/gemini-2.0-flash
-      api_key: os.environ/RLIE_GOOGLE_API_KEY
-
-  - model_name: gemini-2.0-flash
-    litellm_params:
-      model: gemini/gemini-2.0-flash
-      api_key: os.environ/PEABANTID_GOOGLE_API_KEY
-
-  # ── Groq fallback — reset ทุกนาที ไม่มี daily limit ─────────
+  # ── gemini-2.0-flash — Groq FIRST (ไม่มี daily limit, reset ทุกนาที) ──────
   - model_name: gemini-2.0-flash
     litellm_params:
       model: groq/llama-3.3-70b-versatile
       api_key: os.environ/GROQ_API_KEY
 
-  # ── Gemini Flash Lite — fallback ─────────────────────────────
-  - model_name: gemini-2.0-flash-lite
+  # ── gemini-2.0-flash — Gemini 6 keys, rpm_limit=14 (buffer 1 req/min) ─────
+  - model_name: gemini-2.0-flash
     litellm_params:
-      model: gemini/gemini-2.0-flash-lite
+      model: gemini/gemini-2.0-flash
       api_key: os.environ/EILINAIRE_GOOGLE_API_KEY
+      rpm_limit: 14
+      tpm_limit: 900000
 
-  - model_name: gemini-2.0-flash-lite
+  - model_name: gemini-2.0-flash
     litellm_params:
-      model: gemini/gemini-2.0-flash-lite
+      model: gemini/gemini-2.0-flash
       api_key: os.environ/JOOSHDATHUMLONG_GOOGLE_API_KEY
+      rpm_limit: 14
+      tpm_limit: 900000
 
-  - model_name: gemini-2.0-flash-lite
+  - model_name: gemini-2.0-flash
     litellm_params:
-      model: gemini/gemini-2.0-flash-lite
+      model: gemini/gemini-2.0-flash
       api_key: os.environ/MAHITTISAK_GOOGLE_API_KEY
+      rpm_limit: 14
+      tpm_limit: 900000
 
-  - model_name: gemini-2.0-flash-lite
+  - model_name: gemini-2.0-flash
     litellm_params:
-      model: gemini/gemini-2.0-flash-lite
+      model: gemini/gemini-2.0-flash
       api_key: os.environ/SUNSETSOL_GOOGLE_API_KEY
+      rpm_limit: 14
+      tpm_limit: 900000
 
-  - model_name: gemini-2.0-flash-lite
+  - model_name: gemini-2.0-flash
     litellm_params:
-      model: gemini/gemini-2.0-flash-lite
+      model: gemini/gemini-2.0-flash
       api_key: os.environ/RLIE_GOOGLE_API_KEY
+      rpm_limit: 14
+      tpm_limit: 900000
 
-  - model_name: gemini-2.0-flash-lite
+  - model_name: gemini-2.0-flash
     litellm_params:
-      model: gemini/gemini-2.0-flash-lite
+      model: gemini/gemini-2.0-flash
       api_key: os.environ/PEABANTID_GOOGLE_API_KEY
+      rpm_limit: 14
+      tpm_limit: 900000
 
+  # ── gemini-2.0-flash-lite — Groq FIRST ───────────────────────────────────
   - model_name: gemini-2.0-flash-lite
     litellm_params:
       model: groq/llama-3.3-70b-versatile
       api_key: os.environ/GROQ_API_KEY
 
-  # ── Ollama Tier 3 — local Mac M5 ─────────────────────────────
+  # ── gemini-2.0-flash-lite — 6 keys ───────────────────────────────────────
+  - model_name: gemini-2.0-flash-lite
+    litellm_params:
+      model: gemini/gemini-2.0-flash-lite
+      api_key: os.environ/EILINAIRE_GOOGLE_API_KEY
+      rpm_limit: 14
+      tpm_limit: 900000
+
+  - model_name: gemini-2.0-flash-lite
+    litellm_params:
+      model: gemini/gemini-2.0-flash-lite
+      api_key: os.environ/JOOSHDATHUMLONG_GOOGLE_API_KEY
+      rpm_limit: 14
+      tpm_limit: 900000
+
+  - model_name: gemini-2.0-flash-lite
+    litellm_params:
+      model: gemini/gemini-2.0-flash-lite
+      api_key: os.environ/MAHITTISAK_GOOGLE_API_KEY
+      rpm_limit: 14
+      tpm_limit: 900000
+
+  - model_name: gemini-2.0-flash-lite
+    litellm_params:
+      model: gemini/gemini-2.0-flash-lite
+      api_key: os.environ/SUNSETSOL_GOOGLE_API_KEY
+      rpm_limit: 14
+      tpm_limit: 900000
+
+  - model_name: gemini-2.0-flash-lite
+    litellm_params:
+      model: gemini/gemini-2.0-flash-lite
+      api_key: os.environ/RLIE_GOOGLE_API_KEY
+      rpm_limit: 14
+      tpm_limit: 900000
+
+  - model_name: gemini-2.0-flash-lite
+    litellm_params:
+      model: gemini/gemini-2.0-flash-lite
+      api_key: os.environ/PEABANTID_GOOGLE_API_KEY
+      rpm_limit: 14
+      tpm_limit: 900000
+
+  # ── Ollama Tier 3 — local Mac ─────────────────────────────────────────────
   - model_name: ollama/llama3.1
     litellm_params:
       model: ollama/llama3.1:8b
@@ -84,11 +109,11 @@ model_list:
       api_base: http://host.docker.internal:11434
 
 router_settings:
-  routing_strategy: least-busy
-  retry_after: 60
-  num_retries: 8
+  routing_strategy: usage-based-routing
+  retry_after: 30
+  num_retries: 6
   allowed_fails: 2
-  cooldown_time: 60
+  cooldown_time: 3600
 
 litellm_settings:
   drop_params: true
