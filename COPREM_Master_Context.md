@@ -119,7 +119,7 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 | KB-03 Trading Rules | `b26b9e09-c8f5-4510-9303-5a9159548d72` | 10 |
 | KB-04 Job Knowledge | `64329612-bb5d-4090-8fce-e49499d26379` | 11 |
 | KB-05 Decision Memory | `4da3b0fe-49ea-4c12-9273-92045b8f9678` | 11 |
-| KB-06 FutureSkill Courses | — | PENDING (Prem จัดไฟล์ก่อน) |
+| KB-06 FutureSkill Courses | `044558e7-3203-40ec-be65-5ec6f812e4b0` | 457 courses ✅ ACTIVE |
 
 Service API Key: ดูใน `.env` (DIFY_KB_API_KEY)
 
@@ -257,8 +257,12 @@ ollama serve &
 | 10:10 | Month 3 unlocked by Prem | ✅ No-Spec + 1-Pillar removed |
 | 10:30 | FutureSkill KB taxonomy (14 categories, LinkedIn/Coursera/ESCO) | ✅ CATEGORY_RULES.md v2.0 |
 | 10:30 | FutureSkill integration plan (4 phases) | ✅ PLAN_FutureSkill_KB.md |
+| 16:30 | FutureSkill 584 courses → 14 .md files in kb/ | ✅ 457 placed, 127 unsorted |
+| 16:45 | Postgres import futureskill_courses | ✅ 584 rows, has_pdf mapped |
+| 16:45 | KB-06_FutureSkill_Courses.md generated | ✅ 88 KB |
+| 16:50 | Dify KB-06 created + uploaded | ✅ dataset_id=044558e7, indexing |
 
 **Month 3 Backlog (ACTIVE):**
 - Next.js Dashboard (P1), WebSocket (P2), Ollama tuning (P2), Chaos experiment (P3)
-- FutureSkill KB-06: รอ Prem จัดไฟล์ .md 14 ไฟล์ → Jeff import
+- FutureSkill KB-06: ✅ DONE — Postgres 584 rows + KB-06.md (88KB) + Dify indexed | 127 unsorted = ระยะยาว
 | 04:30 | Timezone fix (GENERIC_TIMEZONE=Asia/Bangkok) | ✅ |
