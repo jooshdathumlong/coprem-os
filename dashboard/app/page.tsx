@@ -191,7 +191,8 @@ export default function Dashboard() {
     return <span key={key}>{parts}</span>
   }
 
-  function renderMd(text: string) {
+  function renderMd(text: string | undefined | null) {
+    if (!text) return null
     const lines = text.split('\n')
     const out: React.ReactNode[] = []
     let i = 0
