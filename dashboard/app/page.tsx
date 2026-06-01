@@ -161,7 +161,22 @@ export default function Dashboard() {
     if (activeChatSessionId === id) { setChatMessages([]); setActiveChatSessionId(null) }
   }, [activeChatSessionId, loadChatSessions])
 
-  useEffect(() => { fetchAll(); const t = setInterval(fetchAll, 30000); return () => clearInterval(t) }, [fetchAll])
+  useEffect(() => {
+    // Initial load for HITL + latency
+    fetchAll()
+    const hitlInterval = setInterval(() => {
+      fetch('/api/hitl').then(r => r.json()).then(d => setHITLItems(d)).catch(() => {})
+    }, 30000)
+
+    // SSE for live status (replaces status polling)
+    const es = new EventSource('/api/status-stream')
+    es.onmessage = e => {
+      try { setStatus(JSON.parse(e.data)) } catch { /* ignore */ }
+    }
+    es.onerror = () => { es.close() }
+
+    return () => { clearInterval(hitlInterval); es.close() }
+  }, [fetchAll])
 
   useEffect(() => {
     if (tab === 'chat') loadChatSessions()
