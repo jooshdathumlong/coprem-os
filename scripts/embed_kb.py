@@ -46,13 +46,13 @@ def embed(text: str) -> list[float]:
 
 def dify_list_documents(dataset_id: str) -> list:
     url = f"{DIFY_BASE}/datasets/{dataset_id}/documents?limit=100"
-    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {os.environ['DIFY_API_KEY']}"})
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {DIFY_API_KEY}"})
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.loads(r.read()).get("data", [])
 
 def dify_list_segments(dataset_id: str, doc_id: str) -> list:
     url = f"{DIFY_BASE}/datasets/{dataset_id}/documents/{doc_id}/segments?limit=500"
-    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {os.environ['DIFY_API_KEY']}"})
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {DIFY_API_KEY}"})
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
             return json.loads(r.read()).get("data", [])
