@@ -1,17 +1,14 @@
 import { NextResponse } from 'next/server'
-import { Pool } from 'pg'
-
-const pool = new Pool({
-  host: process.env.PG_HOST || 'localhost',
-  port: parseInt(process.env.PG_PORT || '5432'),
-  database: process.env.PG_DB || 'coprem_os',
-  user: process.env.PG_USER || 'coprem',
-  password: process.env.PG_PASSWORD || '',
-})
+import { execSync } from 'child_process'
 
 export async function GET() {
-  const { rows } = await pool.query(
-    `SELECT event_type, avg_ms, max_ms, requests, slow_count FROM v_latency_by_layer LIMIT 10`
-  )
-  return NextResponse.json(rows)
+  try {
+    const cid = execSync(`docker ps --filter name=postgres -q`, { encoding: 'utf8' }).trim().split('\n')[0]
+    const out = execSync(`docker exec ${cid} psql -U coprem -d coprem_os -t -A -F '|||' -c "SELECT event_type, avg_ms, max_ms, requests, slow_count FROM v_latency_by_layer LIMIT 10;"`, { encoding: 'utf8' })
+    const rows = out.trim().split('\n').filter(Boolean).map(line => {
+      const [event_type, avg_ms, max_ms, requests, slow_count] = line.split('|||')
+      return { event_type, avg_ms: Number(avg_ms), max_ms: Number(max_ms), requests: Number(requests), slow_count: Number(slow_count) }
+    })
+    return NextResponse.json(rows)
+  } catch { return NextResponse.json([]) }
 }

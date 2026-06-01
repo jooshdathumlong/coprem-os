@@ -1,27 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Pool } from 'pg'
+import { execSync } from 'child_process'
 
-const pool = new Pool({
-  host: process.env.PG_HOST || 'localhost',
-  port: parseInt(process.env.PG_PORT || '5432'),
-  database: process.env.PG_DB || 'coprem_os',
-  user: process.env.PG_USER || 'coprem',
-  password: process.env.PG_PASSWORD || '',
-})
+function pg(sql: string) {
+  const cid = execSync(`docker ps --filter name=postgres -q`, { encoding: 'utf8' }).trim().split('\n')[0]
+  return execSync(`docker exec ${cid} psql -U coprem -d coprem_os -t -A -F '|||' -c "${sql}"`, { encoding: 'utf8' })
+}
 
 export async function GET() {
-  const { rows } = await pool.query(
-    `SELECT id, chat_id, message, created_at, resolved_at, resolution
-     FROM hitl_queue ORDER BY created_at DESC LIMIT 20`
-  )
-  return NextResponse.json(rows)
+  try {
+    const out = pg(`SELECT id, chat_id, message, created_at, resolved_at, resolution FROM hitl_queue ORDER BY created_at DESC LIMIT 20;`)
+    const rows = out.trim().split('\n').filter(Boolean).map(line => {
+      const [id, chat_id, message, created_at, resolved_at, resolution] = line.split('|||')
+      return { id: Number(id), chat_id, message, created_at, resolved_at: resolved_at || null, resolution: resolution || null }
+    })
+    return NextResponse.json(rows)
+  } catch { return NextResponse.json([]) }
 }
 
 export async function POST(req: NextRequest) {
-  const { id, resolution } = await req.json()
-  await pool.query(
-    `UPDATE hitl_queue SET resolved_at = NOW(), resolution = $1 WHERE id = $2`,
-    [resolution || 'Resolved via dashboard', id]
-  )
-  return NextResponse.json({ ok: true })
+  try {
+    const { id, resolution } = await req.json()
+    const safe = (resolution || 'Resolved via dashboard').replace(/'/g, "''")
+    pg(`UPDATE hitl_queue SET resolved_at = NOW(), resolution = '${safe}' WHERE id = ${id};`)
+    return NextResponse.json({ ok: true })
+  } catch { return NextResponse.json({ ok: false }) }
 }
