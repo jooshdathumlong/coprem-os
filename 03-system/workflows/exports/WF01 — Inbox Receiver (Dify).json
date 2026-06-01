@@ -504,7 +504,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO audit_log (event_type, source_ip, source, payload, timestamp)\nVALUES ('WEBHOOK_RECEIVED', NULL, 'telegram', $1::jsonb, NOW())\nON CONFLICT DO NOTHING;\nSELECT 1 AS ok;",
+        "query": "INSERT INTO audit_log (event_type, source_ip, source, payload, timestamp, started_at)\nVALUES ('WEBHOOK_RECEIVED', NULL, 'telegram', $1::jsonb, NOW(), NOW())\nON CONFLICT DO NOTHING;\nSELECT 1 AS ok;",
         "options": {
           "queryReplacement": "={{ JSON.stringify({ user_id: $('Telegram Trigger').first().json.body?.message?.from?.id, chat_id: $('Telegram Trigger').first().json.body?.message?.chat?.id, msg: $('Telegram Trigger').first().json.body?.message?.text }) }}"
         }
@@ -1902,7 +1902,7 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": "INSERT INTO audit_log (event_type, source_ip, source, payload, timestamp)\nVALUES ('WEBHOOK_RECEIVED', NULL, 'telegram', $1::jsonb, NOW())\nON CONFLICT DO NOTHING;\nSELECT 1 AS ok;",
+          "query": "INSERT INTO audit_log (event_type, source_ip, source, payload, timestamp, started_at)\nVALUES ('WEBHOOK_RECEIVED', NULL, 'telegram', $1::jsonb, NOW(), NOW())\nON CONFLICT DO NOTHING;\nSELECT 1 AS ok;",
           "options": {
             "queryReplacement": "={{ JSON.stringify({ user_id: $('Telegram Trigger').first().json.body?.message?.from?.id, chat_id: $('Telegram Trigger').first().json.body?.message?.chat?.id, msg: $('Telegram Trigger').first().json.body?.message?.text }) }}"
           }
