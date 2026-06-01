@@ -399,3 +399,22 @@ GitHub CI  → coprem-mac runner
 
 ## Architecture Progress
 ~98% complete — งานค้างหลักเสร็จหมดแล้ว
+
+## Session 2026-06-01 Session 8 — Month 2 Tasks
+
+| Time | Action | Result |
+|---|---|---|
+| 2026-06-01 09:46 | Dependabot | ✅ .github/dependabot.yml — Docker + pip weekly |
+| 2026-06-01 09:46 | Agent eval script | ✅ scripts/agent_eval.py — throughput/latency/KB/HITL/SLO |
+| 2026-06-01 09:46 | Migration 007 slo_log | ✅ applied |
+
+## Eval Findings (7d baseline)
+| Metric | Value | SLO | Status |
+|---|---|---|---|
+| Delivery Rate | 72.3% | ≥90% | ❌ |
+| Avg Latency | 36.21s | <10s | ❌ |
+| HITL Rate | 0% | <20% | ✅ |
+| Failed Tasks | 0 | — | ✅ |
+
+Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง baseline จาก real usage
+
