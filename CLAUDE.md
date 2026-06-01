@@ -48,7 +48,7 @@ If turn count approaches 15 → stop work, run End Protocol immediately.
 - **Domain Boundary (DDD):** Each agent owns its vocabulary. Task spans domains → split + delegate via JSON: `{"assign_to": "role", "task": "..."}`
 
 **Active Pillar Rule:** Check SYSTEM_STATE.md "Active Pillar" section before every session.
-- Current: JOB only — PERSONAL/CREATIVE suspended until WF01 stable for 1 week
+- Current: JOB + PERSONAL active (CREATIVE suspended) — 1-Pillar Rule unlocked by Prem 2026-06-01
 - Never activate a new pillar without explicit instruction from Prem
 
 ---

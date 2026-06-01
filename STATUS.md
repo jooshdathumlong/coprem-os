@@ -632,3 +632,12 @@ PENDING ต่อ session หน้า:
 | 2026-06-02 | Telegram webhook survives restart | ✅ |
 
 RESULT: ระบบ self-recover ได้ 100% — WF01 + webhook active ทันทีหลัง n8n start
+
+## 2026-06-02 — PERSONAL Pillar Activation
+| เวลา | Action | ผล |
+|---|---|---|
+| 2026-06-02 | L1-C: Eilinaire system prompt เพิ่มใน SYSTEM_PROMPTS | ✅ |
+| 2026-06-02 | L1-C: pillar_prompt routing PERSONAL→Eilinaire | ✅ |
+| 2026-06-02 | SYSTEM_STATE.md: Active Pillar → JOB + PERSONAL | ✅ |
+| 2026-06-02 | CLAUDE.md: suspension rule → JOB + PERSONAL active | ✅ |
+| 2026-06-02 | Verify: L1-C returns assigned_agent=eilinaire for PERSONAL | ✅ |

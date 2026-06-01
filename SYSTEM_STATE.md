@@ -11,7 +11,9 @@
 | nomic-embed-text | PULLED | 116 segments embedded |
 
 ## Active Pillar
-JOB (PERSONAL/CREATIVE suspended per rules)
+JOB + PERSONAL (1-Pillar Rule unlocked 2026-06-01 by Prem | CREATIVE suspended)
+- JOB → Jeff agent | KB-04+KB-01
+- PERSONAL → Eilinaire agent | KB-05+KB-01 | trading domain → KB-05
 
 ## WF01 Status
 Active | 39 nodes | Semantic retrieval + BM25 fallback | HITL queue | Injection defense | 3 agent modes
