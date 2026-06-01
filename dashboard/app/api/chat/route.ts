@@ -68,23 +68,30 @@ function getSystemPrompt(): string {
 }
 
 export async function POST(req: NextRequest) {
-  const { message, model } = await req.json()
+  const { message, model, history } = await req.json()
   if (!message) return NextResponse.json({ error: 'no message' }, { status: 400 })
 
   const systemPrompt = getSystemPrompt()
   const { execSync } = await import('child_process')
   const key = execSync(`grep LITELLM_MASTER_KEY /Users/eilinaire/Desktop/Coprem/.env | cut -d= -f2`, { encoding: 'utf8' }).trim()
 
+  // Build messages array with history (last 20 messages = 10 exchanges)
+  type Msg = { role: 'user' | 'assistant' | 'system'; content: string }
+  const historyMsgs: Msg[] = (Array.isArray(history) ? history.slice(-20) : [])
+    .map((h: { role: string; text: string }) => ({ role: h.role as 'user' | 'assistant', content: h.text }))
+
   const callLiteLLM = async (m: string, maxTokens = 1500) => {
+    const messages: Msg[] = [
+      { role: 'system', content: systemPrompt },
+      ...historyMsgs,
+      { role: 'user', content: message }
+    ]
     const res = await fetch(LITELLM_URL, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: m,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ],
+        messages,
         max_tokens: m.startsWith('ollama') ? 512 : maxTokens,
         temperature: 0.7
       }),

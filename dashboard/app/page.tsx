@@ -161,7 +161,7 @@ export default function Dashboard() {
     try {
       const res = await fetch('/api/chat', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg, model })
+        body: JSON.stringify({ message: msg, model, history: chatMessages.slice(-20) })
       })
       const data = await res.json()
       let replyText = data.reply || data.error || '(No response)'
