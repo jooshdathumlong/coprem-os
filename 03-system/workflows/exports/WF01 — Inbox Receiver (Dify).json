@@ -746,7 +746,7 @@
       "typeVersion": 4.2,
       "position": [
         2620,
-        528
+        680
       ],
       "parameters": {
         "method": "GET",
@@ -770,7 +770,7 @@
       "typeVersion": 4.2,
       "position": [
         2840,
-        528
+        680
       ],
       "parameters": {
         "method": "GET",
@@ -797,7 +797,7 @@
         528
       ],
       "parameters": {
-        "jsCode": "// L3 Inject — extract top segments, build context, log KB_MISS (T3)\nconst l3prep = $('L3 Prepare').first().json;\nconst segsData = $input.first().json;\nconst query = l3prep.query || '';\n\nfunction score(text, q) {\n  const words = q.toLowerCase().split(/\\s+/).filter(w => w.length > 2);\n  const t = (text || '').toLowerCase();\n  return words.reduce((s, w) => s + (t.split(w).length - 1), 0);\n}\n\nconst segments = segsData.data || [];\nconst ranked = segments\n  .map(seg => ({ content: seg.content || '', score: score(seg.content, query) }))\n  .sort((a, b) => b.score - a.score)\n  .slice(0, 3)\n  .filter(s => s.content.length > 10);\n\nconst kb_miss = ranked.length === 0;\nconst context = kb_miss\n  ? 'No relevant KB content found for this query.'\n  : '### Context from Knowledge Base:\\n' + ranked.map(s => s.content).join('\\n---\\n');\n\nconst l1b = $('L1-B Parse').first().json;\nreturn [{ json: {\n  ...l1b,\n  context,\n  kb_chunks: ranked.length,\n  kb_miss,\n  kb_id_used: l3prep.kb_id,\n  pillar: l3prep.pillar || l1b.pillar || 'JOB'\n} }];"
+        "jsCode": "// L3 Inject — semantic primary, BM25 fallback (S1 + T3)\nconst l3prep = $('L3 Prepare').first().json;\nconst query = l3prep.query || '';\n\n// ── Try semantic results first ─────────────────────────────────────────────\nlet semanticRows = [];\ntry {\n  const semData = $('L3 Semantic Search').first().json;\n  // n8n postgres returns array of row objects\n  const allRows = $('L3 Semantic Search').all();\n  semanticRows = allRows\n    .map(r => r.json)\n    .filter(r => r.content && r.content.length > 10 && (r.similarity || 0) > 0.3);\n} catch(e) {\n  // Semantic failed — Ollama down or no embeddings yet\n}\n\n// ── BM25 fallback (original logic) ────────────────────────────────────────\nfunction bm25score(text, q) {\n  const words = q.toLowerCase().split(/\\s+/).filter(w => w.length > 2);\n  const t = (text || '').toLowerCase();\n  return words.reduce((s, w) => s + (t.split(w).length - 1), 0);\n}\n\nlet context = '';\nlet kb_chunks = 0;\nlet retrieval_method = 'none';\n\nif (semanticRows.length > 0) {\n  context = '### Context from Knowledge Base (semantic):\\n' +\n    semanticRows.slice(0, 3).map(r => r.content).join('\\n---\\n');\n  kb_chunks = semanticRows.length;\n  retrieval_method = 'semantic';\n} else {\n  // BM25 path\n  let segsData;\n  try {\n    segsData = $('L3 Get Segments').first().json;\n  } catch(e) {\n    segsData = { data: [] };\n  }\n  const segments = segsData.data || [];\n  const ranked = segments\n    .map(seg => ({ content: seg.content || '', score: bm25score(seg.content, query) }))\n    .sort((a, b) => b.score - a.score)\n    .slice(0, 3)\n    .filter(s => s.content.length > 10);\n\n  if (ranked.length > 0) {\n    context = '### Context from Knowledge Base:\\n' + ranked.map(s => s.content).join('\\n---\\n');\n    kb_chunks = ranked.length;\n    retrieval_method = 'bm25';\n  }\n}\n\nconst kb_miss = kb_chunks === 0;\nif (kb_miss) context = 'No relevant KB content found for this query.';\n\nconst l1b = $('L1-B Parse').first().json;\nreturn [{ json: {\n  ...l1b,\n  context,\n  kb_chunks,\n  kb_miss,\n  retrieval_method,\n  kb_id_used: l3prep.kb_id,\n  pillar: l3prep.pillar || l1b.pillar || 'JOB'\n} }];"
       }
     },
     {
@@ -891,6 +891,56 @@
           "name": "Postgres coprem_os"
         }
       }
+    },
+    {
+      "id": "l3-embed-query",
+      "name": "L3 Embed Query",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2620,
+        528
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/embed",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"model\": \"nomic-embed-text\", \"input\": \"{{ $('L3 Prepare').first().json.query }}\" }",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "l3-semantic-search",
+      "name": "L3 Semantic Search",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2840,
+        528
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT content, pillar, kb_id, 1 - (embedding_768 <=> $1::vector) AS similarity\nFROM memory_embeddings\nWHERE embedding_768 IS NOT NULL AND archived = false\nORDER BY embedding_768 <=> $1::vector\nLIMIT 5;",
+        "options": {
+          "queryReplacement": "={{ '[' + ($('L3 Embed Query').first().json?.embeddings?.[0] || []).join(',') + ']' }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "rdxzBrj9putuOkku",
+          "name": "Postgres coprem_os"
+        }
+      },
+      "onError": "continueRegularOutput"
     }
   ],
   "connections": {
@@ -1174,6 +1224,11 @@
       "main": [
         [
           {
+            "node": "L3 Embed Query",
+            "type": "main",
+            "index": 0
+          },
+          {
             "node": "L3 Fetch KB",
             "type": "main",
             "index": 0
@@ -1257,6 +1312,28 @@
     "HITL Queue Insert": {
       "main": [
         []
+      ]
+    },
+    "L3 Embed Query": {
+      "main": [
+        [
+          {
+            "node": "L3 Semantic Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Semantic Search": {
+      "main": [
+        [
+          {
+            "node": "L3 Inject Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
