@@ -434,3 +434,15 @@ Note: Latency ❌ เป็น test messages + Dify cold start — ต้อง 
 | Agent eval script | ✅ |
 | SLO migration | ✅ |
 | Log integrity hash chain | ✅ |
+
+## Session 2026-06-01 — Low Confidence Reply Wiring
+
+| Time | Action | Result |
+|---|---|---|
+| 2026-06-01 09:55 | HITL Gate → Switch node (3 outputs) | ✅ confidence<0.7→Low Confidence, hitl→HITL Alert, else→L3 Prepare |
+| 2026-06-01 09:55 | WF01 flow verify post-change | ✅ AGENT_OUTPUT confirmed |
+
+## BUG LOG
+| BUG | ROOT | FIX |
+|---|---|---|
+| IF typeVersion 2 breaks WF01 flow | n8n 2.22.5 incompatible IF v2 in this WF | ใช้ Switch node ver 3 แทน |
