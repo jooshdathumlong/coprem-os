@@ -764,3 +764,10 @@ NO HUMAN TRIGGER REQUIRED
 PENDING next session:
 - กรอกตัวเลขจริงใน 02-knowledge/work/business_context.md → รัน embed_kb.py
 - loop ต้อง start manual (nohup) หลัง reboot — พิจารณา launchd plist สำหรับ auto-start
+
+## 2026-06-02 — launchd Auto-Start Fix
+| Action | ผล |
+|---|---|
+| com.coprem.autostart: path Desktop/Coprem → coprem/Coprem + docker-compose path fix | ✅ exit 0 |
+| run_loop.sh: PID guard added (no duplicate loop on reboot) | ✅ |
+| Both plist reloaded via launchctl | ✅ PID 2060 / 2053 |

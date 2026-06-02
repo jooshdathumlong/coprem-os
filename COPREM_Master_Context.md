@@ -171,7 +171,7 @@ docker compose -f 03-system/docker-compose.yml --env-file .env up -d
 
 ### .env Location
 ```
-/Users/eilinaire/Desktop/Coprem/.env  ← root, gitignored
+/Users/eilinaire/Coprem/.env  ← root, gitignored
 ```
 
 Keys ที่สำคัญ (masked):

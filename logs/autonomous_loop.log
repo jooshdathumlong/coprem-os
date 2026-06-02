@@ -1,0 +1,369 @@
+/Users/eilinaire/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+2026-06-02 07:05:13,335 [INFO] ============================================================
+2026-06-02 07:05:13,335 [INFO] COPREM Autonomous Loop started
+2026-06-02 07:05:13,335 [INFO] Polling every 3s | LiteLLM: http://localhost:4000
+2026-06-02 07:05:13,335 [INFO] ============================================================
+2026-06-02 07:06:13,098 [INFO]   … idle, queue empty
+2026-06-02 07:06:44,494 [INFO] [analysis] id=17dc17d6 agent=jeff retries=0
+2026-06-02 07:06:45,193 [INFO]   ✓ done: ระบบ COPREM ยังคงทำงานอย่างเสถียรและปลอดภัย 
+ตรวจสอบและปรับปรุงระบบอย่างต่อเนื่อ
+2026-06-02 07:07:47,924 [INFO]   … idle, queue empty
+2026-06-02 07:08:50,629 [INFO]   … idle, queue empty
+2026-06-02 07:09:53,476 [INFO]   … idle, queue empty
+2026-06-02 07:10:56,229 [INFO]   … idle, queue empty
+2026-06-02 07:11:59,004 [INFO]   … idle, queue empty
+2026-06-02 07:13:01,732 [INFO]   … idle, queue empty
+2026-06-02 07:14:04,502 [INFO]   … idle, queue empty
+2026-06-02 07:15:07,298 [INFO]   … idle, queue empty
+2026-06-02 07:16:10,113 [INFO]   … idle, queue empty
+2026-06-02 07:17:12,787 [INFO]   … idle, queue empty
+2026-06-02 07:18:15,580 [INFO]   … idle, queue empty
+2026-06-02 07:19:18,449 [INFO]   … idle, queue empty
+2026-06-02 07:20:21,113 [INFO]   … idle, queue empty
+2026-06-02 07:21:08,171 [INFO] [agent_handoff] id=86345d77 agent=jeff retries=0
+2026-06-02 07:21:08,416 [INFO]   ✓ done: Handed off to eilinaire: วิเคราะห์ตลาด Shopee วันนี้
+2026-06-02 07:21:08,417 [INFO] [report] id=bb46f227 agent=jeff retries=0
+2026-06-02 07:21:11,140 [INFO]   ✓ done: สรุป OKR Q2 2026 สำหรับ COPREM OS (JOB pillar) มีดังนี้
+- เป้าหมายหลัก (Objectiv
+2026-06-02 07:21:11,140 [INFO] [analysis] id=38daa913 agent=eilinaire retries=0
+2026-06-02 07:21:11,908 [WARNING]   ✗ retry 1/3: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:21:15,059 [INFO] [analysis] id=21e36be0 agent=eilinaire retries=0
+2026-06-02 07:21:15,840 [WARNING]   ✗ retry 1/3: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:21:22,128 [INFO] [analysis] id=38daa913 agent=eilinaire retries=1
+2026-06-02 07:21:22,901 [WARNING]   ✗ retry 2/3: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:21:26,051 [INFO] [analysis] id=21e36be0 agent=eilinaire retries=1
+2026-06-02 07:21:26,860 [WARNING]   ✗ retry 2/3: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:21:33,106 [INFO] [analysis] id=38daa913 agent=eilinaire retries=2
+2026-06-02 07:21:33,927 [WARNING]   ✗ retry 3/3: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:21:37,071 [INFO] [analysis] id=21e36be0 agent=eilinaire retries=2
+2026-06-02 07:21:37,850 [WARNING]   ✗ retry 3/3: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:21:44,091 [INFO] [analysis] id=38daa913 agent=eilinaire retries=3
+2026-06-02 07:21:45,974 [ERROR]   ✗ failed permanently: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:21:49,109 [INFO] [analysis] id=21e36be0 agent=eilinaire retries=3
+2026-06-02 07:21:50,974 [ERROR]   ✗ failed permanently: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:22:53,670 [INFO]   … idle, queue empty
+2026-06-02 07:23:46,940 [INFO] [agent_handoff] id=2f9c3658 agent=jeff retries=0
+2026-06-02 07:23:47,207 [INFO]   ✓ done: Handed off to eilinaire: ส่งต่องาน personal planning
+2026-06-02 07:23:47,207 [INFO] [analysis] id=03fa2c30 agent=jeff retries=0
+2026-06-02 07:23:48,013 [WARNING]   ✗ retry 1/3: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:23:51,136 [INFO] [analysis] id=64989060 agent=eilinaire retries=0
+2026-06-02 07:23:51,914 [WARNING]   ✗ retry 1/3: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:23:58,188 [INFO] [analysis] id=03fa2c30 agent=jeff retries=1
+2026-06-02 07:23:59,022 [WARNING]   ✗ retry 2/3: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:24:02,164 [INFO] [analysis] id=64989060 agent=eilinaire retries=1
+2026-06-02 07:24:02,950 [WARNING]   ✗ retry 2/3: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:24:09,232 [INFO] [analysis] id=03fa2c30 agent=jeff retries=2
+2026-06-02 07:24:10,002 [WARNING]   ✗ retry 3/3: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:24:13,134 [INFO] [analysis] id=64989060 agent=eilinaire retries=2
+2026-06-02 07:24:20,345 [INFO]   ✓ done: เริ่มต้นการวางแผนส่วนบุคคลกันเลย!
+
+1. **กำหนดเป้าหมายส่วนบุคคล**: อะไรคือเป้าหมา
+2026-06-02 07:24:23,506 [INFO] [analysis] id=03fa2c30 agent=jeff retries=3
+2026-06-02 07:24:25,352 [ERROR]   ✗ failed permanently: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:24:56,727 [INFO] [analysis] id=03fa2c30 agent=jeff retries=3
+2026-06-02 07:24:58,503 [ERROR]   ✗ failed permanently: 429 Client Error: Too Many Requests for url: http://localhost:4000/chat/completions
+2026-06-02 07:26:01,265 [INFO]   … idle, queue empty
+2026-06-02 07:27:04,040 [INFO]   … idle, queue empty
+2026-06-02 07:28:06,869 [INFO]   … idle, queue empty
+2026-06-02 07:29:09,577 [INFO]   … idle, queue empty
+2026-06-02 07:29:35,502 [INFO] Shutdown signal received — finishing current cycle...
+/Users/eilinaire/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+2026-06-02 07:29:36,670 [INFO] ============================================================
+2026-06-02 07:29:36,670 [INFO] COPREM Autonomous Loop started
+2026-06-02 07:29:36,670 [INFO] Polling every 3s | LiteLLM: http://localhost:4000
+2026-06-02 07:29:36,670 [INFO] ============================================================
+2026-06-02 07:29:37,638 [INFO] Autonomous loop stopped cleanly.
+/Users/eilinaire/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+2026-06-02 07:29:47,970 [INFO] ============================================================
+2026-06-02 07:29:47,970 [INFO] COPREM Autonomous Loop started
+2026-06-02 07:29:47,970 [INFO] Polling every 3s | LiteLLM: http://localhost:4000
+2026-06-02 07:29:47,970 [INFO] ============================================================
+2026-06-02 07:30:00,603 [INFO] [analysis] id=e90f1c0f agent=jeff retries=0
+2026-06-02 07:30:01,751 [INFO]   ✓ done: สถานะ Batiste Q2 ยังคงอยู่ในแผนการดำเนินงานตามเป้าหมายที่กำหนดไว้ 
+ติดตามผลการดำ
+2026-06-02 07:30:01,764 [INFO] [analysis] id=a387df0e agent=eilinaire retries=0
+2026-06-02 07:30:02,382 [WARNING]   429 on gemini-2.0-flash — waiting 3s then trying next tier
+2026-06-02 07:30:03,761 [INFO] [analysis] id=a387df0e agent=eilinaire retries=0
+2026-06-02 07:30:04,502 [WARNING]   429 on gemini-2.0-flash — waiting 3s then trying next tier
+2026-06-02 07:30:05,979 [WARNING]   429 on gemini-2.0-flash — waiting 3s then trying next tier
+2026-06-02 07:30:08,762 [WARNING]   429 on gemini-2.0-flash — waiting 3s then trying next tier
+2026-06-02 07:30:10,210 [INFO]   (fell back to gemini-2.0-flash-lite)
+2026-06-02 07:30:10,356 [INFO]   ✓ done: ไอเดีย content สำหรับ Scrub Daddy:
+1. "วิธีทำความสะอาดพื้นผิวต่างๆ ด้วย Scrub Da
+2026-06-02 07:30:12,363 [INFO] [analysis] id=837cb1c7 agent=jeff retries=0
+2026-06-02 07:30:12,434 [WARNING]   429 on gemini-2.0-flash-lite — waiting 3s then trying next tier
+2026-06-02 07:30:13,287 [WARNING]   429 on gemini-2.0-flash — waiting 3s then trying next tier
+2026-06-02 07:30:16,023 [INFO]   (fell back to groq/llama-3.3-70b)
+2026-06-02 07:30:16,106 [INFO]   ✓ done: ไอเดีย content สำหรับ Scrub Daddy:
+1. "วิธีทำความสะอาดพื้นผิวต่างๆ ด้วย Scrub Da
+2026-06-02 07:30:16,852 [WARNING]   429 on gemini-2.0-flash — waiting 3s then trying next tier
+2026-06-02 07:30:18,113 [INFO] [analysis] id=837cb1c7 agent=jeff retries=0
+2026-06-02 07:30:18,833 [WARNING]   429 on gemini-2.0-flash — waiting 3s then trying next tier
+2026-06-02 07:30:20,394 [WARNING]   429 on gemini-2.0-flash-lite — waiting 3s then trying next tier
+2026-06-02 07:30:22,425 [WARNING]   429 on gemini-2.0-flash — waiting 3s then trying next tier
+2026-06-02 07:30:23,931 [INFO]   (fell back to groq/llama-3.3-70b)
+2026-06-02 07:30:24,078 [INFO]   ✓ done: OKR สำคัญที่สุดสำหรับสัปดาห์นี้คือการเพิ่มประสิทธิภาพการทำงานของทีมและลดระยะเวลา
+2026-06-02 07:30:25,981 [WARNING]   429 on gemini-2.0-flash-lite — waiting 3s then trying next tier
+2026-06-02 07:30:29,512 [INFO]   (fell back to groq/llama-3.3-70b)
+2026-06-02 07:30:29,642 [INFO]   ✓ done: OKR สำคัญที่สุดสำหรับสัปดาห์นี้คือ การเพิ่มประสิทธิภาพการทำงานของทีมและลดระยะเวล
+2026-06-02 07:31:09,301 [INFO] [chat] id=c35e3fbb agent=jeff retries=0
+2026-06-02 07:31:09,783 [WARNING] Certificate did not match expected hostname: n8n.yourdomain.com. Certificate: {'subject': ((('commonName', '*.sucuri.net'),),), 'issuer': ((('countryName', 'US'),), (('stateOrProvinceName', 'Arizona'),), (('localityName', 'Scottsdale'),), (('organizationName', 'GoDaddy.com, Inc.'),), (('organizationalUnitName', 'http://certs.godaddy.com/repository/'),), (('commonName', 'Go Daddy Secure Certificate Authority - G2'),)), 'version': 3, 'serialNumber': '9769BCCA84095D35', 'notBefore': 'Aug 27 20:29:38 2025 GMT', 'notAfter': 'Sep 28 20:29:38 2026 GMT', 'subjectAltName': (('DNS', '*.sucuri.net'), ('DNS', 'sucuri.net')), 'OCSP': ('http://ocsp.godaddy.com/',), 'caIssuers': ('http://certificates.godaddy.com/repository/gdig2.crt',), 'crlDistributionPoints': ('http://crl.godaddy.com/gdig2s1-60512.crl',)}
+2026-06-02 07:31:09,907 [WARNING]   ✗ retry 1/3 (backoff): HTTPSConnectionPool(host='n8n.yourdomain.com', port=443): Max retries exceeded with url: /webhook/te
+2026-06-02 07:31:25,549 [INFO] [chat] id=c35e3fbb agent=jeff retries=1
+2026-06-02 07:31:25,550 [INFO] [chat] id=c35e3fbb agent=jeff retries=1
+2026-06-02 07:31:25,762 [WARNING] Certificate did not match expected hostname: n8n.yourdomain.com. Certificate: {'subject': ((('commonName', '*.sucuri.net'),),), 'issuer': ((('countryName', 'US'),), (('stateOrProvinceName', 'Arizona'),), (('localityName', 'Scottsdale'),), (('organizationName', 'GoDaddy.com, Inc.'),), (('organizationalUnitName', 'http://certs.godaddy.com/repository/'),), (('commonName', 'Go Daddy Secure Certificate Authority - G2'),)), 'version': 3, 'serialNumber': '9769BCCA84095D35', 'notBefore': 'Aug 27 20:29:38 2025 GMT', 'notAfter': 'Sep 28 20:29:38 2026 GMT', 'subjectAltName': (('DNS', '*.sucuri.net'), ('DNS', 'sucuri.net')), 'OCSP': ('http://ocsp.godaddy.com/',), 'caIssuers': ('http://certificates.godaddy.com/repository/gdig2.crt',), 'crlDistributionPoints': ('http://crl.godaddy.com/gdig2s1-60512.crl',)}
+2026-06-02 07:31:25,802 [WARNING] Certificate did not match expected hostname: n8n.yourdomain.com. Certificate: {'subject': ((('commonName', '*.sucuri.net'),),), 'issuer': ((('countryName', 'US'),), (('stateOrProvinceName', 'Arizona'),), (('localityName', 'Scottsdale'),), (('organizationName', 'GoDaddy.com, Inc.'),), (('organizationalUnitName', 'http://certs.godaddy.com/repository/'),), (('commonName', 'Go Daddy Secure Certificate Authority - G2'),)), 'version': 3, 'serialNumber': '9769BCCA84095D35', 'notBefore': 'Aug 27 20:29:38 2025 GMT', 'notAfter': 'Sep 28 20:29:38 2026 GMT', 'subjectAltName': (('DNS', '*.sucuri.net'), ('DNS', 'sucuri.net')), 'OCSP': ('http://ocsp.godaddy.com/',), 'caIssuers': ('http://certificates.godaddy.com/repository/gdig2.crt',), 'crlDistributionPoints': ('http://crl.godaddy.com/gdig2s1-60512.crl',)}
+2026-06-02 07:31:25,879 [WARNING]   ✗ retry 2/3 (backoff): HTTPSConnectionPool(host='n8n.yourdomain.com', port=443): Max retries exceeded with url: /webhook/te
+2026-06-02 07:31:25,882 [WARNING]   ✗ retry 2/3 (backoff): HTTPSConnectionPool(host='n8n.yourdomain.com', port=443): Max retries exceeded with url: /webhook/te
+2026-06-02 07:32:28,570 [INFO] [chat] id=c35e3fbb agent=jeff retries=2
+2026-06-02 07:32:28,570 [INFO] [chat] id=c35e3fbb agent=jeff retries=2
+2026-06-02 07:32:28,812 [WARNING] Certificate did not match expected hostname: n8n.yourdomain.com. Certificate: {'subject': ((('commonName', '*.sucuri.net'),),), 'issuer': ((('countryName', 'US'),), (('stateOrProvinceName', 'Arizona'),), (('localityName', 'Scottsdale'),), (('organizationName', 'GoDaddy.com, Inc.'),), (('organizationalUnitName', 'http://certs.godaddy.com/repository/'),), (('commonName', 'Go Daddy Secure Certificate Authority - G2'),)), 'version': 3, 'serialNumber': '9769BCCA84095D35', 'notBefore': 'Aug 27 20:29:38 2025 GMT', 'notAfter': 'Sep 28 20:29:38 2026 GMT', 'subjectAltName': (('DNS', '*.sucuri.net'), ('DNS', 'sucuri.net')), 'OCSP': ('http://ocsp.godaddy.com/',), 'caIssuers': ('http://certificates.godaddy.com/repository/gdig2.crt',), 'crlDistributionPoints': ('http://crl.godaddy.com/gdig2s1-60512.crl',)}
+2026-06-02 07:32:28,812 [WARNING] Certificate did not match expected hostname: n8n.yourdomain.com. Certificate: {'subject': ((('commonName', '*.sucuri.net'),),), 'issuer': ((('countryName', 'US'),), (('stateOrProvinceName', 'Arizona'),), (('localityName', 'Scottsdale'),), (('organizationName', 'GoDaddy.com, Inc.'),), (('organizationalUnitName', 'http://certs.godaddy.com/repository/'),), (('commonName', 'Go Daddy Secure Certificate Authority - G2'),)), 'version': 3, 'serialNumber': '9769BCCA84095D35', 'notBefore': 'Aug 27 20:29:38 2025 GMT', 'notAfter': 'Sep 28 20:29:38 2026 GMT', 'subjectAltName': (('DNS', '*.sucuri.net'), ('DNS', 'sucuri.net')), 'OCSP': ('http://ocsp.godaddy.com/',), 'caIssuers': ('http://certificates.godaddy.com/repository/gdig2.crt',), 'crlDistributionPoints': ('http://crl.godaddy.com/gdig2s1-60512.crl',)}
+2026-06-02 07:32:28,937 [WARNING]   ✗ retry 3/3 (backoff): HTTPSConnectionPool(host='n8n.yourdomain.com', port=443): Max retries exceeded with url: /webhook/te
+2026-06-02 07:32:28,937 [WARNING]   ✗ retry 3/3 (backoff): HTTPSConnectionPool(host='n8n.yourdomain.com', port=443): Max retries exceeded with url: /webhook/te
+2026-06-02 07:33:31,668 [INFO]   … idle, queue empty
+2026-06-02 07:33:31,669 [INFO]   … idle, queue empty
+2026-06-02 07:34:34,413 [INFO]   … idle, queue empty
+2026-06-02 07:34:34,413 [INFO]   … idle, queue empty
+2026-06-02 07:35:37,208 [INFO]   … idle, queue empty
+2026-06-02 07:35:37,209 [INFO]   … idle, queue empty
+2026-06-02 07:36:40,036 [INFO]   … idle, queue empty
+2026-06-02 07:36:40,036 [INFO]   … idle, queue empty
+2026-06-02 07:37:30,230 [INFO] [chat] id=c35e3fbb agent=jeff retries=3
+2026-06-02 07:37:30,230 [INFO] [chat] id=c35e3fbb agent=jeff retries=3
+2026-06-02 07:37:30,463 [WARNING] Certificate did not match expected hostname: n8n.yourdomain.com. Certificate: {'subject': ((('commonName', '*.sucuri.net'),),), 'issuer': ((('countryName', 'US'),), (('stateOrProvinceName', 'Arizona'),), (('localityName', 'Scottsdale'),), (('organizationName', 'GoDaddy.com, Inc.'),), (('organizationalUnitName', 'http://certs.godaddy.com/repository/'),), (('commonName', 'Go Daddy Secure Certificate Authority - G2'),)), 'version': 3, 'serialNumber': '9769BCCA84095D35', 'notBefore': 'Aug 27 20:29:38 2025 GMT', 'notAfter': 'Sep 28 20:29:38 2026 GMT', 'subjectAltName': (('DNS', '*.sucuri.net'), ('DNS', 'sucuri.net')), 'OCSP': ('http://ocsp.godaddy.com/',), 'caIssuers': ('http://certificates.godaddy.com/repository/gdig2.crt',), 'crlDistributionPoints': ('http://crl.godaddy.com/gdig2s1-60512.crl',)}
+2026-06-02 07:37:30,503 [WARNING] Certificate did not match expected hostname: n8n.yourdomain.com. Certificate: {'subject': ((('commonName', '*.sucuri.net'),),), 'issuer': ((('countryName', 'US'),), (('stateOrProvinceName', 'Arizona'),), (('localityName', 'Scottsdale'),), (('organizationName', 'GoDaddy.com, Inc.'),), (('organizationalUnitName', 'http://certs.godaddy.com/repository/'),), (('commonName', 'Go Daddy Secure Certificate Authority - G2'),)), 'version': 3, 'serialNumber': '9769BCCA84095D35', 'notBefore': 'Aug 27 20:29:38 2025 GMT', 'notAfter': 'Sep 28 20:29:38 2026 GMT', 'subjectAltName': (('DNS', '*.sucuri.net'), ('DNS', 'sucuri.net')), 'OCSP': ('http://ocsp.godaddy.com/',), 'caIssuers': ('http://certificates.godaddy.com/repository/gdig2.crt',), 'crlDistributionPoints': ('http://crl.godaddy.com/gdig2s1-60512.crl',)}
+2026-06-02 07:37:31,736 [ERROR]   ✗ failed permanently: HTTPSConnectionPool(host='n8n.yourdomain.com', port=443): Max retries exceeded with url: /webhook/telegram-coprem (Caused by SSLError(CertificateError
+2026-06-02 07:37:31,944 [ERROR]   ✗ failed permanently: HTTPSConnectionPool(host='n8n.yourdomain.com', port=443): Max retries exceeded with url: /webhook/telegram-coprem (Caused by SSLError(CertificateError
+2026-06-02 07:38:34,375 [INFO]   … idle, queue empty
+2026-06-02 07:38:34,375 [INFO]   … idle, queue empty
+2026-06-02 07:39:36,991 [INFO]   … idle, queue empty
+2026-06-02 07:39:36,991 [INFO]   … idle, queue empty
+2026-06-02 07:40:05,354 [INFO] Shutdown signal received — finishing current cycle...
+2026-06-02 07:40:08,126 [INFO] Autonomous loop stopped cleanly.
+2026-06-02 07:40:39,465 [INFO]   … idle, queue empty
+2026-06-02 07:41:42,100 [INFO]   … idle, queue empty
+2026-06-02 07:42:44,856 [INFO]   … idle, queue empty
+2026-06-02 07:43:47,544 [INFO]   … idle, queue empty
+2026-06-02 07:44:50,187 [INFO]   … idle, queue empty
+2026-06-02 07:45:52,812 [INFO]   … idle, queue empty
+2026-06-02 07:46:55,578 [INFO]   … idle, queue empty
+2026-06-02 07:47:58,285 [INFO]   … idle, queue empty
+2026-06-02 07:49:00,960 [INFO]   … idle, queue empty
+2026-06-02 07:50:03,745 [INFO]   … idle, queue empty
+2026-06-02 07:51:06,461 [INFO]   … idle, queue empty
+2026-06-02 07:52:09,074 [INFO]   … idle, queue empty
+2026-06-02 07:54:13,399 [INFO]   … idle, queue empty
+2026-06-02 08:48:21,761 [INFO]   … idle, queue empty
+2026-06-02 11:10:20,388 [INFO]   … idle, queue empty
+2026-06-02 11:48:18,514 [INFO]   … idle, queue empty
+2026-06-02 11:49:21,317 [INFO]   … idle, queue empty
+2026-06-02 11:50:23,850 [INFO]   … idle, queue empty
+2026-06-02 11:51:26,608 [INFO]   … idle, queue empty
+2026-06-02 11:52:29,633 [INFO]   … idle, queue empty
+2026-06-02 11:53:32,275 [INFO]   … idle, queue empty
+2026-06-02 11:54:35,065 [INFO]   … idle, queue empty
+2026-06-02 11:55:37,824 [INFO]   … idle, queue empty
+2026-06-02 11:56:40,538 [INFO]   … idle, queue empty
+2026-06-02 11:57:42,708 [INFO]   … idle, queue empty
+2026-06-02 11:58:45,270 [INFO]   … idle, queue empty
+2026-06-02 11:59:48,007 [INFO]   … idle, queue empty
+2026-06-02 12:00:50,803 [INFO]   … idle, queue empty
+2026-06-02 12:01:53,940 [INFO]   … idle, queue empty
+2026-06-02 12:02:56,813 [INFO]   … idle, queue empty
+2026-06-02 12:03:59,568 [INFO]   … idle, queue empty
+2026-06-02 12:05:02,395 [INFO]   … idle, queue empty
+2026-06-02 12:06:05,237 [INFO]   … idle, queue empty
+2026-06-02 12:07:08,089 [INFO]   … idle, queue empty
+2026-06-02 12:08:10,917 [INFO]   … idle, queue empty
+2026-06-02 12:09:13,751 [INFO]   … idle, queue empty
+2026-06-02 12:10:16,602 [INFO]   … idle, queue empty
+2026-06-02 12:11:19,394 [INFO]   … idle, queue empty
+2026-06-02 12:12:22,121 [INFO]   … idle, queue empty
+2026-06-02 12:13:24,951 [INFO]   … idle, queue empty
+2026-06-02 12:14:27,824 [INFO]   … idle, queue empty
+2026-06-02 12:15:30,720 [INFO]   … idle, queue empty
+2026-06-02 12:16:33,541 [INFO]   … idle, queue empty
+2026-06-02 12:17:36,198 [INFO]   … idle, queue empty
+2026-06-02 12:18:39,009 [INFO]   … idle, queue empty
+2026-06-02 12:19:41,716 [INFO]   … idle, queue empty
+2026-06-02 12:20:44,624 [INFO]   … idle, queue empty
+2026-06-02 12:21:47,462 [INFO]   … idle, queue empty
+2026-06-02 12:22:50,329 [INFO]   … idle, queue empty
+2026-06-02 12:23:53,191 [INFO]   … idle, queue empty
+2026-06-02 12:24:56,047 [INFO]   … idle, queue empty
+2026-06-02 12:25:58,912 [INFO]   … idle, queue empty
+2026-06-02 12:27:01,803 [INFO]   … idle, queue empty
+2026-06-02 12:28:04,640 [INFO]   … idle, queue empty
+2026-06-02 12:29:07,429 [INFO]   … idle, queue empty
+2026-06-02 12:30:10,286 [INFO]   … idle, queue empty
+2026-06-02 12:31:13,112 [INFO]   … idle, queue empty
+2026-06-02 12:32:15,966 [INFO]   … idle, queue empty
+2026-06-02 12:33:18,752 [INFO]   … idle, queue empty
+2026-06-02 12:34:21,555 [INFO]   … idle, queue empty
+2026-06-02 12:35:24,315 [INFO]   … idle, queue empty
+2026-06-02 12:36:27,027 [INFO]   … idle, queue empty
+2026-06-02 12:37:29,817 [INFO]   … idle, queue empty
+2026-06-02 12:38:32,673 [INFO]   … idle, queue empty
+2026-06-02 12:39:35,451 [INFO]   … idle, queue empty
+2026-06-02 12:40:38,287 [INFO]   … idle, queue empty
+2026-06-02 12:41:41,149 [INFO]   … idle, queue empty
+2026-06-02 12:42:44,010 [INFO]   … idle, queue empty
+2026-06-02 12:43:46,839 [INFO]   … idle, queue empty
+2026-06-02 12:44:49,672 [INFO]   … idle, queue empty
+2026-06-02 12:45:52,586 [INFO]   … idle, queue empty
+2026-06-02 12:46:55,475 [INFO]   … idle, queue empty
+2026-06-02 12:47:58,283 [INFO]   … idle, queue empty
+2026-06-02 12:49:01,080 [INFO]   … idle, queue empty
+2026-06-02 12:50:03,874 [INFO]   … idle, queue empty
+2026-06-02 12:51:06,701 [INFO]   … idle, queue empty
+2026-06-02 12:52:09,570 [INFO]   … idle, queue empty
+2026-06-02 12:53:12,485 [INFO]   … idle, queue empty
+2026-06-02 12:54:15,290 [INFO]   … idle, queue empty
+2026-06-02 12:55:18,116 [INFO]   … idle, queue empty
+2026-06-02 12:56:20,923 [INFO]   … idle, queue empty
+2026-06-02 12:57:23,769 [INFO]   … idle, queue empty
+2026-06-02 12:58:26,723 [INFO]   … idle, queue empty
+2026-06-02 12:59:29,564 [INFO]   … idle, queue empty
+2026-06-02 13:00:32,415 [INFO]   … idle, queue empty
+2026-06-02 13:01:35,274 [INFO]   … idle, queue empty
+2026-06-02 13:02:38,109 [INFO]   … idle, queue empty
+2026-06-02 13:03:40,917 [INFO]   … idle, queue empty
+2026-06-02 13:04:43,749 [INFO]   … idle, queue empty
+2026-06-02 13:05:46,617 [INFO]   … idle, queue empty
+2026-06-02 13:06:49,433 [INFO]   … idle, queue empty
+2026-06-02 13:07:52,252 [INFO]   … idle, queue empty
+2026-06-02 13:08:55,088 [INFO]   … idle, queue empty
+2026-06-02 13:09:57,909 [INFO]   … idle, queue empty
+2026-06-02 13:11:00,757 [INFO]   … idle, queue empty
+2026-06-02 13:12:03,525 [INFO]   … idle, queue empty
+2026-06-02 13:13:06,359 [INFO]   … idle, queue empty
+2026-06-02 13:14:09,214 [INFO]   … idle, queue empty
+2026-06-02 13:15:12,071 [INFO]   … idle, queue empty
+2026-06-02 13:16:14,961 [INFO]   … idle, queue empty
+2026-06-02 13:17:17,848 [INFO]   … idle, queue empty
+2026-06-02 13:18:20,711 [INFO]   … idle, queue empty
+2026-06-02 13:19:23,508 [INFO]   … idle, queue empty
+2026-06-02 13:20:26,274 [INFO]   … idle, queue empty
+2026-06-02 13:21:29,128 [INFO]   … idle, queue empty
+2026-06-02 13:22:32,026 [INFO]   … idle, queue empty
+2026-06-02 13:23:34,899 [INFO]   … idle, queue empty
+2026-06-02 13:24:37,816 [INFO]   … idle, queue empty
+2026-06-02 13:25:40,688 [INFO]   … idle, queue empty
+2026-06-02 13:26:43,491 [INFO]   … idle, queue empty
+2026-06-02 13:27:46,348 [INFO]   … idle, queue empty
+2026-06-02 13:28:49,173 [INFO]   … idle, queue empty
+2026-06-02 13:29:52,043 [INFO]   … idle, queue empty
+2026-06-02 13:30:54,928 [INFO]   … idle, queue empty
+2026-06-02 13:31:57,744 [INFO]   … idle, queue empty
+2026-06-02 13:33:00,651 [INFO]   … idle, queue empty
+2026-06-02 13:34:03,488 [INFO]   … idle, queue empty
+2026-06-02 13:35:06,326 [INFO]   … idle, queue empty
+2026-06-02 13:36:09,159 [INFO]   … idle, queue empty
+2026-06-02 13:37:12,006 [INFO]   … idle, queue empty
+2026-06-02 13:38:14,843 [INFO]   … idle, queue empty
+2026-06-02 13:39:17,739 [INFO]   … idle, queue empty
+2026-06-02 13:40:20,623 [INFO]   … idle, queue empty
+2026-06-02 13:41:23,496 [INFO]   … idle, queue empty
+2026-06-02 13:42:26,407 [INFO]   … idle, queue empty
+2026-06-02 13:43:29,160 [INFO]   … idle, queue empty
+2026-06-02 13:44:31,979 [INFO]   … idle, queue empty
+2026-06-02 13:45:34,833 [INFO]   … idle, queue empty
+2026-06-02 13:46:37,674 [INFO]   … idle, queue empty
+2026-06-02 13:47:40,580 [INFO]   … idle, queue empty
+2026-06-02 13:48:43,462 [INFO]   … idle, queue empty
+2026-06-02 13:49:46,345 [INFO]   … idle, queue empty
+2026-06-02 13:50:49,173 [INFO]   … idle, queue empty
+2026-06-02 13:51:52,036 [INFO]   … idle, queue empty
+2026-06-02 13:52:54,876 [INFO]   … idle, queue empty
+2026-06-02 13:53:57,753 [INFO]   … idle, queue empty
+2026-06-02 13:55:00,535 [INFO]   … idle, queue empty
+2026-06-02 13:56:03,375 [INFO]   … idle, queue empty
+2026-06-02 13:57:06,152 [INFO]   … idle, queue empty
+2026-06-02 13:58:08,981 [INFO]   … idle, queue empty
+2026-06-02 13:59:11,803 [INFO]   … idle, queue empty
+2026-06-02 14:00:14,642 [INFO]   … idle, queue empty
+2026-06-02 14:01:17,560 [INFO]   … idle, queue empty
+2026-06-02 14:02:20,384 [INFO]   … idle, queue empty
+2026-06-02 14:03:23,230 [INFO]   … idle, queue empty
+2026-06-02 14:04:26,106 [INFO]   … idle, queue empty
+2026-06-02 14:05:29,310 [INFO]   … idle, queue empty
+2026-06-02 14:06:32,240 [INFO]   … idle, queue empty
+2026-06-02 14:07:35,377 [INFO]   … idle, queue empty
+2026-06-02 14:08:38,366 [INFO]   … idle, queue empty
+2026-06-02 14:09:41,323 [INFO]   … idle, queue empty
+2026-06-02 14:10:44,519 [INFO]   … idle, queue empty
+2026-06-02 14:11:47,556 [INFO]   … idle, queue empty
+2026-06-02 14:12:50,501 [INFO]   … idle, queue empty
+2026-06-02 14:13:53,464 [INFO]   … idle, queue empty
+2026-06-02 14:14:56,454 [INFO]   … idle, queue empty
+2026-06-02 14:15:59,427 [INFO]   … idle, queue empty
+2026-06-02 14:17:02,445 [INFO]   … idle, queue empty
+2026-06-02 14:18:05,478 [INFO]   … idle, queue empty
+2026-06-02 14:19:08,497 [INFO]   … idle, queue empty
+2026-06-02 14:20:11,543 [INFO]   … idle, queue empty
+2026-06-02 14:21:14,533 [INFO]   … idle, queue empty
+2026-06-02 14:22:17,552 [INFO]   … idle, queue empty
+2026-06-02 14:23:20,522 [INFO]   … idle, queue empty
+2026-06-02 14:24:23,552 [INFO]   … idle, queue empty
+2026-06-02 14:25:26,491 [INFO]   … idle, queue empty
+2026-06-02 14:26:29,460 [INFO]   … idle, queue empty
+2026-06-02 14:27:32,354 [INFO]   … idle, queue empty
+2026-06-02 14:28:35,230 [INFO]   … idle, queue empty
+2026-06-02 14:29:38,137 [INFO]   … idle, queue empty
+2026-06-02 14:30:41,114 [INFO]   … idle, queue empty
+2026-06-02 14:31:44,028 [INFO]   … idle, queue empty
+2026-06-02 14:32:46,975 [INFO]   … idle, queue empty
+2026-06-02 14:33:49,946 [INFO]   … idle, queue empty
+2026-06-02 14:34:52,972 [INFO]   … idle, queue empty
+2026-06-02 14:35:56,010 [INFO]   … idle, queue empty
+2026-06-02 14:36:58,947 [INFO]   … idle, queue empty
+2026-06-02 14:38:02,013 [INFO]   … idle, queue empty
+2026-06-02 14:39:05,083 [INFO]   … idle, queue empty
+2026-06-02 14:40:08,169 [INFO]   … idle, queue empty
+2026-06-02 14:41:11,227 [INFO]   … idle, queue empty
+2026-06-02 14:42:14,293 [INFO]   … idle, queue empty
+2026-06-02 14:43:17,380 [INFO]   … idle, queue empty
+2026-06-02 14:44:20,450 [INFO]   … idle, queue empty
+2026-06-02 14:45:23,411 [INFO]   … idle, queue empty
+2026-06-02 14:46:26,452 [INFO]   … idle, queue empty
+2026-06-02 14:47:29,508 [INFO]   … idle, queue empty
+2026-06-02 14:48:32,633 [INFO]   … idle, queue empty
+2026-06-02 14:49:35,713 [INFO]   … idle, queue empty
+2026-06-02 14:50:38,734 [INFO]   … idle, queue empty
+2026-06-02 14:51:41,660 [INFO]   … idle, queue empty
+2026-06-02 14:52:44,710 [INFO]   … idle, queue empty
+2026-06-02 14:53:47,633 [INFO]   … idle, queue empty
+2026-06-02 14:54:50,233 [INFO]   … idle, queue empty
+2026-06-02 14:55:52,788 [INFO]   … idle, queue empty
+2026-06-02 14:56:55,309 [INFO]   … idle, queue empty
+2026-06-02 14:57:58,183 [INFO]   … idle, queue empty
+2026-06-02 14:59:01,226 [INFO]   … idle, queue empty
+2026-06-02 15:00:04,182 [INFO]   … idle, queue empty
+2026-06-02 15:01:07,272 [INFO]   … idle, queue empty
+2026-06-02 15:02:10,331 [INFO]   … idle, queue empty
+2026-06-02 15:03:13,328 [INFO]   … idle, queue empty
+2026-06-02 15:04:16,349 [INFO]   … idle, queue empty
+2026-06-02 15:05:19,408 [INFO]   … idle, queue empty
+2026-06-02 15:06:22,465 [INFO]   … idle, queue empty
+2026-06-02 15:07:25,574 [INFO]   … idle, queue empty
+2026-06-02 15:08:28,675 [INFO]   … idle, queue empty
+2026-06-02 15:09:31,795 [INFO]   … idle, queue empty
+2026-06-02 15:10:34,874 [INFO]   … idle, queue empty
+2026-06-02 15:11:37,786 [INFO]   … idle, queue empty
+2026-06-02 15:12:40,786 [INFO]   … idle, queue empty
+2026-06-02 15:13:43,725 [INFO]   … idle, queue empty
+2026-06-02 15:14:46,813 [INFO]   … idle, queue empty
+2026-06-02 15:15:49,872 [INFO]   … idle, queue empty
+2026-06-02 15:16:52,931 [INFO]   … idle, queue empty
+2026-06-02 15:17:55,992 [INFO]   … idle, queue empty
+2026-06-02 15:18:59,037 [INFO]   … idle, queue empty
+2026-06-02 15:20:02,060 [INFO]   … idle, queue empty
+2026-06-02 15:21:05,112 [INFO]   … idle, queue empty
+2026-06-02 15:22:08,094 [INFO]   … idle, queue empty
+2026-06-02 15:23:11,056 [INFO]   … idle, queue empty
+2026-06-02 15:24:14,077 [INFO]   … idle, queue empty
+2026-06-02 15:25:17,089 [INFO]   … idle, queue empty

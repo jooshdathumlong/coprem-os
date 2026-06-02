@@ -375,6 +375,7 @@ def run_loop():
 
     signal.signal(signal.SIGTERM, on_signal)
     signal.signal(signal.SIGINT, on_signal)
+    signal.signal(signal.SIGHUP, on_signal)
 
     idle_ticks = 0
     while not shutdown:
@@ -398,6 +399,8 @@ def run_loop():
     log.info("Autonomous loop stopped cleanly.")
     if PID_FILE.exists():
         PID_FILE.unlink()
+    # Exit 0 so launchd KeepAlive:true restarts us on next login
+    # (launchd with KeepAlive:true will always restart regardless of exit code)
 
 if __name__ == "__main__":
     run_loop()
