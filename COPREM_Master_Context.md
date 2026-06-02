@@ -59,10 +59,8 @@ Ollama (localhost:11434 — Mac)
   → llama3.1:8b (4.9GB) ✅
   → qwen2.5:7b (4.7GB) ✅
 
-L1-C Provider Router (path: /webhook/l1c-route)
-  → Check Rate Limits → Select Model (Tier 0-3) → Log to Audit
-  → Route to Dify (HTTP → LiteLLM, Jeff system prompt + KB context)
-  → Respond (JSON: {assigned_agent, selected_model, dify_reply})
+⚠️ NOTE: L1-B, L3, L1-C bypassed in current WF01 — direct DB context + LiteLLM flow
+(L1-C Provider Router still active as standalone WF for non-WF01 routing)
 
 Postgres
   → coprem (n8n internal)
@@ -97,7 +95,7 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 
 ---
 
-## 4. Blueprint Layer Status (v8.3 — 10 layers COMPLETE)
+## 4. Blueprint Layer Status (v8.4 — 10 layers COMPLETE)
 
 | Layer | Status | รายละเอียด |
 |---|---|---|
@@ -178,9 +176,11 @@ Keys ที่สำคัญ (masked):
 - `GROQ_API_KEY` — Groq fallback
 - `EILINAIRE_GOOGLE_API_KEY` + 5 more — Gemini keys
 
-### n8n Postgres Credential IDs
-- `226PbeVgki0neEi4` = Postgres COPREM (coprem_os)
-- `rdxzBrj9putuOkku` = Postgres coprem_os (alt)
+### n8n Credential IDs (current — as of 2026-06-02)
+- `3zthmqZdGdRYWYG3` = Postgres coprem_os
+- `eOjevL4EC671XsJZ` = Postgres rs_lifestyle
+- `HwDrAYiJObb07mt1` = Telegram
+- `ZwmyWJ4IRcXbVY8H` = Redis
 
 ---
 
@@ -246,6 +246,7 @@ python3 scripts/fix_credentials.py
 ollama serve &
 # Activate WF01 via n8n API (see post_restart.sh)
 # Re-register Telegram webhook (see post_restart.sh)
+nohup python3 scripts/autonomous_loop.py > logs/autonomous_loop.log 2>&1 &
 ```
 
 ---
