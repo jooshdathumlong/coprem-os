@@ -6,8 +6,10 @@
 ## 1. สถานะระบบตอนนี้
 
 **WF01 ทำงาน end-to-end สมบูรณ์** — Telegram → Jeff ตอบกลับได้จริง
-- Execution ล่าสุด: success, 39 nodes, 0 errors
-- Jeff ตอบได้ทั้ง Thai/English พร้อม KB context จาก Dify
+- Execution ล่าสุด: #28 success, 1636ms (2026-06-02)
+- LLM: LiteLLM → groq/llama-3.3-70b-versatile (Gemini rate limited)
+- 14 bugs แก้แล้ว (ดู STATUS.md รายละเอียด)
+- RS Lifestyle DB: rs_lifestyle schema (9 tables, 42 products, 204 KOL, 143 sales)
 
 ---
 
@@ -18,7 +20,7 @@ Telegram Bot (@Coprem_Bot, chat_id: 7731591925)
   ↓ webhook POST https://n8n.peabuntid.com/webhook/telegram-coprem
 
 n8n 2.22.5 (localhost:5678 / n8n.peabuntid.com)
-  ↓ WF01 Inbox Receiver (ID: 4uVEG8SEM23BDrdu, 39 nodes)
+  ↓ WF01 Inbox Receiver (ID: jFq7aSFJQ7ElHoLZ — reimported 2026-06-02)
 
   L7 Security:
     → Audit WEBHOOK_RECEIVED (Postgres audit_log)
@@ -311,3 +313,16 @@ ollama serve &
 | WF10 KB auto-sync: KB_MAP + daily cron | ✅ |
 | L4 Ego Era: 12 characters + Ch.1 seeded | ✅ |
 | WF13 Discord Monitor | ⛔ deactivated + renamed [INACTIVE] |
+
+## Session Log (2026-06-02 — Session 12+)
+
+| งาน | ผล |
+|---|---|
+| RS Lifestyle DB import (rs_lifestyle schema) | ✅ 9 tables, 42 products, 143 sales, 204 KOL |
+| n8n reimport all workflows (fresh instance) | ✅ 15 active (3 credentials created) |
+| embed_kb.py: fix column embedding_768→embedding + dim 3072→768 | ✅ 116 segments |
+| WF01: 14 bugs fixed end-to-end | ✅ Execution #28 success |
+| LLM: Dify Cloud (GPT-4 blocked) → LiteLLM Groq | ✅ Jeff ตอบกลับแล้ว |
+| WF-HITL-Resolver webhook path conflict | ✅ telegram-hitl |
+| Redis credential added (WF L1.5) | ✅ ZwmyWJ4IRcXbVY8H |
+| SYSTEM_STATE.md overwritten with fresh n8n IDs | ✅ |

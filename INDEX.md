@@ -112,6 +112,8 @@ Next.js dashboard (localhost:3000) — live. Chat, KB, HITL, Status tabs.
 | `scripts/apply_migrations.sh` | (auto-registered 2026-06-01) |
 | `scripts/health_check.sh` | (auto-registered 2026-06-01) |
 | `scripts/setup.sh` | (auto-registered 2026-06-01) |
+| `02-knowledge/work/business_context.md` | RS Lifestyle business data — brands, pricing, trade conditions, KOL, sales |
+| `03-system/database/` | init.sql (coprem_os tables) + schemas.sql — run in coprem_os not coprem DB |
 | `scripts/sync_docs.sh` | (auto-registered 2026-06-01) |
 | `scripts/build_master_context.py` | (auto-registered 2026-06-01) |
 | `scripts/sqlite_io.py` | (auto-registered 2026-06-01) |
