@@ -1099,3 +1099,25 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 
 ### Pending (Prem action)
 - จัดไฟล์ .md 14 ไฟล์ตาม CATEGORY_RULES.md → Jeff import ต่อ
+
+## Part 15 — Session 2026-06-02 (Master Update)
+
+**Date:** 2026-06-02 20:50 | **Agent:** Jeff | **Blueprint:** v8.4
+
+### งานที่ทำเสร็จ
+- COPREM_Master_Context.md: credential IDs synced (4 new IDs from fresh n8n instance)
+- Section 2: L1-B/L3/L1-C bypass note added — direct DB context + LiteLLM flow confirmed
+- Section 4: Blueprint version v8.3 → v8.4
+- Section 10: autonomous loop start command added to Post-Restart Checklist
+- SYSTEM_STATE.md: updated 20:03 + 20:50 with Autonomous Loop PID 3237
+- git push: partial success via 10-commit batches (HTTP 500 on large packs)
+  - Remote: b5c6c3e → ae964c3 (120 commits pushed)
+  - Remaining: ~30 commits (HEAD at ad3a365)
+
+### Known Issue
+- GitHub HTTP 500 on push >10 commits — workaround: push in 10-commit batches
+- PAT set in remote URL: ghp_hn3a...Gu (masked)
+
+### System State
+All services UP: n8n, Postgres, Redis, LiteLLM, Dify, Telegram webhook ✅
+Autonomous Loop PID 3237 ✅

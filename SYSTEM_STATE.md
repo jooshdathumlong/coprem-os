@@ -8,6 +8,7 @@
 | WEBHOOK_URL | OK | https://n8n.peabuntid.com |
 | Telegram webhook | OK | https://n8n.peabuntid.com/webhook/telegram-coprem |
 | Autonomous Loop | UP | PID 3237 (logs/autonomous_loop.pid) |
+| Autonomous Loop | UP | PID 3237 (logs/autonomous_loop.pid) |
 | Autonomous Loop | UP | PID file: logs/autonomous_loop.pid |
 | Dashboard | UP | port 3001 |
 | Ollama | UP | nomic-embed-text |

@@ -898,3 +898,6 @@ PENDING:
 - KOL cost_thb ยังขาด 114 rows (Lot 1, 2)
 - Batiste sales / promo calendar query
 - Gemini quota reset ตีสาม
+
+| 2026-06-02 20:50 | Jeff | docs: COPREM_Master_Context.md — credential IDs updated (4 new), L1-B/L3/L1-C bypass note, v8.3→v8.4, autonomous loop added to post-restart checklist | ✅ committed a73b61c |
+| 2026-06-02 20:50 | Jeff | git push: partial — 120/150 commits pushed via 10-commit batches (HTTP 500 on large packs) — remote at ae964c3, local HEAD ad3a365 | ⚠️ 30 commits pending |
