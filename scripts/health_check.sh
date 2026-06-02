@@ -60,9 +60,21 @@ else
 fi
 
 # ── Telegram webhook ──────────────────────────────────────────
+EXPECTED_WH_PATH="telegram-coprem"
 BOT_TOKEN=$(grep "^TELEGRAM_BOT_TOKEN=" "$ENV" | cut -d= -f2)
-TG_WH=$(curl -s --max-time 5 "https://api.telegram.org/bot$BOT_TOKEN/getWebhookInfo" 2>/dev/null | \
-  python3 -c "import json,sys; r=json.load(sys.stdin)['result']; print('OK' if 'n8n.peabuntid.com' in r.get('url','') else 'MISSING')" 2>/dev/null)
-echo "| Telegram webhook | ${TG_WH:-UNKNOWN} |" >> /tmp/state.md
+TG_WH_INFO=$(curl -s --max-time 5 "https://api.telegram.org/bot$BOT_TOKEN/getWebhookInfo" 2>/dev/null)
+TG_WH_URL=$(echo "$TG_WH_INFO" | python3 -c "import json,sys; print(json.load(sys.stdin)['result'].get('url',''))" 2>/dev/null)
+TG_WH_ERR=$(echo "$TG_WH_INFO" | python3 -c "import json,sys; print(json.load(sys.stdin)['result'].get('last_error_message',''))" 2>/dev/null)
+
+if [[ "$TG_WH_URL" == *"$EXPECTED_WH_PATH"* ]]; then
+  echo "| Telegram webhook | OK | $TG_WH_URL |" >> /tmp/state.md
+else
+  # Auto-fix: reset webhook to correct path
+  FIX_RESULT=$(curl -s --max-time 5 "https://api.telegram.org/bot$BOT_TOKEN/setWebhook" \
+    -d "url=https://n8n.peabuntid.com/webhook/$EXPECTED_WH_PATH" \
+    -d "allowed_updates=[\"message\"]" 2>/dev/null | \
+    python3 -c "import json,sys; d=json.load(sys.stdin); print('FIXED' if d.get('ok') else 'FIX_FAILED')" 2>/dev/null)
+  echo "| Telegram webhook | ${FIX_RESULT:-UNKNOWN} | was: $TG_WH_URL → reset to $EXPECTED_WH_PATH |" >> /tmp/state.md
+fi
 
 cat /tmp/state.md
