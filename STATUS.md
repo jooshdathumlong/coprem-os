@@ -841,3 +841,8 @@ RESULT: Execution 11+12 = SUCCESS ✅ | WF01 end-to-end PASS
 | Redis credential missing (WF L1.5) | ✅ created ZwmyWJ4IRcXbVY8H |
 | Dify Cloud GPT-4 not supported → LiteLLM + groq/llama | ✅ |
 RESULT: Execution 28 SUCCESS 1636ms | AGENT_OUTPUT in audit_log ✅ | Jeff ตอบแล้ว!
+
+## 2026-06-02 — undefined reply fix
+| BUG | ROOT: Send Reply ใช้ $json.reply แต่ $json ถูก overwrite โดย L7 Audit INSERT | FIX: $('L2.5 Normalize Output').first().json.reply_text |
+| Log to Inbox field names | text→content_clean, isThai→lang_detected, hash→msg_hash | ✅ |
+RESULT: Execution 32 SUCCESS 1611ms | AGENT_OUTPUT: reply ถูกต้อง | Pending: 0
