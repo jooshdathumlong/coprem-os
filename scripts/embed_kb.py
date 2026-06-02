@@ -77,14 +77,16 @@ def pg_upsert(pg_cid: str, content: str, pillar: str, kb_id: str, embedding: lis
     # Escape single quotes in content
     safe_content = content.replace("'", "''")
     sql = (
-        f"INSERT INTO memory_embeddings (content, memory_type, pillar, kb_id, embedding_768) "
+        f"INSERT INTO memory_embeddings (content, memory_type, pillar, kb_id, embedding) "
         f"VALUES ('{safe_content}', 'kb_segment', '{pillar}', '{kb_id}', '{embedding_str}'::vector) "
         f"ON CONFLICT DO NOTHING;"
     )
-    subprocess.run(
+    result = subprocess.run(
         ["docker", "exec", pg_cid, "psql", "-U", PG_USER, "-d", PG_DB, "-c", sql],
-        capture_output=True
+        capture_output=True, text=True
     )
+    if result.returncode != 0 or "ERROR" in result.stderr:
+        print(f"  PG ERROR: {result.stderr.strip()[:100]}")
 
 def main():
     global DIFY_API_KEY
