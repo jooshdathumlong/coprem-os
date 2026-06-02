@@ -810,3 +810,15 @@ PENDING next session:
 | Telegram webhook updated → /webhook/telegram-coprem | ✅ |
 | BUG: N8N_BASE_URL=placeholder ใน .env | ROOT: ไม่เคย set จริง | FIX: ใช้ https://n8n.peabuntid.com ตรง |
 | BUG: n8n ไม่มี workflow (workflow_entity ว่าง) | ROOT: fresh container ไม่ได้ import workflows หลัง restart | FIX: re-import จาก exports/ folder |
+
+## 2026-06-02 — WF01 End-to-End Bug Fixes (Verify Session)
+| Bug | ROOT CAUSE | FIX |
+|---|---|---|
+| BUG: Postgres SSL error | n8n credential สร้างโดยไม่ set ssl=disable | PATCH credential: ssl=disable |
+| BUG: audit_log / tables not found | credential ชี้ coprem DB แทน coprem_os | PATCH credential: database=coprem_os |
+| BUG: $json.message undefined (invalid JSON) | webhook node output body อยู่ที่ $json.body ไม่ใช่ $json | PATCH L7 audit + L1-A + L7 blocked: ($json.body\|\|$json).message |
+| BUG: Paired item from L1-A unavailable | L1-A return plain object ไม่ใช่ [{json:..., pairedItem}] | PATCH return format |
+| BUG: .item.json 14 nodes | downstream nodes ใช้ .item.json ทั้งหมด | PATCH 14 nodes → .first().json |
+| BUG: typeValidation strict | L7 Blocked Gate COUNT(*) returns string | PATCH → loose |
+| BUG: Prem ไม่มีใน users table | fresh DB ไม่มี user | INSERT approved user |
+RESULT: Execution 11+12 = SUCCESS ✅ | WF01 end-to-end PASS
