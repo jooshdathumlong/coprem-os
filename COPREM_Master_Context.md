@@ -86,7 +86,7 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 
 | Workflow | ID | Status |
 |---|---|---|
-| WF01 — Inbox Receiver | `4uVEG8SEM23BDrdu` | ✅ |
+| WF01 — Inbox Receiver | `jFq7aSFJQ7ElHoLZ` | ✅ (reimported 2026-06-02) |
 | WF L1-C — Provider Router | `XUweHQoQ1fm34d01` | ✅ |
 | WF L1.5 — Session Manager | `2jU4tdTiP1lhNucK` | ✅ |
 | WF02 — Daily Morning Brief | `sou01B1RK3u5HZDV` | ✅ v2: tasks+HITL+OKR+date |
@@ -173,7 +173,7 @@ docker compose -f 03-system/docker-compose.yml --env-file .env up -d
 
 ### .env Location
 ```
-/Users/eilinaire/Coprem/.env  ← root, gitignored
+/Users/eilinaire/coprem/Coprem/.env  ← project root, gitignored
 ```
 
 Keys ที่สำคัญ (masked):
@@ -203,17 +203,28 @@ Keys ที่สำคัญ (masked):
 
 ---
 
-## 8. Database Tables (coprem_os)
+## 8. Database Tables
 
+### coprem_os (COPREM application DB)
 ```
 users, audit_log, inbox_log, dedup_cache, session_store,
 rate_limit_registry, blocked_ips, failed_tasks_db, quarantine_db,
 task_board, okr_scoreboard, market_signal_log, kb_sync_log,
 prompt_library (jeff v2.0✅ / v2.1-shadow✅ / eilinaire v1.0✅),
 decision_memory_log (TTL 90d, auto-archive via WF12),
-memory_embeddings (pgvector),
+memory_embeddings (pgvector, vector(768), 116 segments),
 chat_sessions, chat_messages,   ← v8.3 Dashboard
 novels(1), chapters(1), character_tracker(12/12)  ← L4 Ego Era
+task_queue  ← autonomous loop queue (added 2026-06-02)
+```
+
+### coprem (n8n internal DB) — schema rs_lifestyle
+```
+rs_lifestyle.brands(3), products(42), channels(8),
+trade_conditions(20), ordering_history(39),
+sales_transactions(143), mkt_activities(5),
+kol_list(204), promotions(9)
+← RS Lifestyle business data imported 2026-06-02
 ```
 
 ---
@@ -227,6 +238,7 @@ novels(1), chapters(1), character_tracker(12/12)  ← L4 Ego Era
 | `scripts/post_restart.sh` | หลัง restart: fix creds + WF01 + webhook + Ollama |
 | `scripts/sync_docs.sh` | Auto-sync SYSTEM_STATE + INDEX + export workflows |
 | `scripts/coprem` | CLI: `coprem sync`, `coprem status` |
+| `scripts/autonomous_loop.py` | Autonomous task loop — poll 3s, tier fallback, retry backoff |
 
 ---
 
