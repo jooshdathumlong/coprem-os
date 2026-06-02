@@ -869,3 +869,11 @@ PENDING next session:
 - WF L1.5 Redis credential fix (ZwmyWJ4IRcXbVY8H ไม่ match)
 - WF01 query ให้รองรับ query types อื่น (ราคา, KOL, Batiste, etc.)
 - Gemini API key rotation เมื่อ quota reset
+
+## 2026-06-02 — Session End (Final)
+| Action | ผล |
+|---|---|
+| WF L1.5 Redis credential fix (uOsaW3y6DV0CKN9l → ZwmyWJ4IRcXbVY8H) | ✅ WF L1.5 exec 78-79 SUCCESS |
+| WF01 multi-intent DB query (ราคา/KOL/trade/brand/ยอดขาย) | ✅ |
+| ราคา Scrub Daddy test: "95 บาท W, 160 บาท R" | ✅ |
+| Gemini keys: all 6 RATE_LIMIT → Groq fallback active, auto-reset ตีสาม | ✅ |
