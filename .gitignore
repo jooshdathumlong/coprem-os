@@ -50,4 +50,9 @@ Futureskill/*.pdf
 COPREM OS.app/
 Futureskill/*.csv
 blobs/
+*.tar
+*.gz
+logs/
+dashboard/.next/
+dashboard/tsconfig.tsbuildinfo
 .gitignore
