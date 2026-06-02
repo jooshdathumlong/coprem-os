@@ -90,6 +90,13 @@ else
   echo "| Autonomous Loop | UNKNOWN | no PID file |" >> /tmp/state.md
 fi
 
+# ── Dashboard check ───────────────────────────────────────────
+if lsof -i :3001 -sTCP:LISTEN -t > /dev/null 2>&1; then
+  echo "| Dashboard | UP | port 3001 |" >> /tmp/state.md
+else
+  echo "| Dashboard | DOWN | run post_restart.sh to start |" >> /tmp/state.md
+fi
+
 # ── Git remote safety check ────────────────────────────────────
 GIT_REMOTE=$(git -C "$ROOT" remote get-url origin 2>/dev/null || echo "")
 if [[ "$GIT_REMOTE" == *"@"* ]] || [[ "$GIT_REMOTE" == *"ghp_"* ]]; then

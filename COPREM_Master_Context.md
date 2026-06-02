@@ -59,7 +59,7 @@ Ollama (localhost:11434 — Mac)
   → llama3.1:8b (4.9GB) ✅
   → qwen2.5:7b (4.7GB) ✅
 
-⚠️ NOTE: L1-B, L3, L1-C bypassed in current WF01 — direct DB context + LiteLLM flow
+✅ NOTE: L1-B Classifier + L3 Semantic Search ACTIVE ใน WF01 (4uVEG8SEM23BDrdu) | KB-RS-* embedded 2026-06-02
 (L1-C Provider Router still active as standalone WF for non-WF01 routing)
 
 Postgres
@@ -101,7 +101,7 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 |---|---|---|
 | L0 Telegram Inbox | ✅ | @Coprem_Bot webhook live |
 | L1-A Preprocessor | ✅ | dedup + lang detect + sig validation |
-| L1-B Intent Classifier | ✅ | pillar/domain/confidence/hitl via LiteLLM |
+| L1-B Intent Classifier | ✅ | active ใน WF01 — pillar/domain/confidence/hitl via LiteLLM |
 | L1-C Provider Router | ✅ | Tier 0-3 + Shadow Testing 10% |
 | L1.5 Session Context | ✅ | Redis TTL 30min + Postgres persist |
 | L2 Jeff Agent | ✅ | v2.0 prod + v2.1-shadow (10% traffic) |
@@ -112,7 +112,7 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 | L2 Skill Agent | ✅ | domain=course/learning/data → KB-06+KB-04 | course recommendations |
 | L2 Ollama Tier 3 | ✅ | llama3.1:8b + qwen2.5:7b (num_ctx:4096) |
 | L2.5 Output Normalizer | ✅ | lang gate + length enforcer |
-| L3 KB Retrieval | ✅ | pgvector semantic search (nomic-embed-text) → BM25 fallback |
+| L3 KB Retrieval | ✅ | pgvector semantic search (nomic-embed-text) | IVFFlat lists=10 | KB-RS-* embedded ✅ |
 | L4 Content Library | ✅ | novels(1) + chapters(1) + characters(12/12) |
 | L5 Feedback Loop | ✅ | WF07+WF08 active |
 | L6 Cron 12/12 | ✅ | WF02-WF12 + WF L8 all active |

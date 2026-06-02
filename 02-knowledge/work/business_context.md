@@ -105,13 +105,38 @@
 
 ---
 
-## ยอดขายและข้อมูลจริง (รอเปรมกรอก)
+## ยอดขายและข้อมูลจริง
 
-- ยอดขาย Batiste (ล่าสุด): _กรอกที่นี่_
-- ยอดขาย Scrub Daddy (ล่าสุด): _กรอกที่นี่_
-- Revenue รวม Q1 2026: _กรอกที่นี่_
-- งบการตลาดรวมปี 2026: _กรอกที่นี่_
-- แคมเปญที่ผ่านมาและผลลัพธ์จริง: _กรอกที่นี่_
+### Scrub Daddy — Mini Event EmQuartier (22 May – 4 Jun 2025)
+- ยอดขายรวม: **52,200 THB** (เกิน Target 10,000 THB = **522% achieve**)
+- จำนวน transactions: 143 รายการ
+- สินค้าหลัก: Scrub Mommy 1 Pack (150 THB) + Scrub Daddy 1 Pack (150 THB)
+- สินค้า Bundle: 3 Pack (420 THB), 4 Pack (550 THB)
+- ช่องทาง: Central / The Mall EmQuartier (demo booth)
+- Brand awareness: "Know" vs "Don't know" mix → ลูกค้าใหม่เยอะ
+
+### Batiste — ยอดขาย (ข้อมูลจากราคา)
+- Retail price: **299 THB/pc** | Consignment ราคาส่ง: ~196 THB | Outright: ~168 THB
+- ช่องทาง: consignment (Central/Tops) + outright (Villa/Watsons)
+- ยอดขายรวม Q1-Q2 2026: _รอ Prem กรอก_
+
+### งบการตลาด Batiste 2026 (จาก Marketing Plan)
+| หมวด | งบประมาณ (THB) |
+|---|---|
+| KOL / Influencer (Native Jump) | 225,500 (estimate) / **275,000** (confirmed 61 KOL) |
+| Ads Boosting (Online Media) | 370,000 |
+| Content Creation | 42,000 |
+| Affiliate Campaign | 65,000 |
+| GWP (Gift with Purchase) | 118,500 |
+| **รวม** | **1,000,000** |
+
+### แคมเปญที่ผ่านมา
+| แคมเปญ | ช่วงเวลา | ผลลัพธ์ |
+|---|---|---|
+| Mini Event EmQuartier | 22 May–4 Jun 2025 | ยอดขาย 52,200 THB (522% of target) |
+| KOL Batiste Lot 1 (Native Jump) | 2026 | 62 KOL confirmed, cost 275,000 THB |
+| Tops Market WK49-52 2025 | Nov–Dec 2025 | Promotion confirmed |
+| Central Dept trade agreement 2026 | ม.ค. 2026 | GP 25%, MKT 3%, Rebate 1%, DC 3.7% |
 
 ## RS Lifestyle — Database (rs_lifestyle schema)
 **Re-imported: 2026-06-02 | Source: /Users/eilinaire/Desktop/RS Lifestyle**

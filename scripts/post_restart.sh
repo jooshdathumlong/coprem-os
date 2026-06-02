@@ -92,4 +92,17 @@ if [ "$LOOP_RUNNING" = false ]; then
   log "Autonomous loop: ✅ started (PID $!)"
 fi
 
+# 9. Start dashboard (Next.js port 3001) if not running
+DASH_LOG="$ROOT/logs/dashboard.log"
+if ! lsof -i :3001 -sTCP:LISTEN -t > /dev/null 2>&1; then
+  log "Starting dashboard..."
+  mkdir -p "$ROOT/logs"
+  cd "$ROOT/dashboard" && nohup npm run dev >> "$DASH_LOG" 2>&1 &
+  echo $! > "$ROOT/logs/dashboard.pid"
+  cd "$ROOT"
+  log "Dashboard: ✅ started on port 3001 (PID $!)"
+else
+  log "Dashboard: ✅ already running on port 3001"
+fi
+
 log "post_restart complete ✅"
