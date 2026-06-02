@@ -733,3 +733,19 @@ PENDING (ต้อง Prem):
 
 PENDING (ต้อง Prem):
 - กรอกตัวเลขจริง (ยอดขาย/revenue/งบ) ใน business_context.md → รัน embed_kb.py
+
+## 2026-06-02 — Autonomous Multi-Agent System
+| Action | ผล |
+|---|---|
+| DB: task_queue table + indexes | ✅ applied to coprem_os |
+| scripts/autonomous_loop.py | ✅ running PID 39772 |
+| dashboard/app/api/tasks/route.ts | ✅ GET/POST/PATCH |
+| dashboard/app/api/cost/route.ts | ✅ LiteLLM /spend + fallback |
+| dashboard/app/page.tsx: Tasks tab (8th) | ✅ 5s auto-refresh + New Task form |
+| dashboard/app/api/chat/route.ts: auto_chain | ✅ opt-in chain |
+| scripts/start_coprem.sh: loop auto-start | ✅ |
+| scripts/stop_coprem.sh: loop stop | ✅ |
+| TEST: analysis task seeded → picked up → done in <2s | ✅ |
+
+System behavior: Task → Execute → Decide → Create Next Task → Loop
+NO HUMAN TRIGGER REQUIRED

@@ -37,4 +37,8 @@ Chat sessions: PostgreSQL-backed | SSE live status: /api/status-stream (10s push
 Launch: double-click "COPREM OS.app" on Desktop
 
 ## All Phases
-Phase 1 T1-T5 ✅ | Phase 2 S1-S7 ✅ | Phase 3 Dashboard ✅ | Phase 4 Agents ✅ | Month 3 ✅ | Month 4 ✅
+Phase 1 T1-T5 ✅ | Phase 2 S1-S7 ✅ | Phase 3 Dashboard ✅ | Phase 4 Agents ✅ | Month 3 ✅ | Month 4 ✅ | Autonomous Loop ✅
+
+## Autonomous Loop
+PID file: logs/autonomous_loop.pid | Poll: 3s | Handlers: chat/analysis/agent_handoff/report/kb_embed
+Dashboard: Tasks tab (8th) | API: /api/tasks, /api/cost

@@ -114,14 +114,30 @@ export async function POST(req: NextRequest) {
   // Auto mode: Tier 0→1→2→3 (matches L1-C tier map)
   const autoModels = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'groq/llama-3.3-70b', 'ollama/llama3.1']
   let lastError = ''
+  let finalReply: string | null = null
+  let finalModel = ''
   for (const autoModel of autoModels) {
     try {
       const reply = await callLiteLLM(autoModel)
-      if (reply) return NextResponse.json({ reply, model: autoModel, source: 'litellm-auto' })
+      if (reply) { finalReply = reply; finalModel = autoModel; break }
       lastError = 'no reply'
     } catch (e) {
       lastError = e instanceof Error ? e.message : String(e)
     }
   }
-  return NextResponse.json({ error: lastError }, { status: 502 })
+
+  if (!finalReply) return NextResponse.json({ error: lastError }, { status: 502 })
+
+  // Chain: if auto_chain flag set, queue a follow-up analysis task (non-blocking)
+  const { auto_chain } = (await req.json().catch(() => ({}))) as { auto_chain?: boolean }
+  if (auto_chain) {
+    try {
+      const cid = execSync(`docker ps --filter name=postgres -q`, { encoding: 'utf8' }).trim().split('\n')[0]
+      const followUp = `จาก conversation ที่ผ่านมา: "${message.slice(0,120)}" — ระบุ action item ถัดไปที่ควรทำ (1 ข้อ)`
+      const payload = JSON.stringify({ prompt: followUp, notify_telegram: false }).replace(/'/g, "''")
+      execSync(`docker exec ${cid} psql -U coprem -d coprem_os -c "INSERT INTO task_queue (type, payload, assigned_to, priority, run_at) VALUES ('analysis', '${payload}', 'jeff', 8, NOW() + INTERVAL '30 seconds');"`, { encoding: 'utf8', stdio: 'pipe' })
+    } catch { /* non-critical — do not fail the chat response */ }
+  }
+
+  return NextResponse.json({ reply: finalReply, model: finalModel, source: 'litellm-auto' })
 }

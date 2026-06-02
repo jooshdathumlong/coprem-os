@@ -20,7 +20,24 @@ if [ -z "$DASH_PID" ]; then
   sleep 4
 fi
 
-# 3. Open dashboard in Chrome App Mode (standalone window, no browser UI)
+# 3. Start autonomous loop daemon if not running
+mkdir -p logs
+LOOP_PID_FILE="logs/autonomous_loop.pid"
+LOOP_RUNNING=false
+if [ -f "$LOOP_PID_FILE" ]; then
+  LOOP_PID=$(cat "$LOOP_PID_FILE" 2>/dev/null)
+  if [ -n "$LOOP_PID" ] && kill -0 "$LOOP_PID" 2>/dev/null; then
+    LOOP_RUNNING=true
+  fi
+fi
+if [ "$LOOP_RUNNING" = false ]; then
+  echo "Starting autonomous loop..."
+  nohup python3 scripts/autonomous_loop.py >> logs/autonomous_loop.log 2>&1 &
+  echo $! > logs/autonomous_loop.pid
+  echo "  Autonomous loop PID: $(cat logs/autonomous_loop.pid)"
+fi
+
+# 4. Open dashboard in Chrome App Mode (standalone window, no browser UI)
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 if [ -f "$CHROME" ]; then
   "$CHROME" --app=http://localhost:3001 \

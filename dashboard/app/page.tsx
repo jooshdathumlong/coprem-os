@@ -6,7 +6,8 @@ type LatencyRow = { event_type: string; avg_ms: number; max_ms: number; requests
 type Status = { litellm: boolean; ollama: boolean; n8n: boolean; timestamp: string }
 type ChatMsg = { role: 'user' | 'assistant'; text: string; model?: string }
 type ChatSession = { id: number; title: string; created_at: string; updated_at: string }
-type Tab = 'chat' | 'hitl' | 'kb' | 'browser' | 'docs' | 'system' | 'sessions'
+type Tab = 'chat' | 'hitl' | 'kb' | 'browser' | 'docs' | 'system' | 'sessions' | 'tasks'
+type Task = { id: string; type: string; status: string; priority: number; assigned_to: string; next_agent: string; retries: number; max_retries: number; result: string; error: string; run_at: string; created_at: string }
 type SessionStep = { time: string; action: string; result: string }
 type Session = { date: string; title: string; steps: SessionStep[] }
 type Commit = { hash: string; subject: string; time: string }
@@ -18,7 +19,7 @@ type Lang = 'en' | 'th'
 
 const I18N = {
   en: {
-    nav: { chat: 'Chat', hitl: 'Approvals', kb: 'Knowledge', browser: 'Browser', docs: 'Guide', system: 'System', sessions: 'Sessions' },
+    nav: { chat: 'Chat', hitl: 'Approvals', kb: 'Knowledge', browser: 'Browser', docs: 'Guide', system: 'System', sessions: 'Sessions', tasks: 'Tasks' },
     status: { online: '● Online', issue: '● Issue' },
     chat: { model: 'Model', placeholder: 'Message Jeff… (Enter to send)', send: 'Send', thinking: 'Jeff is thinking...', subtext: 'Your AI Executive Partner' },
     hitl: { title: 'Pending Approvals', pending: (n: number) => `${n} item${n>1?'s':''} awaiting response`, none: 'No pending items', reply: 'Reply', sendReply: 'Send Reply', cancel: 'Cancel', placeholder: 'Type your reply...' },
@@ -37,7 +38,7 @@ const I18N = {
     ],
   },
   th: {
-    nav: { chat: 'คุยกับ Jeff', hitl: 'รออนุมัติ', kb: 'คลังความรู้', browser: 'เบราว์เซอร์', docs: 'คู่มือ', system: 'ระบบ', sessions: 'ประวัติ' },
+    nav: { chat: 'คุยกับ Jeff', hitl: 'รออนุมัติ', kb: 'คลังความรู้', browser: 'เบราว์เซอร์', docs: 'คู่มือ', system: 'ระบบ', sessions: 'ประวัติ', tasks: 'งานอัตโนมัติ' },
     status: { online: '● ปกติ', issue: '● มีปัญหา' },
     chat: { model: 'โมเดล', placeholder: 'พิมพ์ข้อความ... (Enter ส่ง)', send: 'ส่ง', thinking: 'Jeff กำลังคิด...', subtext: 'AI Executive Partner ของคุณ' },
     hitl: { title: 'รายการรออนุมัติ', pending: (n: number) => `${n} รายการรอการตอบกลับ`, none: 'ไม่มีรายการรอ', reply: 'ตอบกลับ', sendReply: 'ส่งคำตอบ', cancel: 'ยกเลิก', placeholder: 'พิมพ์คำตอบ...' },
@@ -101,6 +102,10 @@ export default function Dashboard() {
   const [courseDoc, setCourseDoc] = useState<{ title: string; content: string; source: string; path: string } | null>(null)
   const [courseDocLoading, setCourseDocLoading] = useState(false)
   const [browserInput, setBrowserInput] = useState('http://localhost:5678')
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [taskNewPrompt, setTaskNewPrompt] = useState('')
+  const [taskNewAgent, setTaskNewAgent] = useState('jeff')
+  const [taskSubmitting, setTaskSubmitting] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   const fetchAll = useCallback(async () => {
@@ -175,13 +180,20 @@ export default function Dashboard() {
     }
     es.onerror = () => { es.close() }
 
-    return () => { clearInterval(hitlInterval); es.close() }
+    const tasksInterval = setInterval(() => {
+      fetch('/api/tasks').then(r => r.json()).then(d => setTasks(Array.isArray(d) ? d : [])).catch(() => {})
+    }, 5000)
+
+    return () => { clearInterval(hitlInterval); clearInterval(tasksInterval); es.close() }
   }, [fetchAll])
 
   useEffect(() => {
     if (tab === 'chat') loadChatSessions()
     if (tab === 'sessions') {
       fetch('/api/sessions').then(r => r.json()).then(d => { setSessions(d.sessions || []); setCommits(d.commits || []) }).catch(() => {})
+    }
+    if (tab === 'tasks') {
+      fetch('/api/tasks').then(r => r.json()).then(d => setTasks(Array.isArray(d) ? d : [])).catch(() => {})
     }
     if (tab === 'kb') {
       fetch(`/api/kb-docs?action=pillars&lang=${kbLang}`).then(r => r.json()).then(d => setKbPillars(Array.isArray(d) ? d : [])).catch(() => {})
@@ -1041,6 +1053,119 @@ export default function Dashboard() {
                   </div>
                 )
               })()}
+            </div>
+          </div>
+        )}
+
+        {tab === 'tasks' && (
+          <div style={{ flex: 1, overflowY: 'auto', padding: '32px 24px' }}>
+            <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+                <div>
+                  <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: '#1d1d1f' }}>
+                    {lang === 'th' ? 'งานอัตโนมัติ' : 'Autonomous Tasks'}
+                  </h2>
+                  <p style={{ fontSize: 13, color: '#6e6e73', margin: '4px 0 0' }}>
+                    {lang === 'th' ? 'คิวงานที่ autonomous_loop ดำเนินการ — refresh ทุก 5s' : 'Task queue processed by autonomous_loop — refreshes every 5s'}
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', background: '#f5f5f7', padding: 12, borderRadius: 12, border: '1px solid #e5e5ea' }}>
+                  <select
+                    value={taskNewAgent}
+                    onChange={e => setTaskNewAgent(e.target.value)}
+                    style={{ fontSize: 13, padding: '6px 10px', borderRadius: 8, border: '1px solid #d2d2d7', background: 'white', color: '#1d1d1f' }}
+                  >
+                    <option value="jeff">Jeff (JOB)</option>
+                    <option value="eilinaire">Eilinaire (PERSONAL)</option>
+                  </select>
+                  <input
+                    value={taskNewPrompt}
+                    onChange={e => setTaskNewPrompt(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') document.getElementById('task-submit-btn')?.click() }}
+                    placeholder={lang === 'th' ? 'พิมพ์ task ใหม่...' : 'New task prompt...'}
+                    style={{ fontSize: 13, padding: '6px 12px', borderRadius: 8, border: '1px solid #d2d2d7', background: 'white', width: 280, color: '#1d1d1f' }}
+                  />
+                  <button
+                    id="task-submit-btn"
+                    disabled={taskSubmitting || !taskNewPrompt.trim()}
+                    onClick={async () => {
+                      if (!taskNewPrompt.trim()) return
+                      setTaskSubmitting(true)
+                      try {
+                        await fetch('/api/tasks', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ type: 'analysis', payload: { prompt: taskNewPrompt, notify_telegram: false }, assigned_to: taskNewAgent, priority: 5 }),
+                        })
+                        setTaskNewPrompt('')
+                        const d = await fetch('/api/tasks').then(r => r.json())
+                        setTasks(Array.isArray(d) ? d : [])
+                      } finally { setTaskSubmitting(false) }
+                    }}
+                    style={{ padding: '6px 16px', borderRadius: 8, border: 'none', background: '#0066cc', color: 'white', fontSize: 13, fontWeight: 600, cursor: taskSubmitting ? 'wait' : 'pointer' }}
+                  >
+                    {taskSubmitting ? '...' : lang === 'th' ? '+ เพิ่ม' : '+ Add'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Stats row */}
+              {(() => {
+                const counts = { pending: 0, running: 0, done: 0, failed: 0 }
+                tasks.forEach(t => { if (t.status in counts) (counts as Record<string,number>)[t.status]++ })
+                return (
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+                    {([['pending','#ff9f0a','#fff8ec'],['running','#0066cc','#e5f0ff'],['done','#30d158','#e8f9ed'],['failed','#ff3b30','#ffe5e5']] as const).map(([s,c,bg]) => (
+                      <div key={s} style={{ flex: 1, background: bg, border: `1px solid ${c}30`, borderRadius: 12, padding: '12px 16px', textAlign: 'center' }}>
+                        <div style={{ fontSize: 24, fontWeight: 700, color: c }}>{(counts as Record<string,number>)[s]}</div>
+                        <div style={{ fontSize: 12, color: '#6e6e73', textTransform: 'capitalize', marginTop: 2 }}>{s}</div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
+
+              {/* Task table */}
+              {tasks.length === 0 ? (
+                <div style={{ textAlign: 'center', color: '#6e6e73', padding: '48px 0', fontSize: 15 }}>
+                  {lang === 'th' ? 'ไม่มีงานในคิว' : 'No tasks in queue'}
+                </div>
+              ) : (
+                <div style={{ background: 'white', border: '1px solid #e5e5ea', borderRadius: 14, overflow: 'hidden' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ background: '#f5f5f7', borderBottom: '1px solid #e5e5ea' }}>
+                        {['Type','Status','Agent','Priority','Retries','Run At','Result'].map(h => (
+                          <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600, fontSize: 12, color: '#6e6e73', whiteSpace: 'nowrap' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tasks.map((t, i) => {
+                        const statusColor: Record<string,string> = { pending: '#ff9f0a', running: '#0066cc', done: '#30d158', failed: '#ff3b30', hitl_pending: '#af52de' }
+                        const statusBg: Record<string,string> = { pending: '#fff8ec', running: '#e5f0ff', done: '#e8f9ed', failed: '#ffe5e5', hitl_pending: '#f5e6ff' }
+                        const c = statusColor[t.status] || '#6e6e73'
+                        const bg = statusBg[t.status] || '#f5f5f7'
+                        return (
+                          <tr key={t.id} style={{ borderBottom: i < tasks.length - 1 ? '1px solid #f0f0f5' : 'none', background: i % 2 === 0 ? 'white' : '#fafafa' }}>
+                            <td style={{ padding: '10px 14px', fontWeight: 500, color: '#1d1d1f' }}>{t.type}</td>
+                            <td style={{ padding: '10px 14px' }}>
+                              <span style={{ background: bg, color: c, padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600 }}>{t.status}</span>
+                            </td>
+                            <td style={{ padding: '10px 14px', color: '#424245' }}>{t.assigned_to || '—'}</td>
+                            <td style={{ padding: '10px 14px', color: '#424245', textAlign: 'center' }}>{t.priority}</td>
+                            <td style={{ padding: '10px 14px', color: t.retries > 0 ? '#ff3b30' : '#424245', textAlign: 'center' }}>{t.retries}/{t.max_retries}</td>
+                            <td style={{ padding: '10px 14px', color: '#6e6e73', fontSize: 12 }}>{t.run_at?.slice(0,16) || '—'}</td>
+                            <td style={{ padding: '10px 14px', color: '#6e6e73', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {t.error ? <span style={{ color: '#ff3b30' }}>{t.error.slice(0,80)}</span> : (t.result || '—').slice(0,80)}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}
