@@ -29,7 +29,7 @@ jobs:
 
           # 2. .env has required keys
           for KEY in POSTGRES_PASSWORD N8N_ENCRYPTION_KEY TELEGRAM_BOT_TOKEN CLOUDFLARE_TUNNEL_TOKEN; do
-            grep -q "^${KEY}=" /Users/eilinaire/Desktop/Coprem/.env \
+            grep -q "^${KEY}=" /Users/eilinaire/coprem/Coprem/.env \
               && echo "✅ $KEY present" || { echo "❌ $KEY missing in .env"; exit 1; }
           done
 
@@ -50,7 +50,7 @@ jobs:
 
       - name: Deploy Docker Stack
         run: |
-          cd /Users/eilinaire/Desktop/Coprem
+          cd /Users/eilinaire/coprem/Coprem
           docker ps -q --filter "publish=5678" | xargs -r docker stop | xargs -r docker rm || true
           docker compose --env-file .env -f 03-system/docker-compose.yml up -d
 
@@ -71,7 +71,7 @@ jobs:
       - name: Rollback on Failure
         if: failure()
         run: |
-          cd /Users/eilinaire/Desktop/Coprem
+          cd /Users/eilinaire/coprem/Coprem
           git checkout HEAD~1 -- 03-system/docker-compose.yml
           docker compose --env-file .env -f 03-system/docker-compose.yml up -d
           sleep 15

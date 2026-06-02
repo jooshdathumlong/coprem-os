@@ -19,7 +19,7 @@ jobs:
       - name: Check .env keys present
         run: |
           for KEY in POSTGRES_PASSWORD N8N_ENCRYPTION_KEY TELEGRAM_BOT_TOKEN CLOUDFLARE_TUNNEL_TOKEN; do
-            grep -q "^${KEY}=" /Users/eilinaire/Desktop/Coprem/.env \
+            grep -q "^${KEY}=" /Users/eilinaire/coprem/Coprem/.env \
               && echo "✅ $KEY" || { echo "❌ $KEY missing"; exit 1; }
           done
 

@@ -26,7 +26,7 @@ def generate_tree(dir_path, exclude_dirs=['.obsidian', '__pycache__', 'outputs',
     return tree_str
 
 def main():
-    base_dir = "/Users/eilinaire/Desktop/Coprem"
+    base_dir = "/Users/eilinaire/coprem/Coprem"
     
     files_to_include = [
         "English/CLAUD.md",

@@ -29,7 +29,7 @@ def generate_tree(startpath):
     return tree_str
 
 def compile_context():
-    vault_path = "/Users/eilinaire/Desktop/Coprem"
+    vault_path = "/Users/eilinaire/coprem/Coprem"
     output_file = os.path.join(vault_path, "master_context.md")
     version_file = os.path.join(vault_path, "VERSION.md")
     
