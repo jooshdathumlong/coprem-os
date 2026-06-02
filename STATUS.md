@@ -797,3 +797,16 @@ PENDING next session:
 | Import promotions — Home&Baby 2026 timeline | ✅ 9 rows |
 | Append business_context.md | ✅ |
 | embed_kb.py PENDING — nomic-embed-text pulling | ⏳ |
+
+## 2026-06-02 — n8n Re-setup (workflows reimport)
+| Action | ผล |
+|---|---|
+| n8n user-management:reset | ✅ (fresh instance, no workflows existed) |
+| Owner setup: support@eilinaire.com | ✅ |
+| Credentials: Postgres + Telegram Bot | ✅ IDs: 3zthmqZdGdRYWYG3 / HwDrAYiJObb07mt1 |
+| Import 18 workflows via REST API | ✅ |
+| WF01 (Single Entry) activated | ✅ jFq7aSFJQ7ElHoLZ |
+| WF L1-C / L1.5 / WF02-11 activated | ✅ 14 workflows active |
+| Telegram webhook updated → /webhook/telegram-coprem | ✅ |
+| BUG: N8N_BASE_URL=placeholder ใน .env | ROOT: ไม่เคย set จริง | FIX: ใช้ https://n8n.peabuntid.com ตรง |
+| BUG: n8n ไม่มี workflow (workflow_entity ว่าง) | ROOT: fresh container ไม่ได้ import workflows หลัง restart | FIX: re-import จาก exports/ folder |
