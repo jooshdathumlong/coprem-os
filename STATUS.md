@@ -782,3 +782,18 @@ PENDING next session:
 | All migrations re-applied: 001-008 + task_queue | ✅ |
 | LiteLLM UP port 4000 | ✅ |
 | Autonomous loop UP PID 3237 | ✅ idle, queue empty |
+
+## 2026-06-02 — RS Lifestyle Database Import (P2)
+| Action | ผล |
+|---|---|
+| สร้าง schema rs_lifestyle ใน PostgreSQL | ✅ 9 tables |
+| Import Scrub Daddy: products, SKU, barcode, price list | ✅ 42 products |
+| Import Batiste: products, price (consignment + outright) | ✅ 6 SKU |
+| Import trade conditions — Central Department | ✅ 20 rows (GP 25%, MKT 3%, Rebate 1%) |
+| Import ordering history Dec 2025 + Jan 2026 | ✅ 39 rows |
+| Import sales transactions — Mini Event EmQuartier May 2025 | ✅ 143 rows |
+| Import Batiste MKT budget 2026 | ✅ 5 activities, estimate 1M THB |
+| Import KOL list — Native Jump (TikTok) | ✅ 204 influencers |
+| Import promotions — Home&Baby 2026 timeline | ✅ 9 rows |
+| Append business_context.md | ✅ |
+| embed_kb.py PENDING — nomic-embed-text pulling | ⏳ |

@@ -112,3 +112,30 @@
 - Revenue รวม Q1 2026: _กรอกที่นี่_
 - งบการตลาดรวมปี 2026: _กรอกที่นี่_
 - แคมเปญที่ผ่านมาและผลลัพธ์จริง: _กรอกที่นี่_
+
+## RS Lifestyle — Database (rs_lifestyle schema)
+**Imported: 2026-06-02 | Source: /Users/eilinaire/Desktop/RS Lifestyle**
+
+### Schema: rs_lifestyle (PostgreSQL — coprem DB)
+| Table | Rows | Description |
+|---|---|---|
+| brands | 3 | Scrub Daddy, Batiste, RS Lifestyle |
+| channels | 8 | Tops, The Mall, Central, Foodland, Villa, Gourmet, Online, BTS/Event |
+| products | 42 | SKU/barcode/price list (Scrub Daddy 24 SKU, Batiste 6 SKU + อื่น) |
+| trade_conditions | 20 | GP/MKT/Rebate conditions — Central Department |
+| ordering_history | 39 | Dec 2025 + Jan 2026 order quantities |
+| sales_transactions | 143 | Mini Event EmQuartier May 22–Jun 4 2025 |
+| mkt_activities | 5 | Batiste 2026 MKT budget (KOL/Ads/Content/Affiliate/GWP) |
+| kol_list | 204 | Batiste TikTok KOL list (Native Jump) |
+| promotions | 9 | Home&Baby Event 2026 timeline |
+
+### Key Business Numbers
+- Scrub Daddy wholesale: 95 THB/pc | Retail: 160 THB/pc (1 pack)
+- Scrub Daddy Colors VP 4pc: wholesale 300 | retail 590
+- Batiste retail: 299 THB/pc | Consignment GP 30% | Outright GP 40%
+- Central Dept GP: 25% consignment
+- Total MKT support Central: 3% (storewide 365 days)
+- Rebate (Central): 1% of net sales (ตั้งแต่ปี 2026)
+- Batiste 2026 MKT budget estimate: 1,000,000 THB
+  - KOL/Influencer: 225,500 | Ads: 370,000 | Content: 42,000 | Affiliate: 65,000 | GWP: 118,500
+- Mini Event EmQuartier: Target 10,000 | Actual 52,200 THB (522% achieve)
