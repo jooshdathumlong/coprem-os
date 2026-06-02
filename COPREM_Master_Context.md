@@ -5,11 +5,12 @@
 
 ## 1. สถานะระบบตอนนี้
 
-**WF01 ทำงาน end-to-end สมบูรณ์** — Telegram → Jeff ตอบกลับได้จริง
-- Execution ล่าสุด: #28 success, 1636ms (2026-06-02)
-- LLM: LiteLLM → groq/llama-3.3-70b-versatile (Gemini rate limited)
-- 14 bugs แก้แล้ว (ดู STATUS.md รายละเอียด)
+**WF01 ทำงาน end-to-end สมบูรณ์** — Jeff ตอบจาก DB จริง ✅
+- Execution ล่าสุด: #70 success, 1847ms (2026-06-02)
+- LLM: LiteLLM → groq/llama-3.3-70b-versatile
+- Jeff Query DB → "ยอดขาย Mini Event EmQuartier มียอดขายรวม 52,200 บาท..." ✅
 - RS Lifestyle DB: rs_lifestyle schema (9 tables, 42 products, 204 KOL, 143 sales)
+- n8n credentials: Postgres coprem_os (3zthmqZdGdRYWYG3), Telegram (HwDrAYiJObb07mt1), Redis (ZwmyWJ4IRcXbVY8H), Postgres coprem-rs_lifestyle (eOjevL4EC671XsJZ)
 
 ---
 
@@ -34,21 +35,12 @@ n8n 2.22.5 (localhost:5678 / n8n.peabuntid.com)
     → Check User Approved (Postgres users)
     → Approved? (IF)
 
-  L1.5 + L1-B + HITL:
+  L1.5 + DB Context + LLM (CURRENT — as of 2026-06-02):
     → L1.5 Read Session Context (HTTP → WF L1.5)
-    → L1-B Classifier (HTTP → LiteLLM: classify pillar/domain/confidence/hitl_required)
-    → L1-B Parse (Code: parse JSON response)
-    → HITL Gate (IF: hitl_required=true → Telegram alert + STOP)
-
-  L3 Knowledge Retrieval:
-    → L3 Prepare (Code: select KB IDs by pillar)
-    → L3 Fetch KB (HTTP → Dify datasets API)
-    → L3 Get Segments (HTTP → Dify segments API, top 100)
-    → L3 Inject Context (Code: pgvector semantic search (nomic-embed-text) → BM25 fallback → top 3 chunks)
-    → L3 Build Body (Code: build L1-C request with context)
-
-  L1-C + L2 + L2.5:
-    → Dify Smart Router (HTTP → /webhook/l1c-route)
+    → RS Lifestyle DB Context (Postgres coprem, rs_lifestyle schema — 1 aggregated row)
+    → Merge Context (Code: full_message = question + [ข้อมูลจาก DB: ...])
+    → Build LLM Request (Code: JSON.stringify request body — bypass template injection)
+    → Dify Smart Router (HTTP → LiteLLM/Groq: groq/llama-3.3-70b-versatile)
     → L2.5 Normalize Output (Code: extract dify_reply)
     → L7 Audit AGENT_OUTPUT (Postgres)
     → Send Reply (Telegram)
@@ -338,3 +330,6 @@ ollama serve &
 | WF-HITL-Resolver webhook path conflict | ✅ telegram-hitl |
 | Redis credential added (WF L1.5) | ✅ ZwmyWJ4IRcXbVY8H |
 | SYSTEM_STATE.md overwritten with fresh n8n IDs | ✅ |
+| DB context query: rs_lifestyle → Jeff ตอบจาก DB จริง | ✅ Exec 70: "52,200 บาท" |
+| n8n jsonBody template bug: {{ $json.field }} ไม่ evaluate → ใช้ Code node build JSON | ✅ |
+| Send Reply: $json.reply → $('L2.5 Normalize Output').first().json.reply_text | ✅ |
