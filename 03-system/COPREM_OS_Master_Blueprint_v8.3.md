@@ -1238,3 +1238,25 @@ Style: immersive Thai fantasy prose. Never break the 4th wall.
 
 ### Pending
 - Prem กรอกตัวเลขจริง (ยอดขาย/revenue/งบ) ใน business_context.md → รัน embed_kb.py
+
+## Part 15 — Session 2026-06-02 (Session 14 — Autonomous Multi-Agent System)
+
+**Goal:** Transform COPREM reactive → autonomous
+**Commit:** c269c59
+
+| Component | สิ่งที่ทำ |
+|---|---|
+| DB | task_queue table (UUID, type, payload, status, priority, assigned_to, next_agent, retry, backoff) |
+| autonomous_loop.py | Poll 3s, tier fallback flash→lite→groq→ollama, exponential backoff 15s→60s→300s, 2s throttle, agent_handoff chain |
+| /api/tasks | GET/POST/PATCH — execFileSync แก้ Thai char quoting bug |
+| /api/cost | LiteLLM /global/spend ($0.0497 confirmed) |
+| Dashboard | Tasks tab (8th): stats row, badges, New Task form, 5s auto-refresh |
+| Rate limit fix | 429 → fallback tier อัตโนมัติ, verified 3 concurrent tasks all done |
+| start/stop scripts | Loop lifecycle integrated |
+
+**System behavior now:** Task → Execute → Decide → Create Next Task → Loop (no human trigger)
+**Coprem coverage:** Core ~85% | Execution ~80% | Interface ~75% | Overall ~80%
+
+**Pending:**
+- business_context.md ตัวเลขจริง (Prem fills)
+- launchd plist สำหรับ loop auto-start หลัง reboot

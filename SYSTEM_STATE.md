@@ -1,8 +1,8 @@
-## SYSTEM_STATE — 2026-06-02 03:32
+## SYSTEM_STATE — 2026-06-02 07:37
 | n8n | UP |  |
 | postgres | UP |  |
 | redis | UP | PONG |
-| litellm | UP | port 4000 | usage-based-routing-v2 ACTIVE |
+| litellm | UP | port 4000 |
 | dify | UP |  |
 | Postgres auth | OK |
 | WEBHOOK_URL | OK | https://n8n.peabuntid.com |
@@ -10,13 +10,10 @@
 | Dashboard | UP | port 3001 |
 | Ollama | UP | llama3.1:8b (4.9GB) + qwen2.5:7b (4.7GB) | num_ctx:4096 |
 | nomic-embed-text | PULLED | 116 segments embedded |
+| Autonomous Loop | UP | PID file: logs/autonomous_loop.pid | poll 3s |
 
 ## Active Pillar
 JOB + PERSONAL (1-Pillar Rule unlocked 2026-06-01 | CREATIVE suspended)
-- JOB → Jeff agent | KB-04 + KB-01
-- PERSONAL → Eilinaire agent | KB-05 + KB-01
-- SKILL/COURSE/LEARNING → KB-06 + KB-04
-- TRADING → KB-03 + KB-05
 
 ## Tiered Degradation (actual)
 - Tier 0: gemini-2.0-flash
@@ -32,13 +29,14 @@ WF01-WF12 ✅ | WF-HITL-Resolver ✅ | WF L1-C ✅ | WF L1.5 ✅ | WF L8 ✅
 WF13 [INACTIVE] Discord — deferred
 
 ## Dashboard
-Port 3001 | 7 tabs: Chat (session sidebar) / HITL / KB / Browser / Guide / System / Sessions
-Chat sessions: PostgreSQL-backed | SSE live status: /api/status-stream (10s push)
-Launch: double-click "COPREM OS.app" on Desktop
+Port 3001 | 8 tabs: Chat / HITL / KB / Browser / Guide / System / Sessions / Tasks
+Tasks tab: 5s auto-refresh | New Task form | status badges | stats row
+Cost API: /api/cost → LiteLLM /global/spend ($0.0497 today)
+
+## Autonomous Loop
+scripts/autonomous_loop.py | Poll: 3s | Handlers: chat/analysis/agent_handoff/report/kb_embed
+Tier fallback: flash→lite→groq→ollama | Retry backoff: 15s→60s→300s | 2s throttle between LLM tasks
+Auto-start: scripts/start_coprem.sh | Auto-stop: scripts/stop_coprem.sh
 
 ## All Phases
 Phase 1 T1-T5 ✅ | Phase 2 S1-S7 ✅ | Phase 3 Dashboard ✅ | Phase 4 Agents ✅ | Month 3 ✅ | Month 4 ✅ | Autonomous Loop ✅
-
-## Autonomous Loop
-PID file: logs/autonomous_loop.pid | Poll: 3s | Handlers: chat/analysis/agent_handoff/report/kb_embed
-Dashboard: Tasks tab (8th) | API: /api/tasks, /api/cost

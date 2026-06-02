@@ -749,3 +749,18 @@ PENDING (ต้อง Prem):
 
 System behavior: Task → Execute → Decide → Create Next Task → Loop
 NO HUMAN TRIGGER REQUIRED
+
+## 2026-06-02 Session End — Autonomous Loop Complete
+| Action | ผล |
+|---|---|
+| task_queue: DB table + indexes applied | ✅ |
+| scripts/autonomous_loop.py: tier fallback + exponential backoff + 2s throttle | ✅ |
+| Rate limit fix: 429 → fallback tier อัตโนมัติ, ไม่มี task failed | ✅ |
+| dashboard Tasks tab (8th): stats row + badges + New Task form + 5s refresh | ✅ |
+| /api/tasks POST: execFileSync fix (Thai chars shell quoting) | ✅ |
+| /api/cost: LiteLLM /global/spend → $0.0497 จริง | ✅ |
+| Commit: c269c59 feat(autonomous) | ✅ |
+
+PENDING next session:
+- กรอกตัวเลขจริงใน 02-knowledge/work/business_context.md → รัน embed_kb.py
+- loop ต้อง start manual (nohup) หลัง reboot — พิจารณา launchd plist สำหรับ auto-start
