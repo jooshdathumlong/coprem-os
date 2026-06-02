@@ -877,3 +877,10 @@ PENDING next session:
 | WF01 multi-intent DB query (ราคา/KOL/trade/brand/ยอดขาย) | ✅ |
 | ราคา Scrub Daddy test: "95 บาท W, 160 บาท R" | ✅ |
 | Gemini keys: all 6 RATE_LIMIT → Groq fallback active, auto-reset ตีสาม | ✅ |
+
+## 2026-06-02 — KOL query fix
+| Action | ผล |
+|---|---|
+| Re-import KOL cost_thb จาก "Batiste_KOL - Lot 1 Update" sheet | ✅ 40 rows updated |
+| SQL: COALESCE + real KOL budget data | ✅ |
+| Test KOL query: Jeff ตอบ "204 คน, งบ 405,600 THB" | ✅ |
