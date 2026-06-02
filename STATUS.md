@@ -822,3 +822,22 @@ PENDING next session:
 | BUG: typeValidation strict | L7 Blocked Gate COUNT(*) returns string | PATCH → loose |
 | BUG: Prem ไม่มีใน users table | fresh DB ไม่มี user | INSERT approved user |
 RESULT: Execution 11+12 = SUCCESS ✅ | WF01 end-to-end PASS
+
+## 2026-06-02 — WF01 Full End-to-End Fix (10 bugs total)
+| Bug | Fix |
+|---|---|
+| Postgres credential SSL=disable | ✅ |
+| Postgres DB = coprem_os (not coprem) | ✅ |
+| $json.message undefined (webhook body path) | ✅ 4 nodes fixed |
+| L1-A return format (pairedItem) | ✅ |
+| .item.json → .first().json (14 nodes) | ✅ |
+| typeValidation strict → loose (gate nodes) | ✅ |
+| Prem not in users table | ✅ added approved |
+| camelCase → snake_case field names (8 nodes) | ✅ |
+| Route by Type: isStart/isApproval → msg_type + fallback='extra' | ✅ |
+| L1-A reads $json (overwritten by L7) → $('Telegram Trigger').first().json | ✅ ROOT CAUSE |
+| LITELLM_MASTER_KEY empty in header | ✅ injected from .env |
+| L2.5 const resp = ; → const resp = $json | ✅ |
+| Redis credential missing (WF L1.5) | ✅ created ZwmyWJ4IRcXbVY8H |
+| Dify Cloud GPT-4 not supported → LiteLLM + groq/llama | ✅ |
+RESULT: Execution 28 SUCCESS 1636ms | AGENT_OUTPUT in audit_log ✅ | Jeff ตอบแล้ว!
