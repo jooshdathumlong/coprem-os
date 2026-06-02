@@ -49,3 +49,5 @@ Futureskill/*/
 Futureskill/*.pdf
 COPREM OS.app/
 Futureskill/*.csv
+blobs/
+.gitignore
