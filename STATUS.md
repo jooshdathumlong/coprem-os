@@ -884,3 +884,17 @@ PENDING next session:
 | Re-import KOL cost_thb จาก "Batiste_KOL - Lot 1 Update" sheet | ✅ 40 rows updated |
 | SQL: COALESCE + real KOL budget data | ✅ |
 | Test KOL query: Jeff ตอบ "204 คน, งบ 405,600 THB" | ✅ |
+
+## 2026-06-02 — Session End (Final v2)
+| งาน | ผล |
+|---|---|
+| WF L1.5 Redis cred fix | ✅ |
+| WF01 multi-intent DB query (5 types) | ✅ |
+| KOL cost_thb reimport (40 rows) | ✅ |
+| COALESCE SQL fix | ✅ |
+| Jeff ตอบ KOL: 204 คน, 405,600 THB | ✅ |
+| health_check.sh: auto-fix webhook URL | ✅ |
+PENDING:
+- KOL cost_thb ยังขาด 114 rows (Lot 1, 2)
+- Batiste sales / promo calendar query
+- Gemini quota reset ตีสาม
