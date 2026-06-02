@@ -857,3 +857,15 @@ RESULT: Execution 32 SUCCESS 1611ms | AGENT_OUTPUT: reply ถูกต้อง 
 | LiteLLM httpRequest: {{ $json.request_body }} | ✅ |
 | Jeff ตอบ "ยอดขาย Mini Event EmQuartier มียอดขายรวม 52,200 บาท..." | ✅ CONFIRMED |
 | ROOT CAUSE (template ไม่ work): n8n jsonBody {{ expr }} ไม่ evaluate field ref จาก predecessor |
+
+## 2026-06-02 — Session End
+| Action | ผล |
+|---|---|
+| health_check.sh: auto-fix Telegram webhook URL drift | ✅ |
+| SYSTEM_STATE.md overwritten | ✅ |
+| COPREM_Master_Context.md updated | ✅ |
+| Telegram webhook auto-fixed (UUID → telegram-coprem) | ✅ |
+PENDING next session:
+- WF L1.5 Redis credential fix (ZwmyWJ4IRcXbVY8H ไม่ match)
+- WF01 query ให้รองรับ query types อื่น (ราคา, KOL, Batiste, etc.)
+- Gemini API key rotation เมื่อ quota reset
