@@ -114,28 +114,26 @@
 - แคมเปญที่ผ่านมาและผลลัพธ์จริง: _กรอกที่นี่_
 
 ## RS Lifestyle — Database (rs_lifestyle schema)
-**Imported: 2026-06-02 | Source: /Users/eilinaire/Desktop/RS Lifestyle**
+**Re-imported: 2026-06-02 | Source: /Users/eilinaire/Desktop/RS Lifestyle**
 
 ### Schema: rs_lifestyle (PostgreSQL — coprem DB)
 | Table | Rows | Description |
 |---|---|---|
-| brands | 3 | Scrub Daddy, Batiste, RS Lifestyle |
-| channels | 8 | Tops, The Mall, Central, Foodland, Villa, Gourmet, Online, BTS/Event |
-| products | 42 | SKU/barcode/price list (Scrub Daddy 24 SKU, Batiste 6 SKU + อื่น) |
-| trade_conditions | 20 | GP/MKT/Rebate conditions — Central Department |
-| ordering_history | 39 | Dec 2025 + Jan 2026 order quantities |
-| sales_transactions | 143 | Mini Event EmQuartier May 22–Jun 4 2025 |
-| mkt_activities | 5 | Batiste 2026 MKT budget (KOL/Ads/Content/Affiliate/GWP) |
-| kol_list | 204 | Batiste TikTok KOL list (Native Jump) |
-| promotions | 9 | Home&Baby Event 2026 timeline |
+| brands | 3 | Royal Shammi, Batiste, Scrub Daddy |
+| channels | 12 | Online (6) + Offline (6): Watsons, Villa, Big C, Central/The Mall, Tops, Foodland |
+| products | 16 | Batiste 3 SKU (Fragrance Free / Blush Blossom / Fresh Fusion) + Scrub Daddy 13 SKU |
+| trade_conditions | 21 | GP/MKT/Rebate/DC conditions — Central Department Final 2026 |
+| ordering_history | 41 | Scrub Daddy Dec 2025 + Jan 2026 order quantities |
+| sales_transactions | 143 | Mini Event EmQuartier May 22–Jun 4 2025 (Scrub Daddy/Mommy) |
+| mkt_activities | 5 | Batiste 2026: KOL, Event, Affiliate, Ads, Content |
+| kol_list | 141 | Batiste TikTok KOL list (Native Jump) — deduped, 61 มี cost_thb |
+| promotions | 9 | Tops WK49-52 / WK05-06, Home&Baby 2026, Mini Event, Central Promo Jun 2026 |
 
 ### Key Business Numbers
-- Scrub Daddy wholesale: 95 THB/pc | Retail: 160 THB/pc (1 pack)
-- Scrub Daddy Colors VP 4pc: wholesale 300 | retail 590
-- Batiste retail: 299 THB/pc | Consignment GP 30% | Outright GP 40%
-- Central Dept GP: 25% consignment
-- Total MKT support Central: 3% (storewide 365 days)
-- Rebate (Central): 1% of net sales (ตั้งแต่ปี 2026)
+- **Batiste** retail: 299 THB/pc | Consignment GP 30% (~196 THB) | Outright GP 40% (~168 THB)
+- **Scrub Daddy** retail: 150 THB/pc (1 pack, ราคา display ที่ event)
+- Central Dept GP: 25% consignment | MKT support: 3% | Rebate: 1% (ตั้งแต่ 2026) | DC fee: 3.7%
+- **KOL budget (Batiste 2026):** 61 KOL confirmed = 275,000 THB | avg 4,508 THB/คน | ยังขาด 80 KOL
+- **Mini Event EmQuartier (22 May–4 Jun 2025):** Target 10,000 | Actual **52,200 THB** (522% achieve)
 - Batiste 2026 MKT budget estimate: 1,000,000 THB
-  - KOL/Influencer: 225,500 | Ads: 370,000 | Content: 42,000 | Affiliate: 65,000 | GWP: 118,500
-- Mini Event EmQuartier: Target 10,000 | Actual 52,200 THB (522% achieve)
+  - KOL/Influencer: 275,000 (confirmed) | Ads: 370,000 | Content: 42,000 | Affiliate: 65,000 | GWP: 118,500
