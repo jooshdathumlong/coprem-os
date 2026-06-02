@@ -246,7 +246,7 @@ python3 scripts/fix_credentials.py
 ollama serve &
 # Activate WF01 via n8n API (see post_restart.sh)
 # Re-register Telegram webhook (see post_restart.sh)
-nohup python3 scripts/autonomous_loop.py > logs/autonomous_loop.log 2>&1 &
+nohup python3 scripts/autonomous_loop.py >> logs/autonomous_loop.log 2>&1 &
 ```
 
 ---
@@ -261,6 +261,8 @@ nohup python3 scripts/autonomous_loop.py > logs/autonomous_loop.log 2>&1 &
 | Thai text breaks JSON string interpolation | ใช้ `JSON.stringify($json)` |
 | $now returns UTC | ต้อง `GENERIC_TIMEZONE=Asia/Bangkok` |
 | Telegram Trigger bug (403 secret) | ใช้ plain Webhook node แทน |
+| Docker blobs ติด git history | ใส่ blobs/ ใน .gitignore + filter-branch ถ้าติดไปแล้ว |
+| Token ไม่มี workflow scope | ต้องติ๊ก repo + workflow ตอนสร้าง PAT |
 
 ---
 
@@ -334,3 +336,16 @@ nohup python3 scripts/autonomous_loop.py > logs/autonomous_loop.log 2>&1 &
 | DB context query: rs_lifestyle → Jeff ตอบจาก DB จริง | ✅ Exec 70: "52,200 บาท" |
 | n8n jsonBody template bug: {{ $json.field }} ไม่ evaluate → ใช้ Code node build JSON | ✅ |
 | Send Reply: $json.reply → $('L2.5 Normalize Output').first().json.reply_text | ✅ |
+
+---
+
+## 14. Git Safety Rules
+
+| Rule | Detail |
+|---|---|
+| ห้าม commit blobs/ | Docker layers — ใส่ใน .gitignore เท่านั้น |
+| Token ใน URL อันตราย | ใช้ osxkeychain แทน — ไม่มี token ใน git remote -v |
+| GitHub token scope | ต้องมี repo + workflow เท่านั้น |
+| ตรวจก่อน push ครั้งแรก | git rev-list --objects HEAD \| sort -k3 -rn \| head -5 |
+| Project root | /Users/eilinaire/coprem/Coprem |
+| Revoke token เก่า | ghp_hn3a2AL... — revoke ที่ github.com settings ทันที |
