@@ -1,15 +1,15 @@
 # COPREM OS — Master Context
-> อัปเดต: 2026-06-02 | Version: Blueprint v8.4 | Status: **LIVE ✅** | Month 4 ACTIVE — Phase 4 Agents
+> อัปเดต: 2026-06-02 (session สุดท้าย) | Version: Blueprint v8.4 | Status: **LIVE ✅** | Month 4 ACTIVE — Phase 4 Agents
 
 ---
 
 ## 1. สถานะระบบตอนนี้
 
-**WF01 ทำงาน end-to-end สมบูรณ์** — Jeff ตอบจาก DB จริง ✅
-- Execution ล่าสุด: #70 success, 1847ms (2026-06-02)
-- LLM: LiteLLM → groq/llama-3.3-70b-versatile
-- Jeff Query DB → "ยอดขาย Mini Event EmQuartier มียอดขายรวม 52,200 บาท..." ✅
-- RS Lifestyle DB: rs_lifestyle schema (9 tables, 42 products, 204 KOL, 143 sales)
+**WF01 ทำงาน end-to-end สมบูรณ์** — Jeff ตอบจาก L3 Semantic Search (memory_embeddings) ✅
+- Active WF01 ID: `4uVEG8SEM23BDrdu` | LLM: LiteLLM → groq/llama-3.3-70b-versatile
+- Jeff Query → L3 Semantic Search → KB-RS-KOL/SALES/PRODUCTS/TRADE/BRAND (sim >0.70) ✅
+- RS Lifestyle DB: rs_lifestyle schema re-imported 2026-06-02 (9 tables, 391 rows)
+- memory_embeddings: 353 segments (KB-02/03/04/06 + KB-RS-* 5 segments) | IVFFlat lists=10
 - n8n credentials: Postgres coprem_os (3zthmqZdGdRYWYG3), Telegram (HwDrAYiJObb07mt1), Redis (ZwmyWJ4IRcXbVY8H), Postgres coprem-rs_lifestyle (eOjevL4EC671XsJZ)
 
 ---
@@ -21,7 +21,7 @@ Telegram Bot (@Coprem_Bot, chat_id: 7731591925)
   ↓ webhook POST https://n8n.peabuntid.com/webhook/telegram-coprem
 
 n8n 2.22.5 (localhost:5678 / n8n.peabuntid.com)
-  ↓ WF01 Inbox Receiver (ID: jFq7aSFJQ7ElHoLZ — reimported 2026-06-02)
+  ↓ WF01 Inbox Receiver (ID: 4uVEG8SEM23BDrdu — active ✅ | 0fuEy5ZRv0qrjLEt inactive)
 
   L7 Security:
     → Audit WEBHOOK_RECEIVED (Postgres audit_log)
@@ -76,7 +76,7 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 
 | Workflow | ID | Status |
 |---|---|---|
-| WF01 — Inbox Receiver | `jFq7aSFJQ7ElHoLZ` | ✅ (reimported 2026-06-02) |
+| WF01 — Inbox Receiver | `4uVEG8SEM23BDrdu` | ✅ ACTIVE | `0fuEy5ZRv0qrjLEt` = inactive duplicate |
 | WF L1-C — Provider Router | `XUweHQoQ1fm34d01` | ✅ |
 | WF L1.5 — Session Manager | `2jU4tdTiP1lhNucK` | ✅ |
 | WF02 — Daily Morning Brief | `sou01B1RK3u5HZDV` | ✅ v2: tasks+HITL+OKR+date |
@@ -204,7 +204,7 @@ rate_limit_registry, blocked_ips, failed_tasks_db, quarantine_db,
 task_board, okr_scoreboard, market_signal_log, kb_sync_log,
 prompt_library (jeff v2.0✅ / v2.1-shadow✅ / eilinaire v1.0✅),
 decision_memory_log (TTL 90d, auto-archive via WF12),
-memory_embeddings (pgvector, vector(768), 116 segments),
+memory_embeddings (pgvector, vector(768), 353 segments, IVFFlat lists=10),
 chat_sessions, chat_messages,   ← v8.3 Dashboard
 novels(1), chapters(1), character_tracker(12/12)  ← L4 Ego Era
 task_queue  ← autonomous loop queue (added 2026-06-02)
@@ -212,11 +212,23 @@ task_queue  ← autonomous loop queue (added 2026-06-02)
 
 ### coprem (n8n internal DB) — schema rs_lifestyle
 ```
-rs_lifestyle.brands(3), products(42), channels(8),
-trade_conditions(20), ordering_history(39),
+rs_lifestyle.brands(3), products(16), channels(12),
+trade_conditions(21), ordering_history(41),
 sales_transactions(143), mkt_activities(5),
-kol_list(204), promotions(9)
-← RS Lifestyle business data imported 2026-06-02
+kol_list(141, 61 with cost_thb=275,000 THB), promotions(9)
+← Re-imported 2026-06-02 from /Users/eilinaire/Desktop/RS Lifestyle
+← Source files: Batiste Price, SD Ordering History, KOL Lists-2, Mini Event, Trade Conditions Central
+```
+
+### memory_embeddings (coprem_os — vector search)
+```
+KB-02: 33 seg | KB-03: 36 seg | KB-04: 24 seg | KB-06: 255 seg
+KB-RS-KOL: 1 seg (141 KOL, 275,000 THB, avg 4,508/คน)
+KB-RS-SALES: 1 seg (Mini Event 52,200 THB, 143 txn)
+KB-RS-PRODUCTS: 1 seg (Batiste 3 SKU pricing)
+KB-RS-TRADE: 1 seg (Central Dept trade conditions)
+KB-RS-BRAND: 1 seg (Royal Shammi brand overview)
+IVFFlat index: lists=10 (rebuilt 2026-06-02, ค่าเดิม 100 ทำให้ search miss)
 ```
 
 ---
@@ -273,6 +285,9 @@ nohup python3 scripts/autonomous_loop.py >> logs/autonomous_loop.log 2>&1 &
 | Dify vector search (free tier) | ใช้ pgvector + nomic-embed-text แทน ✅ |
 | Dify Cloud GPT-4 trial | ใช้ LiteLLM โดยตรง |
 | ~~L1-B confidence < 0.7 path~~ | ✅ Low Confidence Reply wired (HITL Gate → Switch node) |
+| ~~IVFFlat lists=100 ทำให้ search miss~~ | ✅ rebuild lists=10 (2026-06-02) |
+| ~~rs_lifestyle schema หายหลัง Docker restart~~ | ✅ re-import script + embed KB-RS-* |
+| KOL cost_thb ขาดอีก 80 rows | Prem ต้องกรอกใน Excel แล้ว re-run temp_embed_rs_lifestyle.py |
 
 ---
 
@@ -336,6 +351,21 @@ nohup python3 scripts/autonomous_loop.py >> logs/autonomous_loop.log 2>&1 &
 | DB context query: rs_lifestyle → Jeff ตอบจาก DB จริง | ✅ Exec 70: "52,200 บาท" |
 | n8n jsonBody template bug: {{ $json.field }} ไม่ evaluate → ใช้ Code node build JSON | ✅ |
 | Send Reply: $json.reply → $('L2.5 Normalize Output').first().json.reply_text | ✅ |
+
+## Session Log (2026-06-02 — Git + DB + Vector Fix)
+
+| งาน | ผล |
+|---|---|
+| .gitignore: blobs/ + *.tar + *.gz + logs/ + dashboard/.next/ | ✅ |
+| git remote: token ออกจาก URL → osxkeychain | ✅ |
+| post_restart.sh: WF01_ID fix (4uVEG8SEM23BDrdu) + autonomous_loop start step | ✅ |
+| health_check.sh: loop PID check + git remote safety check + write SYSTEM_STATE.md | ✅ |
+| rs_lifestyle schema re-imported (9 tables, 391 rows) จาก Desktop/RS Lifestyle | ✅ |
+| KOL list: 141 คน (deduped), 61 มี cost_thb, รวม 275,000 THB | ✅ |
+| Embed KB-RS-* 5 segments เข้า memory_embeddings | ✅ |
+| IVFFlat index rebuild: lists=100→10 (แก้ search miss ทั้งหมด) | ✅ |
+| L3 search test: KB-RS-KOL sim=0.76, KB-RS-SALES sim=0.72 ✅ | ✅ |
+| COPREM_Master_Context.md updated | ✅ |
 
 ---
 
