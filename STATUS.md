@@ -901,3 +901,18 @@ PENDING:
 
 | 2026-06-02 20:50 | Jeff | docs: COPREM_Master_Context.md — credential IDs updated (4 new), L1-B/L3/L1-C bypass note, v8.3→v8.4, autonomous loop added to post-restart checklist | ✅ committed a73b61c |
 | 2026-06-02 20:50 | Jeff | git push: partial — 120/150 commits pushed via 10-commit batches (HTTP 500 on large packs) — remote at ae964c3, local HEAD ad3a365 | ⚠️ 30 commits pending |
+
+## 2026-06-02 — RS Lifestyle DB Re-import
+| งาน | ผล |
+|---|---|
+| rs_lifestyle schema สร้างใหม่ (หายหลัง Docker restart) | ✅ |
+| brands(3), channels(12), products(16) | ✅ |
+| trade_conditions(21) — Central Department Final | ✅ |
+| ordering_history(41) — Scrub Daddy DEC+JAN | ✅ |
+| sales_transactions(143) — Mini Event EmQuartier | ✅ |
+| mkt_activities(5) — Batiste 2026 plan | ✅ |
+| kol_list(141, 61 with cost_thb) — deduped จาก 4 sheets | ✅ |
+| promotions(9) — Tops+Central+Villa+Foodland | ✅ |
+| embed_kb.py — 116 segments re-embedded | ✅ |
+| Total KOL budget: 275,000 THB (61 KOL) | ✅ |
+| Mini Event revenue: 52,200 THB ✅ (ยืนยันตรง) | ✅ |
