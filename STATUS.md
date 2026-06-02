@@ -771,3 +771,14 @@ PENDING next session:
 | com.coprem.autostart: path Desktop/Coprem → coprem/Coprem + docker-compose path fix | ✅ exit 0 |
 | run_loop.sh: PID guard added (no duplicate loop on reboot) | ✅ |
 | Both plist reloaded via launchctl | ✅ PID 2060 / 2053 |
+
+## 2026-06-02 — Docker Restart Recovery
+| Action | ผล |
+|---|---|
+| ROOT: Docker Desktop ไม่ auto-start → containers ทั้งหมดหยุด | ✅ diagnosed |
+| BUG: coprem_os + litellm DB หายหลัง restart | ROOT: Docker volume ไม่ persist / fresh container | FIX: re-run migrations |
+| BUG: LiteLLM auth fail — POSTGRES_PASSWORD ไม่ interpolate เมื่อ run จาก 03-system/ | ROOT: compose ไม่เจอ .env | FIX: run docker compose จาก project root เสมอ |
+| BUG: docker compose restart ไม่อ่าน env ใหม่ | ROOT: ต้อง --force-recreate | FIX: docker compose up -d --force-recreate |
+| All migrations re-applied: 001-008 + task_queue | ✅ |
+| LiteLLM UP port 4000 | ✅ |
+| Autonomous loop UP PID 3237 | ✅ idle, queue empty |
