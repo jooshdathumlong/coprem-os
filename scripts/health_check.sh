@@ -77,4 +77,28 @@ else
   echo "| Telegram webhook | ${FIX_RESULT:-UNKNOWN} | was: $TG_WH_URL → reset to $EXPECTED_WH_PATH |" >> /tmp/state.md
 fi
 
+# ── Autonomous loop PID check ─────────────────────────────────
+PID_FILE="$ROOT/logs/autonomous_loop.pid"
+if [ -f "$PID_FILE" ]; then
+  LOOP_PID=$(cat "$PID_FILE")
+  if kill -0 "$LOOP_PID" 2>/dev/null; then
+    echo "| Autonomous Loop | UP | PID $LOOP_PID (logs/autonomous_loop.pid) |" >> /tmp/state.md
+  else
+    echo "| Autonomous Loop | DOWN | PID $LOOP_PID dead — restart with post_restart.sh |" >> /tmp/state.md
+  fi
+else
+  echo "| Autonomous Loop | UNKNOWN | no PID file |" >> /tmp/state.md
+fi
+
+# ── Git remote safety check ────────────────────────────────────
+GIT_REMOTE=$(git -C "$ROOT" remote get-url origin 2>/dev/null || echo "")
+if [[ "$GIT_REMOTE" == *"@"* ]] || [[ "$GIT_REMOTE" == *"ghp_"* ]]; then
+  echo "| Git remote | UNSAFE | token/credentials in URL — run: git remote set-url origin https://github.com/jooshdathumlong/coprem-os.git |" >> /tmp/state.md
+else
+  echo "| Git remote | OK | $GIT_REMOTE |" >> /tmp/state.md
+fi
+
+# ── Write to SYSTEM_STATE.md ──────────────────────────────────
+cp /tmp/state.md "$ROOT/SYSTEM_STATE.md"
+
 cat /tmp/state.md

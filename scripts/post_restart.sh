@@ -37,7 +37,7 @@ fi
 # 4. Activate WF01 (plain Webhook node — no secret refresh needed)
 log "Activating WF01..."
 N8N_API_KEY_VAL=$(grep "^N8N_API_KEY=" "$ENV" | cut -d= -f2)
-WF01_ID="4uVEG8SEM23BDrdu"
+WF01_ID="jFq7aSFJQ7ElHoLZ"
 curl -sf -X POST -H "X-N8N-API-KEY: $N8N_API_KEY_VAL" \
   "http://localhost:5678/api/v1/workflows/$WF01_ID/activate" > /dev/null 2>&1 || true
 log "WF01 activated ✅"
@@ -73,6 +73,23 @@ if curl -sf http://localhost:11434/api/tags > /dev/null 2>&1; then
   log "Ollama: ✅ running (llama3.1:8b + qwen2.5:7b)"
 else
   log "Ollama: ⚠️  not reachable"
+fi
+
+# 8. Ensure autonomous loop is running
+PID_FILE="$ROOT/logs/autonomous_loop.pid"
+LOOP_RUNNING=false
+if [ -f "$PID_FILE" ]; then
+  LOOP_PID=$(cat "$PID_FILE")
+  if kill -0 "$LOOP_PID" 2>/dev/null; then
+    LOOP_RUNNING=true
+    log "Autonomous loop: ✅ already running (PID $LOOP_PID)"
+  fi
+fi
+if [ "$LOOP_RUNNING" = false ]; then
+  mkdir -p "$ROOT/logs"
+  nohup python3 "$ROOT/scripts/autonomous_loop.py" >> "$ROOT/logs/autonomous_loop.log" 2>&1 &
+  echo $! > "$PID_FILE"
+  log "Autonomous loop: ✅ started (PID $!)"
 fi
 
 log "post_restart complete ✅"
