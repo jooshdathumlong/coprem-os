@@ -72,8 +72,6 @@ def docker_psql(sql: str, params: tuple = ()) -> list[dict]:
     cid = get_pg_container()
     if not cid:
         raise RuntimeError("Postgres container not found")
-    # Use psql with JSON output via -c and --csv for reliable parsing
-    safe_sql = sql.replace('"', '\\"')
     cmd = [
         "docker", "exec", cid,
         "psql", "-U", "coprem", "-d", "coprem_os",
@@ -127,33 +125,38 @@ LIMIT 5;
         })
     return tasks
 
+def _esc(s: str) -> str:
+    """Escape single quotes for psql literal strings."""
+    return str(s).replace("'", "''")
+
 def mark_running(task_id: str):
-    pg_exec(f"UPDATE task_queue SET status='running', started_at=NOW() WHERE id='{task_id}';")
+    pg_exec(f"UPDATE task_queue SET status='running', started_at=NOW() WHERE id='{_esc(task_id)}';")
 
 def mark_done(task_id: str, result: str):
-    safe = result.replace("'", "''")[:2000]
-    pg_exec(f"UPDATE task_queue SET status='done', result='{safe}', completed_at=NOW() WHERE id='{task_id}';")
+    safe = _esc(result)[:2000]
+    pg_exec(f"UPDATE task_queue SET status='done', result='{safe}', completed_at=NOW() WHERE id='{_esc(task_id)}';")
 
 def mark_failed(task_id: str, error: str):
-    safe = error.replace("'", "''")[:500]
-    pg_exec(f"UPDATE task_queue SET status='failed', error='{safe}', completed_at=NOW() WHERE id='{task_id}';")
+    safe = _esc(error)[:500]
+    pg_exec(f"UPDATE task_queue SET status='failed', error='{safe}', completed_at=NOW() WHERE id='{_esc(task_id)}';")
 
 def retry_task(task_id: str, retries: int, error: str):
-    safe = error.replace("'", "''")[:500]
-    # Exponential backoff: 15s, 60s, 300s
+    safe = _esc(error)[:500]
     delays = [15, 60, 300]
     delay = delays[min(retries, len(delays) - 1)]
     pg_exec(f"""
 UPDATE task_queue
 SET status='pending', retries={retries+1}, error='{safe}', run_at=NOW() + INTERVAL '{delay} seconds'
-WHERE id='{task_id}';
+WHERE id='{_esc(task_id)}';
 """)
 
 def create_task(type_: str, payload: dict, assigned_to: str, priority: int = 5, delay_seconds: int = 0):
-    safe_payload = json.dumps(payload).replace("'", "''")
+    safe_payload = _esc(json.dumps(payload))
+    safe_type = _esc(type_)
+    safe_agent = _esc(assigned_to)
     pg_exec(f"""
 INSERT INTO task_queue (type, payload, assigned_to, priority, run_at)
-VALUES ('{type_}', '{safe_payload}', '{assigned_to}', {priority}, NOW() + INTERVAL '{delay_seconds} seconds');
+VALUES ('{safe_type}', '{safe_payload}', '{safe_agent}', {int(priority)}, NOW() + INTERVAL '{int(delay_seconds)} seconds');
 """)
 
 # ── Telegram ──────────────────────────────────────────────────────────────────

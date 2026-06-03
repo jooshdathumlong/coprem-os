@@ -9,8 +9,11 @@ ENV="$ROOT/.env"
 
 log() { echo "[post_restart] $1"; }
 
-# Load env
-source <(grep -v '^#' "$ENV" | sed 's/^/export /')
+# Load env (safe: parse key=value pairs without eval'ing values)
+while IFS='=' read -r key value; do
+  [[ -z "$key" || "$key" == \#* ]] && continue
+  export "$key"="$value"
+done < <(grep -v '^#' "$ENV" | grep '=')
 
 # 1. Wait for n8n to be healthy
 log "Waiting for n8n..."

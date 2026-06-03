@@ -87,6 +87,8 @@ def pg_upsert(pg_cid: str, content: str, pillar: str, kb_id: str, embedding: lis
     )
     if result.returncode != 0 or "ERROR" in result.stderr:
         print(f"  PG ERROR: {result.stderr.strip()[:100]}")
+        return False
+    return True
 
 def main():
     global DIFY_API_KEY
@@ -99,6 +101,7 @@ def main():
     print(f"Postgres container: {pg_cid[:12]}")
 
     total = 0
+    errors = 0
     for dataset_id, (pillar, kb_label) in KB_TARGETS.items():
         print(f"\n[{kb_label}] pillar={pillar} dataset={dataset_id[:8]}...")
         docs = dify_list_documents(dataset_id)
@@ -110,13 +113,18 @@ def main():
                 if len(content) < 20:
                     continue
                 vec = embed(content)
-                pg_upsert(pg_cid, content, pillar, kb_label, vec)
-                total += 1
-                if total % 50 == 0:
+                ok = pg_upsert(pg_cid, content, pillar, kb_label, vec)
+                if ok:
+                    total += 1
+                else:
+                    errors += 1
+                if total % 50 == 0 and total > 0:
                     print(f"  Embedded {total} segments so far...")
                 time.sleep(0.05)
 
     print(f"\nDone: {total} segments embedded into memory_embeddings.embedding_768")
+    if errors:
+        print(f"WARNING: {errors} segments failed to insert — check PG ERRORs above")
 
 if __name__ == "__main__":
     main()

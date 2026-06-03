@@ -153,7 +153,7 @@ def mode_check(verbose: bool = True) -> dict:
             stale.append(rel)
 
     for rel in thai_files:
-        if rel not in eng_files and rel not in THAI_ONLY_FILES:
+        if rel not in eng_files and Path(rel).name not in THAI_ONLY_FILES:
             thai_only.append(rel)
 
     if verbose:

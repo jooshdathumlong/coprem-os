@@ -34,7 +34,7 @@ docker exec 03-system-postgres-1 psql -U coprem -d coprem_os \
 N8N_UP=$(curl -sf --max-time 3 http://localhost:5678/healthz 2>/dev/null && echo "yes" || echo "no")
 if [[ "$N8N_UP" == "yes" ]]; then
   # Test if Postgres credential works by checking a recent execution
-  CRED_OK=$(docker exec 03-system-postgres-1 psql -U coprem -d coprem -t -c \
+  CRED_OK=$(docker exec 03-system-postgres-1 psql -U coprem -d coprem_os -t -c \
     "SELECT COUNT(*) FROM credentials_entity WHERE id = '226PbeVgki0neEi4';" 2>/dev/null | tr -d ' ')
   if [[ "$CRED_OK" == "1" ]]; then
     # Always sync credentials on health check (idempotent, safe)
@@ -47,7 +47,7 @@ fi
 # ── Auto-fix: Zombie containers ───────────────────────────────
 ZOMBIE=$(docker ps --format "{{.Names}}" 2>/dev/null | grep "^coprem-cloudflared")
 if [ -n "$ZOMBIE" ]; then
-  docker stop $ZOMBIE > /dev/null 2>&1
+  docker stop "$ZOMBIE" > /dev/null 2>&1
   echo "| Zombie containers | STOPPED | $ZOMBIE |" >> /tmp/state.md
 fi
 

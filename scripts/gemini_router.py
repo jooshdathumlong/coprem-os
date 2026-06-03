@@ -54,8 +54,8 @@ def mark_throttled(name: str, daily: bool = False):
         print(f"[gemini_router] state error: {e}", file=sys.stderr)
 
 
-def call_gemini(key: str, prompt: str) -> dict:
-    url = API_URL.format(model=MODEL, key=key)
+def call_gemini(key: str, model: str, prompt: str) -> dict:
+    url = API_URL.format(model=model, key=key)
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
     resp = requests.post(url, json=payload, timeout=30)
     return resp.status_code, resp.json() if resp.content else {}
@@ -79,10 +79,15 @@ def run(prompt: str):
 
     for model in MODELS:
         for name, key in available:
-            status, body = call_gemini(key, prompt)
+            status, body = call_gemini(key, model, prompt)
 
             if status == 200:
-                text = body.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                candidates = body.get("candidates") or []
+                parts = candidates[0].get("content", {}).get("parts", []) if candidates else []
+                text = parts[0].get("text", "") if parts else ""
+                if not text:
+                    print(f"[gemini_router] empty response from {name}/{model}", file=sys.stderr)
+                    continue
                 print(json.dumps({"key_used": name, "model": model, "text": text}))
                 return
 
