@@ -223,7 +223,11 @@ def call_litellm(prompt: str, agent: str = "jeff", model: str = "auto") -> str:
                 last_err = f"429 on {m}"
                 continue
             resp.raise_for_status()
-            content = resp.json()["choices"][0]["message"]["content"].strip()
+            body = resp.json()
+            choices = body.get("choices") or []
+            if not choices:
+                raise RuntimeError(f"LiteLLM returned no choices: {str(body)[:200]}")
+            content = (choices[0].get("message") or {}).get("content", "").strip()
             if m != (TIER_MODELS[0] if model == "auto" else model):
                 log.info(f"  (fell back to {m})")
             return content

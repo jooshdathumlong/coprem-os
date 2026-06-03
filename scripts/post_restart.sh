@@ -39,14 +39,14 @@ fi
 
 # 4. Activate WF01 (plain Webhook node — no secret refresh needed)
 log "Activating WF01..."
-N8N_API_KEY_VAL=$(grep "^N8N_API_KEY=" "$ENV" | cut -d= -f2)
+N8N_API_KEY_VAL=$(grep "^N8N_API_KEY=" "$ENV" | cut -d= -f2-)
 WF01_ID="jFq7aSFJQ7ElHoLZ"
 curl -sf -X POST -H "X-N8N-API-KEY: $N8N_API_KEY_VAL" \
   "http://localhost:5678/api/v1/workflows/$WF01_ID/activate" > /dev/null 2>&1 || true
 log "WF01 activated ✅"
 
 # 5. Verify Telegram webhook points to fixed path
-BOT_TOKEN=$(grep "^TELEGRAM_BOT_TOKEN=" "$ENV" | cut -d= -f2)
+BOT_TOKEN=$(grep "^TELEGRAM_BOT_TOKEN=" "$ENV" | cut -d= -f2-)
 sleep 2
 WH_URL=$(curl -s "https://api.telegram.org/bot$BOT_TOKEN/getWebhookInfo" | \
   python3 -c "import json,sys; print(json.load(sys.stdin)['result'].get('url','EMPTY'))")

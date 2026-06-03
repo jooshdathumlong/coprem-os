@@ -76,9 +76,11 @@ def pg_upsert(pg_cid: str, content: str, pillar: str, kb_id: str, embedding: lis
     embedding_str = "[" + ",".join(str(x) for x in embedding) + "]"
     # Escape single quotes in content
     safe_content = content.replace("'", "''")
+    safe_pillar = pillar.replace("'", "''")
+    safe_kb_id = kb_id.replace("'", "''")
     sql = (
         f"INSERT INTO memory_embeddings (content, memory_type, pillar, kb_id, embedding) "
-        f"VALUES ('{safe_content}', 'kb_segment', '{pillar}', '{kb_id}', '{embedding_str}'::vector) "
+        f"VALUES ('{safe_content}', 'kb_segment', '{safe_pillar}', '{safe_kb_id}', '{embedding_str}'::vector) "
         f"ON CONFLICT DO NOTHING;"
     )
     result = subprocess.run(
