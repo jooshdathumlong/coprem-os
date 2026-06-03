@@ -1,6 +1,21 @@
 # COPREM OS — Current Status
 
-> Last Updated: 2026-05-31 | Session: v3.3.4 — Merge coprem-os build + fill gaps
+> Last Updated: 2026-06-03 | Session: v3.3.5 — Migrations + WF01 end-to-end fix + knowledge graph
+
+---
+
+## ✅ Done (v3.3.5)
+
+**Migrations + WF01 end-to-end fix**
+- Migrations 002–004 applied on live DB (event_type CHECK, query_log, system_log) ✅
+- WF01 end-to-end test: **PASSED** (Execution 322: success) ✅
+- Fixed L1-B Classifier: hardcoded `gemini-2.0-flash` → `groq/llama-3.3-70b-versatile` ✅
+- All 20 workflows confirmed Active in n8n (WF01–WF12, L1-C, L1.5, L8, HITL-Resolver) ✅
+- L6 Cron: **10/11** active (WF09 already imported — confirmed)
+- Knowledge graph generated: 742 nodes, 233 edges, 11 layers, 13-step tour ✅
+- `.understand-anything/knowledge-graph.json` committed to main ✅
+
+**⚠️ Minor**: inbox_log `agent` field = "unknown" (not "jeff") — Dify label not propagating, non-blocking
 
 ---
 
@@ -185,13 +200,13 @@ L0 ✅ | L1 ✅ | L1.5 ✅ | L2 ✅ | L2.5 ✅ | L3 ✅ | L4 ✅ | L5 ✅ | L6 �
 
 ## ⏳ Next Session
 
-- [ ] `bash scripts/apply_migrations.sh` — apply migrations 002–004 to live DB
+- [ ] Fix `agent` field in inbox_log — "unknown" → "jeff" (propagate Dify agent label)
 - [ ] Populate `02-knowledge/trading/` → sync Dify KB-03
-- [ ] WF01 end-to-end test (Telegram → L7 → L1.5 → L1-C → L2 → reply)
-- [ ] Month 2: agent eval script, SLO GSheets, Dependabot
+- [ ] Month 2: agent eval script (`scripts/agent_eval.py`), SLO GSheets, Dependabot
+- [ ] Investigate dedup: duplicate inbox_log entries per message (2 rows for same message)
 
 ## 🚫 Blocked
-- migrations 002–004 ยังไม่ได้ apply บน live DB
+- (none — all blockers resolved)
 
 ## Architecture Progress (Blueprint v8.3)
 ~95% complete
