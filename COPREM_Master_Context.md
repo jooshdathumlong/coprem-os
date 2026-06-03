@@ -1,12 +1,12 @@
 # COPREM OS — Master Context
-> อัปเดต: 2026-06-02 (session สุดท้าย) | Version: Blueprint v8.4 | Status: **LIVE ✅** | Month 4 ACTIVE — Phase 4 Agents
+> อัปเดต: 2026-06-04 (code review + bug fixes) | Version: Blueprint v8.4 | Status: **LIVE ✅** | Month 4 ACTIVE — Phase 4 Agents
 
 ---
 
 ## 1. สถานะระบบตอนนี้
 
 **WF01 ทำงาน end-to-end สมบูรณ์** — Jeff ตอบจาก L3 Semantic Search (memory_embeddings) ✅
-- Active WF01 ID: `4uVEG8SEM23BDrdu` | LLM: LiteLLM → groq/llama-3.3-70b-versatile
+- Active WF01 ID: `jFq7aSFJQ7ElHoLZ` | LLM: LiteLLM → groq/llama-3.3-70b-versatile
 - Jeff Query → L3 Semantic Search → KB-RS-KOL/SALES/PRODUCTS/TRADE/BRAND (sim >0.70) ✅
 - RS Lifestyle DB: rs_lifestyle schema re-imported 2026-06-02 (9 tables, 391 rows)
 - memory_embeddings: 353 segments (KB-02/03/04/06 + KB-RS-* 5 segments) | IVFFlat lists=10
@@ -21,7 +21,7 @@ Telegram Bot (@Coprem_Bot, chat_id: 7731591925)
   ↓ webhook POST https://n8n.peabuntid.com/webhook/telegram-coprem
 
 n8n 2.22.5 (localhost:5678 / n8n.peabuntid.com)
-  ↓ WF01 Inbox Receiver (ID: 4uVEG8SEM23BDrdu — active ✅ | 0fuEy5ZRv0qrjLEt inactive)
+  ↓ WF01 Inbox Receiver (ID: jFq7aSFJQ7ElHoLZ — active ✅ | 0fuEy5ZRv0qrjLEt inactive)
 
   L7 Security:
     → Audit WEBHOOK_RECEIVED (Postgres audit_log)
@@ -59,7 +59,7 @@ Ollama (localhost:11434 — Mac)
   → llama3.1:8b (4.9GB) ✅
   → qwen2.5:7b (4.7GB) ✅
 
-✅ NOTE: L1-B Classifier + L3 Semantic Search ACTIVE ใน WF01 (4uVEG8SEM23BDrdu) | KB-RS-* embedded 2026-06-02
+✅ NOTE: L1-B Classifier + L3 Semantic Search ACTIVE ใน WF01 (jFq7aSFJQ7ElHoLZ) | KB-RS-* embedded 2026-06-02
 (L1-C Provider Router still active as standalone WF for non-WF01 routing)
 
 Postgres
@@ -76,7 +76,7 @@ Cloudflare Tunnel → n8n.peabuntid.com + litellm.peabuntid.com
 
 | Workflow | ID | Status |
 |---|---|---|
-| WF01 — Inbox Receiver | `4uVEG8SEM23BDrdu` | ✅ ACTIVE | `0fuEy5ZRv0qrjLEt` = inactive duplicate |
+| WF01 — Inbox Receiver | `jFq7aSFJQ7ElHoLZ` | ✅ ACTIVE | (`4uVEG8SEM23BDrdu`, `0fuEy5ZRv0qrjLEt` = inactive duplicates) |
 | WF L1-C — Provider Router | `XUweHQoQ1fm34d01` | ✅ |
 | WF L1.5 — Session Manager | `2jU4tdTiP1lhNucK` | ✅ |
 | WF02 — Daily Morning Brief | `sou01B1RK3u5HZDV` | ✅ v2: tasks+HITL+OKR+date |
@@ -237,12 +237,21 @@ IVFFlat index: lists=10 (rebuilt 2026-06-02, ค่าเดิม 100 ทำใ
 
 | Script | หน้าที่ |
 |---|---|
-| `scripts/health_check.sh` | ตรวจ services + webhook — run start/end session |
+| `scripts/health_check.sh` | ตรวจ services + webhook + write SYSTEM_STATE.md — run start/end session |
+| `scripts/post_restart.sh` | หลัง restart: fix creds + WF01 activate + webhook + Ollama + autonomous loop + dashboard |
 | `scripts/fix_credentials.py` | Sync n8n Postgres credentials กับ .env |
-| `scripts/post_restart.sh` | หลัง restart: fix creds + WF01 + webhook + Ollama |
+| `scripts/autonomous_loop.py` | Autonomous task loop — poll 3s, LiteLLM tier fallback, exponential retry backoff |
+| `scripts/run_autonomous_loop.sh` | Shell wrapper to start autonomous_loop.py with nohup |
+| `scripts/embed_kb.py` | Embed KB files → pgvector memory_embeddings (nomic-embed-text 768d) |
+| `scripts/gemini_router.py` | Gemini free-tier key rotation + per-minute/daily throttle via /tmp/gemini_throttled.json |
+| `scripts/sync_daemon.py` | Sync English vault → Thai vault (Obsidian bilingual sync) |
+| `scripts/build_master_context.py` | Auto-build COPREM_Master_Context.md snapshot |
+| `scripts/verify_log_integrity.py` | Verify autonomous_loop.log integrity + flag anomalies |
 | `scripts/sync_docs.sh` | Auto-sync SYSTEM_STATE + INDEX + export workflows |
-| `scripts/coprem` | CLI: `coprem sync`, `coprem status` |
-| `scripts/autonomous_loop.py` | Autonomous task loop — poll 3s, tier fallback, retry backoff |
+| `scripts/apply_migrations.sh` | Apply pending Postgres migrations in order |
+| `scripts/setup.sh` | New machine setup (Docker, Ollama, deps) |
+| `scripts/start_coprem.sh` / `stop_coprem.sh` | Start/stop all COPREM services |
+| `scripts/agent_eval.py` | Evaluate agent response quality against test cases |
 
 ---
 
@@ -358,7 +367,7 @@ nohup python3 scripts/autonomous_loop.py >> logs/autonomous_loop.log 2>&1 &
 |---|---|
 | .gitignore: blobs/ + *.tar + *.gz + logs/ + dashboard/.next/ | ✅ |
 | git remote: token ออกจาก URL → osxkeychain | ✅ |
-| post_restart.sh: WF01_ID fix (4uVEG8SEM23BDrdu) + autonomous_loop start step | ✅ |
+| post_restart.sh: WF01_ID fix (jFq7aSFJQ7ElHoLZ) + autonomous_loop start step | ✅ |
 | health_check.sh: loop PID check + git remote safety check + write SYSTEM_STATE.md | ✅ |
 | rs_lifestyle schema re-imported (9 tables, 391 rows) จาก Desktop/RS Lifestyle | ✅ |
 | KOL list: 141 คน (deduped), 61 มี cost_thb, รวม 275,000 THB | ✅ |
@@ -366,6 +375,27 @@ nohup python3 scripts/autonomous_loop.py >> logs/autonomous_loop.log 2>&1 &
 | IVFFlat index rebuild: lists=100→10 (แก้ search miss ทั้งหมด) | ✅ |
 | L3 search test: KB-RS-KOL sim=0.76, KB-RS-SALES sim=0.72 ✅ | ✅ |
 | COPREM_Master_Context.md updated | ✅ |
+
+---
+
+## Session Log (2026-06-04 — Code Review + Bug Fixes)
+
+| งาน | ผล |
+|---|---|
+| Full code review — 7 scripts (gemini_router, autonomous_loop, embed_kb, health_check, post_restart, sync_daemon, fix_credentials) | ✅ 10 bugs found |
+| gemini_router.py: NameError MODEL undefined → fix เป็น model parameter | ✅ commit 11d6eae |
+| post_restart.sh: shell injection via `source .env` → safe key=value parser | ✅ |
+| autonomous_loop.py: SQL injection ใน mark_*/create_task → เพิ่ม _esc() helper | ✅ |
+| autonomous_loop.py: dead code safe_sql ใน docker_psql | ✅ removed |
+| health_check.sh: credential check ใช้ -d coprem แทน coprem_os | ✅ fixed |
+| embed_kb.py: pg_upsert silent failure → return bool + count errors | ✅ |
+| sync_daemon.py: THAI_ONLY_FILES match ด้วย filename ไม่ใช่ full path | ✅ |
+| Second-pass review: 3 bugs เพิ่ม | ✅ commit dc73b0a |
+| autonomous_loop.py: LiteLLM choices[] IndexError → safe-access + RuntimeError | ✅ |
+| embed_kb.py: pillar/kb_id ไม่ escape ใน INSERT | ✅ |
+| post_restart.sh: cut -d= -f2 → -f2- (values with = chars) | ✅ |
+| Master Context: WF01 ID sync (4uVEG8SEM23BDrdu → jFq7aSFJQ7ElHoLZ) | ✅ |
+| Master Context: Scripts section ครบทุกไฟล์ | ✅ |
 
 ---
 

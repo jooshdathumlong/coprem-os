@@ -19,7 +19,7 @@
 | File | Purpose | How to Read |
 |------|---------|-------------|
 | `INDEX.md` | This file — map of everything | Full (short) |
-| `03-system/COPREM_OS_Master_Blueprint_v8.3.md` | Full system spec | `tail -30` for build log; `grep "## "` for TOC |
+| `03-system/COPREM_OS_Master_Blueprint_v8.4.md` | Full system spec (v8.4) | `tail -30` for build log; `grep "## "` for TOC |
 
 ---
 

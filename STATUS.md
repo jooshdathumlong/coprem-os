@@ -931,3 +931,19 @@ PENDING:
 | embed_kb.py — 116 segments re-embedded | ✅ |
 | Total KOL budget: 275,000 THB (61 KOL) | ✅ |
 | Mini Event revenue: 52,200 THB ✅ (ยืนยันตรง) | ✅ |
+
+## 2026-06-04 — Code Review + Master Context Sync
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-04 | Full code review: 10 bugs patched ใน 2 commits (11d6eae, dc73b0a) | ✅ |
+| 2026-06-04 | BUG: gemini_router.py NameError MODEL undefined → NameError ทุก call | ROOT: MODEL ไม่ถูก define | FIX: ส่ง model เป็น parameter |
+| 2026-06-04 | BUG: post_restart.sh source .env → shell injection | ROOT: sed 's/^/export /' eval values | FIX: safe IFS='=' read loop |
+| 2026-06-04 | BUG: SQL injection mark_*/create_task — task_id ไม่ escape | ROOT: f-string interpolation | FIX: _esc() helper |
+| 2026-06-04 | BUG: health_check.sh -d coprem แทน coprem_os | ROOT: wrong DB name | FIX: เปลี่ยนเป็น coprem_os |
+| 2026-06-04 | BUG: embed_kb pg_upsert silent failure | ROOT: ไม่ return bool | FIX: return bool + count errors |
+| 2026-06-04 | BUG: sync_daemon THAI_ONLY_FILES full-path mismatch | ROOT: rel='subdir/file.md' ≠ 'file.md' | FIX: Path(rel).name |
+| 2026-06-04 | BUG: LiteLLM choices[] IndexError | ROOT: ไม่ check empty choices | FIX: safe-access + RuntimeError |
+| 2026-06-04 | BUG: embed_kb pillar/kb_id unescaped in INSERT | ROOT: ขาด escape | FIX: .replace("'","''") |
+| 2026-06-04 | BUG: post_restart cut -d= -f2 ตัด values ที่มี = | ROOT: -f2 แทน -f2- | FIX: cut -d= -f2- |
+| 2026-06-04 | INCONSISTENCY: WF01 ID ใน Master Context ผิด (4uVEG8SEM23BDrdu) | ROOT: ไม่ sync หลัง c68fcbb | FIX: update เป็น jFq7aSFJQ7ElHoLZ |
+| 2026-06-04 | Master Context: scripts section ครบ, session log เพิ่ม, timestamp update | ✅ committed |
