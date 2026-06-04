@@ -107,31 +107,45 @@ function scanPillarFiles(pillar: string) {
   return results
 }
 
-// ── Helper: scan .md files in a category folder ───────────────────────────
+// ── Helper: recursively collect .md files from a directory ────────────────
+function collectMdFiles(dir: string): { filename: string; fullPath: string; relPath: string }[] {
+  if (!existsSync(dir)) return []
+  const results: { filename: string; fullPath: string; relPath: string }[] = []
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name.startsWith('.')) continue
+    const fullPath = join(dir, entry.name)
+    if (entry.isDirectory()) {
+      results.push(...collectMdFiles(fullPath))
+    } else if (entry.name.endsWith('.md') && !entry.name.startsWith('_index')) {
+      results.push({ filename: entry.name, fullPath, relPath: fullPath.replace(dir + '/', '') })
+    }
+  }
+  return results
+}
+
+// ── Helper: scan .md files in a category folder (recursive) ───────────────
 function scanCategory(catId: string, lang = 'en') {
   const dir = join(CAT_ROOT, catId)
   if (!existsSync(dir)) return []
-  return readdirSync(dir)
-    .filter(f => {
-      if (!f.endsWith('.md') || f.startsWith('_index')) return false
-      // lang=th: prefer TH catalog, skip EN catalog; lang=en: skip TH catalog
-      if (lang === 'th' && f === 'futureskill-catalog.md') return false
-      if (lang !== 'th' && f === 'futureskill-catalog-th.md') return false
+  return collectMdFiles(dir)
+    .filter(({ filename }) => {
+      if (lang === 'th' && filename === 'futureskill-catalog.md') return false
+      if (lang !== 'th' && filename === 'futureskill-catalog-th.md') return false
+      if (filename === 'link.md') return false
       return true
     })
-    .map(f => {
-      const fullPath = join(dir, f)
+    .map(({ filename, fullPath, relPath }) => {
       const content = readFileSync(fullPath, 'utf-8')
       const firstLine = content.split('\n').find(l => l.startsWith('# ')) || ''
-      const title = firstLine.replace('# ', '').trim() || f.replace('.md', '')
+      const title = firstLine.replace('# ', '').trim() || relPath.replace('.md', '').replace(/_/g, ' ')
       const sourceMatch = content.match(/>\s*ที่มา:\s*(.+)/m) || content.match(/>\s*Source:\s*(.+)/m)
-      const source = sourceMatch ? sourceMatch[1].split('|')[0].trim() : 'Prem'
+      const source = sourceMatch ? sourceMatch[1].split('|')[0].trim() : 'FutureSkill'
       const wordCount = content.split(/\s+/).length
       const linkCount = (content.match(/\[link\]\(https?:\/\/[^)]+\)/g) || []).length
-      return { filename: f, fullPath, title, source, wordCount, linkCount, modified: statSync(fullPath).mtime.toISOString() }
+      // Use relPath as filename so nested paths are preserved for doc lookup
+      return { filename: relPath, fullPath, title, source, wordCount, linkCount, modified: statSync(fullPath).mtime.toISOString() }
     })
     .sort((a, b) => {
-      // futureskill-catalog first, then alphabetical
       if (a.filename === 'futureskill-catalog.md') return -1
       if (b.filename === 'futureskill-catalog.md') return 1
       return a.filename.localeCompare(b.filename)
