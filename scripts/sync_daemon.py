@@ -258,7 +258,6 @@ def main():
     if args.mode == "check":
         mode_check(verbose=True)
     elif args.mode == "sync":
-        mode_check(verbose=True)
         mode_sync(dry_run=args.dry_run)
     elif args.mode == "clean":
         mode_clean(dry_run=args.dry_run)

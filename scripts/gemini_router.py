@@ -27,7 +27,7 @@ KEYS = {
 THROTTLE_TTL_RPM = 60       # per-minute window
 THROTTLE_TTL_DAY = 86400    # daily window
 THROTTLE_FILE = Path("/tmp/gemini_throttled.json")
-MODELS = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-flash-lite-latest"]
+MODELS = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash"]
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
 
 
@@ -96,6 +96,10 @@ def run(prompt: str):
                 mark_throttled(name, daily=daily)
                 continue
 
+            elif status >= 500:
+                # Server-side error — try next key before giving up
+                print(f"[gemini_router] {name}/{model} returned {status}, trying next key", file=sys.stderr)
+                continue
             else:
                 print(json.dumps({"error": f"key={name} status={status}", "body": body}))
                 sys.exit(1)

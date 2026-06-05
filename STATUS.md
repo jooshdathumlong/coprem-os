@@ -947,3 +947,13 @@ PENDING:
 | 2026-06-04 | BUG: post_restart cut -d= -f2 ตัด values ที่มี = | ROOT: -f2 แทน -f2- | FIX: cut -d= -f2- |
 | 2026-06-04 | INCONSISTENCY: WF01 ID ใน Master Context ผิด (4uVEG8SEM23BDrdu) | ROOT: ไม่ sync หลัง c68fcbb | FIX: update เป็น jFq7aSFJQ7ElHoLZ |
 | 2026-06-04 | Master Context: scripts section ครบ, session log เพิ่ม, timestamp update | ✅ committed |
+
+## 2026-06-05 — Code + Model Improvements
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-05 | FIX: gemini_router — replace invalid model `gemini-flash-lite-latest` → `gemini-1.5-flash` | ✅ |
+| 2026-06-05 | FIX: gemini_router — HTTP 5xx ลอง next key แทน sys.exit(1) ทันที | ✅ |
+| 2026-06-05 | FIX: autonomous_loop — ลบ dead code docker_psql() | ✅ |
+| 2026-06-05 | FIX: autonomous_loop — models_to_try dedup เมื่อ model ตรงกับ TIER_MODELS | ✅ |
+| 2026-06-05 | FIX: autonomous_loop handle_analysis default model → "auto" (tier fallback ถูกต้อง) | ✅ |
+| 2026-06-05 | FIX: sync_daemon — ลบ double mode_check ใน sync mode | ✅ |

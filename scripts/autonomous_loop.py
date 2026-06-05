@@ -67,23 +67,6 @@ def get_pg_container():
     except Exception:
         return None
 
-def docker_psql(sql: str, params: tuple = ()) -> list[dict]:
-    """Execute SQL via docker exec, return list of dicts."""
-    cid = get_pg_container()
-    if not cid:
-        raise RuntimeError("Postgres container not found")
-    cmd = [
-        "docker", "exec", cid,
-        "psql", "-U", "coprem", "-d", "coprem_os",
-        "-t", "-A", "-F", "|||",
-        "-c", sql
-    ]
-    try:
-        out = subprocess.check_output(cmd, encoding="utf-8", stderr=subprocess.DEVNULL).strip()
-        return out
-    except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"psql error: {e}")
-
 def pg_exec(sql: str) -> str:
     cid = get_pg_container()
     if not cid:
@@ -197,7 +180,10 @@ TIER_MODELS = [
 def call_litellm(prompt: str, agent: str = "jeff", model: str = "auto") -> str:
     """Call LiteLLM with tier fallback. model='auto' tries all tiers."""
     system = AGENT_PROMPTS.get(agent, JEFF_SYSTEM)
-    models_to_try = TIER_MODELS if model == "auto" else [model] + TIER_MODELS
+    if model == "auto":
+        models_to_try = TIER_MODELS
+    else:
+        models_to_try = [model] + [m for m in TIER_MODELS if m != model]
 
     last_err = ""
     for m in models_to_try:
@@ -264,7 +250,7 @@ def handle_analysis(task: dict) -> str:
     payload = task["payload"]
     prompt = payload.get("prompt", "Analyze current system state.")
     agent = task.get("assigned_to", "jeff")
-    model = payload.get("model", "gemini-2.0-flash")
+    model = payload.get("model", "auto")
     result = call_litellm(prompt, agent=agent, model=model)
 
     # Notify via Telegram if requested
