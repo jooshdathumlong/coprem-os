@@ -8,7 +8,7 @@ set -euo pipefail
 CONTAINER="03-system-postgres-1"
 DB_USER="coprem"
 DB_NAME="coprem_os"
-MIGRATIONS_DIR="$(dirname "$0")/../db/migrations"
+MIGRATIONS_DIR="$(dirname "$0")/../03-system/db/migrations"
 
 echo "=== COPREM Migration Runner ==="
 echo "Container : $CONTAINER"

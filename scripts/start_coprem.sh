@@ -14,15 +14,15 @@ fi
 DASH_PID=$(lsof -ti:3001 2>/dev/null)
 if [ -z "$DASH_PID" ]; then
   echo "Starting dashboard..."
-  cd dashboard
+  cd 03-system/dashboard
   nohup npm run dev > /tmp/coprem-dashboard.log 2>&1 &
-  cd ..
+  cd ../..
   sleep 4
 fi
 
 # 3. Start autonomous loop daemon if not running
-mkdir -p logs
-LOOP_PID_FILE="logs/autonomous_loop.pid"
+mkdir -p 03-system/logs
+LOOP_PID_FILE="03-system/logs/autonomous_loop.pid"
 LOOP_RUNNING=false
 if [ -f "$LOOP_PID_FILE" ]; then
   LOOP_PID=$(cat "$LOOP_PID_FILE" 2>/dev/null)
@@ -32,9 +32,9 @@ if [ -f "$LOOP_PID_FILE" ]; then
 fi
 if [ "$LOOP_RUNNING" = false ]; then
   echo "Starting autonomous loop..."
-  nohup python3 scripts/autonomous_loop.py >> logs/autonomous_loop.log 2>&1 &
-  echo $! > logs/autonomous_loop.pid
-  echo "  Autonomous loop PID: $(cat logs/autonomous_loop.pid)"
+  nohup python3 scripts/autonomous_loop.py >> 03-system/logs/autonomous_loop.log 2>&1 &
+  echo $! > 03-system/logs/autonomous_loop.pid
+  echo "  Autonomous loop PID: $(cat 03-system/logs/autonomous_loop.pid)"
 fi
 
 # 4. Open dashboard in Chrome App Mode (standalone window, no browser UI)

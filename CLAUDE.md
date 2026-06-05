@@ -163,15 +163,23 @@ Violation = reporting done before docs are synced = incomplete task.
 ## 8. Key Paths
 
 ```
-SYSTEM_STATE.md           ground truth — read every session start
-scripts/health_check.sh   run at session start and end
-scripts/credential_map.sh run before any credential change
-scripts/embed_kb.py       embed KB files into pgvector — run after any kb/ change
-01-projects/              active projects
-02-knowledge/             KB-01 to KB-05 source files
+SYSTEM_STATE.md                      ground truth — read every session start
+scripts/health_check.sh              run at session start and end
+scripts/credential_map.sh            run before any credential change
+scripts/embed_kb.py                  embed KB files into pgvector — run after any kb/ change
+01-projects/                         active projects
+01-projects/prem-profile.md          Prem's profile (EN)
+01-projects/prem-profile-th.md       Prem's profile (TH)
+02-knowledge/                        KB-01 to KB-05 source files
+02-knowledge/COPREM_Master_Context.md  master context doc
 02-knowledge/work/business_context.md  real business data (brands, sales, campaigns) — Prem fills manually
-03-system/                agents, workflows, DB, scripts, skills
-04-outputs/               deliverables
+03-system/                           agents, workflows, DB, scripts, skills, infra
+03-system/dashboard/                 Next.js dashboard (port 3001)
+03-system/db/                        DB migrations
+03-system/logs/                      runtime logs + PID files
+03-system/manifests/                 Ollama model manifests
+03-system/memory/                    agent memory files
+04-outputs/                          deliverables
 ```
 
 Navigation: `INDEX.md` | Blueprint: `03-system/COPREM_OS_Master_Blueprint_v8.2.md`

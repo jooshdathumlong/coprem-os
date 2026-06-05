@@ -20,7 +20,7 @@ import requests
 
 # ── Config ────────────────────────────────────────────────────────────────────
 ROOT = Path(__file__).parents[1]
-LOG_DIR = ROOT / "logs"
+LOG_DIR = ROOT / "03-system" / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 PID_FILE = LOG_DIR / "autonomous_loop.pid"
 

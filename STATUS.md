@@ -957,3 +957,12 @@ PENDING:
 | 2026-06-05 | FIX: autonomous_loop — models_to_try dedup เมื่อ model ตรงกับ TIER_MODELS | ✅ |
 | 2026-06-05 | FIX: autonomous_loop handle_analysis default model → "auto" (tier fallback ถูกต้อง) | ✅ |
 | 2026-06-05 | FIX: sync_daemon — ลบ double mode_check ใน sync mode | ✅ |
+
+## 2026-06-06 — Folder Consolidation
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-06 | RESTRUCTURE: ย้าย dashboard,db,logs,manifests,memory → 03-system/ | ✅ |
+| 2026-06-06 | RESTRUCTURE: ย้าย prem-profile*.md → 01-projects/ | ✅ |
+| 2026-06-06 | RESTRUCTURE: ย้าย COPREM_Master_Context.md + Reference_Guide.md → 02-knowledge/ | ✅ |
+| 2026-06-06 | UPDATE: path references ใน health_check.sh, post_restart.sh, start/stop_coprem.sh, run_autonomous_loop.sh, apply_migrations.sh, autonomous_loop.py | ✅ |
+| 2026-06-06 | UPDATE: CLAUDE.md section 8 Key Paths | ✅ |

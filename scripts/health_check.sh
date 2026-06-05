@@ -78,11 +78,11 @@ else
 fi
 
 # ── Autonomous loop PID check ─────────────────────────────────
-PID_FILE="$ROOT/logs/autonomous_loop.pid"
+PID_FILE="$ROOT/03-system/logs/autonomous_loop.pid"
 if [ -f "$PID_FILE" ]; then
   LOOP_PID=$(cat "$PID_FILE")
   if kill -0 "$LOOP_PID" 2>/dev/null; then
-    echo "| Autonomous Loop | UP | PID $LOOP_PID (logs/autonomous_loop.pid) |" >> /tmp/state.md
+    echo "| Autonomous Loop | UP | PID $LOOP_PID (03-system/logs/autonomous_loop.pid) |" >> /tmp/state.md
   else
     echo "| Autonomous Loop | DOWN | PID $LOOP_PID dead — restart with post_restart.sh |" >> /tmp/state.md
   fi
