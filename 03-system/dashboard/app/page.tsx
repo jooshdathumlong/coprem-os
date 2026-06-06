@@ -78,6 +78,8 @@ export default function Dashboard() {
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([])
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
+  const [attachedFile, setAttachedFile] = useState<{ name: string; type: string; dataUrl: string; text?: string } | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([])
   const [activeChatSessionId, setActiveChatSessionId] = useState<number | null>(null)
   const [hitlItems, setHITLItems] = useState<HITLItem[]>([])
@@ -107,6 +109,28 @@ export default function Dashboard() {
   const [taskNewAgent, setTaskNewAgent] = useState('jeff')
   const [taskSubmitting, setTaskSubmitting] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
+
+  function handleFileAttach(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    const isImage = file.type.startsWith('image/')
+    reader.onload = ev => {
+      const dataUrl = ev.target?.result as string
+      if (isImage) {
+        setAttachedFile({ name: file.name, type: file.type, dataUrl })
+      } else {
+        // Text / markdown / PDF → read as text and include inline
+        const textReader = new FileReader()
+        textReader.onload = te => {
+          setAttachedFile({ name: file.name, type: file.type, dataUrl, text: te.target?.result as string })
+        }
+        textReader.readAsText(file)
+      }
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
 
   const fetchAll = useCallback(async () => {
     const [s, h, l] = await Promise.allSettled([
@@ -206,9 +230,12 @@ export default function Dashboard() {
 
   async function sendChat(msgOverride?: string) {
     const msg = (msgOverride || chatInput).trim()
-    if (!msg || chatLoading) return
+    if ((!msg && !attachedFile) || chatLoading) return
+    const currentAttachment = attachedFile
     setChatInput('')
-    setChatMessages(m => [...m, { role: 'user', text: msg }])
+    setAttachedFile(null)
+    const displayMsg = msg + (currentAttachment ? ` [📎 ${currentAttachment.name}]` : '')
+    setChatMessages(m => [...m, { role: 'user', text: displayMsg }])
     setChatLoading(true)
 
     // Ensure a session exists
@@ -224,7 +251,17 @@ export default function Dashboard() {
     try {
       const res = await fetch('/api/chat', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg, model, history: chatMessages.slice(-20) })
+        body: JSON.stringify({
+          message: msg,
+          model,
+          history: chatMessages.slice(-20),
+          attachment: currentAttachment ? {
+            name: currentAttachment.name,
+            type: currentAttachment.type,
+            dataUrl: currentAttachment.dataUrl,
+            text: currentAttachment.text,
+          } : null,
+        })
       })
       const data = await res.json()
       let replyText = data.reply || data.error || '(No response)'
@@ -459,18 +496,41 @@ export default function Dashboard() {
             </div>
 
             {/* Input */}
-            <div style={{ padding: '16px 24px', borderTop: '1px solid #e8e8ed', background: 'white' }}>
-              <div style={{ display: 'flex', gap: 10, maxWidth: 760, margin: '0 auto' }}>
-                <input value={chatInput} onChange={e => setChatInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendChat()} disabled={chatLoading}
-                  placeholder={L.chat.placeholder}
-                  style={{ flex: 1, background: '#f5f5f7', color: '#1d1d1f', padding: '11px 18px', borderRadius: 24, border: '1px solid #d2d2d7', fontSize: 14, outline: 'none', transition: 'border-color 0.15s' }}
-                  onFocus={e => (e.target.style.borderColor = '#0066cc')}
-                  onBlur={e => (e.target.style.borderColor = '#d2d2d7')} />
-                <button onClick={() => sendChat()} disabled={chatLoading || !chatInput.trim()} style={{
-                  background: chatLoading || !chatInput.trim() ? '#d2d2d7' : '#0066cc', color: 'white',
-                  padding: '11px 22px', borderRadius: 24, border: 'none', fontSize: 14, fontWeight: 500, cursor: chatLoading || !chatInput.trim() ? 'not-allowed' : 'pointer', transition: 'background 0.15s'
-                }}>{L.chat.send}</button>
+            <div style={{ padding: '12px 24px 16px', borderTop: '1px solid #e8e8ed', background: 'white' }}>
+              <div style={{ maxWidth: 760, margin: '0 auto' }}>
+                {/* Attachment preview */}
+                {attachedFile && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, padding: '8px 12px', background: '#f0f7ff', borderRadius: 12, border: '1px solid #c8e0ff' }}>
+                    {attachedFile.type.startsWith('image/') ? (
+                      <img src={attachedFile.dataUrl} alt={attachedFile.name} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 8 }} />
+                    ) : (
+                      <span style={{ fontSize: 24 }}>📄</span>
+                    )}
+                    <span style={{ fontSize: 12, color: '#0066cc', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachedFile.name}</span>
+                    <button onClick={() => setAttachedFile(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6e6e73', fontSize: 16, padding: '0 4px', lineHeight: 1 }}>×</button>
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  {/* File attach button */}
+                  <input ref={fileInputRef} type="file" accept="image/*,.txt,.md,.pdf,.csv,.json" onChange={handleFileAttach} style={{ display: 'none' }} />
+                  <button onClick={() => fileInputRef.current?.click()} disabled={chatLoading} title="Attach file" style={{
+                    background: attachedFile ? '#0066cc' : '#f5f5f7', color: attachedFile ? 'white' : '#6e6e73',
+                    border: '1px solid', borderColor: attachedFile ? '#0066cc' : '#d2d2d7',
+                    borderRadius: 20, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 18, cursor: 'pointer', flexShrink: 0, transition: 'all 0.15s'
+                  }}>📎</button>
+                  <input value={chatInput} onChange={e => setChatInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendChat()} disabled={chatLoading}
+                    placeholder={L.chat.placeholder}
+                    style={{ flex: 1, background: '#f5f5f7', color: '#1d1d1f', padding: '11px 18px', borderRadius: 24, border: '1px solid #d2d2d7', fontSize: 14, outline: 'none', transition: 'border-color 0.15s' }}
+                    onFocus={e => (e.target.style.borderColor = '#0066cc')}
+                    onBlur={e => (e.target.style.borderColor = '#d2d2d7')} />
+                  <button onClick={() => sendChat()} disabled={chatLoading || (!chatInput.trim() && !attachedFile)} style={{
+                    background: chatLoading || (!chatInput.trim() && !attachedFile) ? '#d2d2d7' : '#0066cc', color: 'white',
+                    padding: '11px 22px', borderRadius: 24, border: 'none', fontSize: 14, fontWeight: 500,
+                    cursor: chatLoading || (!chatInput.trim() && !attachedFile) ? 'not-allowed' : 'pointer', transition: 'background 0.15s', flexShrink: 0
+                  }}>{L.chat.send}</button>
+                </div>
               </div>
             </div>
             </div>{/* end chat main area */}

@@ -68,9 +68,13 @@ function getSystemPrompt(): string {
   return prompt
 }
 
+type Attachment = { name: string; type: string; dataUrl: string; text?: string } | null
+
 export async function POST(req: NextRequest) {
-  const { message, model, history, auto_chain } = await req.json()
-  if (!message) return NextResponse.json({ error: 'no message' }, { status: 400 })
+  const { message, model, history, auto_chain, attachment } = await req.json() as {
+    message: string; model: string; history: unknown[]; auto_chain?: boolean; attachment?: Attachment
+  }
+  if (!message && !attachment) return NextResponse.json({ error: 'no message' }, { status: 400 })
 
   const systemPrompt = getSystemPrompt()
   const { execSync } = await import('child_process')
@@ -83,10 +87,24 @@ export async function POST(req: NextRequest) {
     .map((h: { role: string; text: string }) => ({ role: h.role as 'user' | 'assistant', content: h.text }))
 
   const callLiteLLM = async (m: string, maxTokens = 1500) => {
+    // Build user content: text + optional attachment
+    let userContent: string | Array<{type: string; text?: string; image_url?: {url: string}}> = message || ''
+    if (attachment) {
+      if (attachment.type.startsWith('image/')) {
+        // Vision: send as multimodal content array
+        userContent = [
+          { type: 'text', text: message || 'โปรดวิเคราะห์รูปภาพนี้' },
+          { type: 'image_url', image_url: { url: attachment.dataUrl } }
+        ]
+      } else if (attachment.text) {
+        // Text file: prepend file content to message
+        userContent = `[ไฟล์แนบ: ${attachment.name}]\n\`\`\`\n${attachment.text.slice(0, 8000)}\n\`\`\`\n\n${message || 'โปรดวิเคราะห์ไฟล์นี้'}`
+      }
+    }
     const messages: Msg[] = [
       { role: 'system', content: systemPrompt },
       ...historyMsgs,
-      { role: 'user', content: message }
+      { role: 'user', content: userContent as string }
     ]
     const res = await fetch(LITELLM_URL, {
       method: 'POST',
