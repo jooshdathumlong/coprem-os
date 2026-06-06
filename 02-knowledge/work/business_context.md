@@ -34,6 +34,40 @@
 
 ---
 
+## Customer Persona — Batiste
+
+### Persona 1: สาวออฟฟิศ (Office Professional)
+- อายุ 24–32 | ทำงานในเมือง | รายได้ 25,000–50,000 THB/เดือน
+- Pain: เช้ามืดไม่มีเวลาสระผม อยากให้ผมสวยก่อนประชุม
+- ซื้อที่: Lazada/Shopee, Watsons, Central
+- Decision: รีวิว TikTok + ราคาสมเหตุผล
+
+### Persona 2: นักศึกษา (Student)
+- อายุ 18–23 | มหาวิทยาลัย | งบจำกัด 300–500 THB/เดือนสำหรับ beauty
+- Pain: Dorm ห้องน้ำรวม สระผมไม่สะดวก
+- ซื้อที่: Shopee (ส่งฟรี), ร้านสะดวกซื้อ
+- Decision: เพื่อนแนะนำ + TikTok viral
+
+### Persona 3: คนรักสุขภาพผม (Hair-Conscious)
+- อายุ 25–38 | ดูแลตัวเองสูง | สนใจ ingredient
+- Pain: สระผมบ่อย → ผมแห้งเสีย ต้องการลดความถี่
+- ซื้อที่: Watsons, Villa Market, online
+- Decision: ส่วนผสม + brand trust + dermatologist review
+
+### Persona 4: แม่ลูกอ่อน (New Mom)
+- อายุ 28–36 | เพิ่งมีลูก | เวลาน้อยมาก
+- Pain: ไม่มีเวลาดูแลตัวเองเหมือนเดิม
+- ซื้อที่: Shopee, Lazada (delivery สะดวก)
+- Decision: ความปลอดภัย + ใช้ง่าย + ประหยัดเวลา
+
+### Persona 5: นักกีฬา / Gym Girl
+- อายุ 20–35 | ออกกำลังกาย 3–5 วัน/สัปดาห์
+- Pain: เหงื่อทำให้ผมมัน แต่สระทุกวันผมเสีย
+- ซื้อที่: Online + ร้านขายอุปกรณ์กีฬา
+- Decision: ใช้หลังออกกำลังกาย + รีวิว fitness influencer
+
+---
+
 ## ช่องทางการตลาด
 
 **Online:** TikTok, Facebook, Instagram, Lazada Official, Shopee Official, LINE OA

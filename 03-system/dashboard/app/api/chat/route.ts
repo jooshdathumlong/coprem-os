@@ -47,10 +47,10 @@ async function ragSearch(query: string, topK = 5): Promise<string> {
     const vec = embedData?.embeddings?.[0] as number[]
     if (!vec?.length) return ''
 
-    // Query pgvector
+    // Query pgvector — JOB+PERSONAL only (exclude SKILL: 3156 entries would drown business KB)
     const vecStr = '[' + vec.map((x: number) => x.toFixed(6)).join(',') + ']'
-    const sql = `SELECT content, pillar, kb_id, 1 - (embedding <=> '${vecStr}'::vector) AS score FROM memory_embeddings WHERE embedding IS NOT NULL ORDER BY embedding <=> '${vecStr}'::vector LIMIT ${topK};`
-    const pgCid = execSync(`docker ps --filter name=postgres -q`, { encoding: 'utf8' }).trim().split('\n')[0]
+    const sql = `SELECT content, pillar, kb_id, 1 - (embedding <=> '${vecStr}'::vector) AS score FROM memory_embeddings WHERE embedding IS NOT NULL AND pillar IN ('JOB','PERSONAL') ORDER BY embedding <=> '${vecStr}'::vector LIMIT ${topK};`
+    const pgCid = execSync(`docker ps --filter label=coprem.service=postgres -q 2>/dev/null || docker ps --filter name=postgres -q`, { encoding: 'utf8' }).trim().split('\n')[0]
     const result = execSync(
       `docker exec ${pgCid} psql -U coprem -d coprem_os -t -A -F"|||" -c "${sql.replace(/"/g, '\\"')}"`,
       { encoding: 'utf8', timeout: 10000, stdio: ['pipe', 'pipe', 'pipe'] }
@@ -59,7 +59,7 @@ async function ragSearch(query: string, topK = 5): Promise<string> {
     if (!result) return ''
     const rows = result.split('\n').filter(Boolean).map(r => r.split('|||'))
     const chunks = rows
-      .filter(r => parseFloat(r[3] || '0') > 0.5)
+      .filter(r => parseFloat(r[3] || '0') > 0.45)
       .map(r => `[${r[2]}/${r[1]}] ${r[0].slice(0, 800)}`)
       .join('\n\n---\n\n')
 
