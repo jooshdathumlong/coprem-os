@@ -3,7 +3,7 @@ import { readFileSync, existsSync, readdirSync, statSync, writeFileSync, mkdirSy
 import { join } from 'path'
 import { execSync } from 'child_process'
 
-const ROOT = join(process.cwd(), '..')
+const ROOT = join(process.cwd(), '..', '..')
 const KB_ROOT = join(ROOT, '02-knowledge')
 const CAT_ROOT = join(KB_ROOT, 'categories')
 const COURSES_DIR = join(KB_ROOT, 'courses')

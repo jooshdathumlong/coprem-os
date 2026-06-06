@@ -971,3 +971,5 @@ PENDING:
 | เวลา | งาน | ผล |
 |---|---|---|
 | 2026-06-06 | NEW: scripts/verify_system.sh — 37-check audit (paths, stale patterns, launchd, Python syntax, .env keys) | ✅ 37/37 PASS |
+
+| 2026-06-06 | BUG: dashboard chat "(ไม่มีการตอบกลับ)" | ROOT: ROOT depth 1 แทน 2 หลังย้าย dashboard → 03-system/, .env path hardcode Desktop, double req.json(), prem-profile path ผิด | FIX: ROOT="../..", .env dynamic, parse body once, 01-projects/prem-profile.md, throw on !res.ok |

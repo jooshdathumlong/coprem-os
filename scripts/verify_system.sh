@@ -106,6 +106,34 @@ for plist in "$HOME/Library/LaunchAgents"/com.coprem*.plist; do
   fi
 done
 
+# ── 3b. Dashboard API path sanity ────────────────────────────────────────────
+echo ""
+echo "[ 3b ] Dashboard API paths"
+
+CHAT_ROUTE="$ROOT/03-system/dashboard/app/api/chat/route.ts"
+if [ -f "$CHAT_ROUTE" ]; then
+  # ROOT must go up 2 levels (03-system/dashboard → repo root)
+  if grep -q "process.cwd(), '\.\.', '\.\.')" "$CHAT_ROUTE"; then
+    ok "chat/route.ts ROOT depth correct (2 levels up)"
+  else
+    fail "chat/route.ts ROOT depth wrong — dashboard moved to 03-system/, needs 2x '..'"
+  fi
+  # .env must not be hardcoded to a different path
+  if grep -q "Desktop/Coprem" "$CHAT_ROUTE"; then
+    fail "chat/route.ts: hardcoded Desktop path for .env"
+  else
+    ok "chat/route.ts: .env path not hardcoded"
+  fi
+  # prem-profile must point to 01-projects
+  if grep -q "01-projects/prem-profile" "$CHAT_ROUTE"; then
+    ok "chat/route.ts: prem-profile path → 01-projects/"
+  else
+    fail "chat/route.ts: prem-profile path wrong (should be 01-projects/prem-profile.md)"
+  fi
+else
+  warn "chat/route.ts not found — skipping dashboard checks"
+fi
+
 # ── 4. Python import sanity ───────────────────────────────────────────────────
 echo ""
 echo "[ 4 ] Python import check"

@@ -3,7 +3,7 @@ import { execSync } from 'child_process'
 import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 
-const ROOT = join(process.cwd(), '..')
+const ROOT = join(process.cwd(), '..', '..')
 
 function parseStatusSessions(content: string) {
   const sessions: { date: string; title: string; steps: { time: string; action: string; result: string }[] }[] = []

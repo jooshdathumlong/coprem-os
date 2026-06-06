@@ -3,7 +3,8 @@ import { readFileSync, existsSync, readdirSync } from 'fs'
 import { join } from 'path'
 
 const LITELLM_URL = 'http://localhost:4000/v1/chat/completions'
-const ROOT = join(process.cwd(), '..')
+// dashboard lives at 03-system/dashboard/ — need 2 levels up to reach repo root
+const ROOT = join(process.cwd(), '..', '..')
 const KB_ROOT = join(ROOT, '02-knowledge')
 
 // ── Build dynamic system prompt with KB context ──────────────────────────
@@ -37,7 +38,7 @@ function buildSystemPrompt(): string {
   }
 
   // Load Prem profile
-  const profilePath = join(KB_ROOT, 'personal/prem-profile.md')
+  const profilePath = join(ROOT, '01-projects/prem-profile.md')
   if (existsSync(profilePath)) {
     try {
       const profile = readFileSync(profilePath, 'utf-8').slice(0, 1500)
@@ -68,12 +69,13 @@ function getSystemPrompt(): string {
 }
 
 export async function POST(req: NextRequest) {
-  const { message, model, history } = await req.json()
+  const { message, model, history, auto_chain } = await req.json()
   if (!message) return NextResponse.json({ error: 'no message' }, { status: 400 })
 
   const systemPrompt = getSystemPrompt()
   const { execSync } = await import('child_process')
-  const key = execSync(`grep LITELLM_MASTER_KEY /Users/eilinaire/Desktop/Coprem/.env | cut -d= -f2`, { encoding: 'utf8' }).trim()
+  const envPath = join(ROOT, '.env')
+  const key = execSync(`grep LITELLM_MASTER_KEY "${envPath}" | cut -d= -f2-`, { encoding: 'utf8' }).trim()
 
   // Build messages array with history (last 20 messages = 10 exchanges)
   type Msg = { role: 'user' | 'assistant' | 'system'; content: string }
@@ -98,6 +100,7 @@ export async function POST(req: NextRequest) {
       signal: AbortSignal.timeout(30000)
     })
     const data = await res.json()
+    if (!res.ok) throw new Error(`LiteLLM ${res.status}: ${JSON.stringify(data).slice(0, 200)}`)
     return data?.choices?.[0]?.message?.content as string | undefined
   }
 
@@ -112,7 +115,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Auto mode: Tier 0→1→2→3 (matches L1-C tier map)
-  const autoModels = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'groq/llama-3.3-70b', 'ollama/llama3.1']
+  const autoModels = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'groq/llama-3.3-70b', 'ollama/llama3.1:8b']
   let lastError = ''
   let finalReply: string | null = null
   let finalModel = ''
@@ -129,7 +132,6 @@ export async function POST(req: NextRequest) {
   if (!finalReply) return NextResponse.json({ error: lastError }, { status: 502 })
 
   // Chain: if auto_chain flag set, queue a follow-up analysis task (non-blocking)
-  const { auto_chain } = (await req.json().catch(() => ({}))) as { auto_chain?: boolean }
   if (auto_chain) {
     try {
       const cid = execSync(`docker ps --filter name=postgres -q`, { encoding: 'utf8' }).trim().split('\n')[0]
