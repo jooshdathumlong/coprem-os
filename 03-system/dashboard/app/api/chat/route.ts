@@ -122,18 +122,25 @@ export async function POST(req: NextRequest) {
     return data?.choices?.[0]?.message?.content as string | undefined
   }
 
+  const isVision = !!attachment?.type.startsWith('image/')
+
   // Specific model selected
   if (model && model !== 'auto') {
+    // Redirect vision to gemini if selected model can't handle images
+    const selectedModel = (isVision && model.startsWith('ollama')) ? 'gemini-2.0-flash' : model
     try {
-      const reply = await callLiteLLM(model)
-      return NextResponse.json({ reply: reply || '(ไม่มีการตอบกลับ)', model, source: 'litellm' })
+      const reply = await callLiteLLM(selectedModel)
+      return NextResponse.json({ reply: reply || '(ไม่มีการตอบกลับ)', model: selectedModel, source: 'litellm' })
     } catch (e: unknown) {
       return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 })
     }
   }
 
   // Auto mode: Tier 0→1→2→3 (matches L1-C tier map)
-  const autoModels = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'groq/llama-3.3-70b', 'ollama/llama3.1:8b']
+  // Vision requests skip Ollama — no multimodal support
+  const autoModels = isVision
+    ? ['gemini-2.0-flash', 'gemini-2.0-flash-lite']
+    : ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'groq/llama-3.3-70b', 'ollama/llama3.1:8b']
   let lastError = ''
   let finalReply: string | null = null
   let finalModel = ''
