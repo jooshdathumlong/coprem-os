@@ -966,3 +966,8 @@ PENDING:
 | 2026-06-06 | RESTRUCTURE: ย้าย COPREM_Master_Context.md + Reference_Guide.md → 02-knowledge/ | ✅ |
 | 2026-06-06 | UPDATE: path references ใน health_check.sh, post_restart.sh, start/stop_coprem.sh, run_autonomous_loop.sh, apply_migrations.sh, autonomous_loop.py | ✅ |
 | 2026-06-06 | UPDATE: CLAUDE.md section 8 Key Paths | ✅ |
+
+## 2026-06-06 — System Verification Script
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-06 | NEW: scripts/verify_system.sh — 37-check audit (paths, stale patterns, launchd, Python syntax, .env keys) | ✅ 37/37 PASS |
