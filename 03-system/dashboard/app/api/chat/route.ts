@@ -415,9 +415,10 @@ export async function POST(req: NextRequest) {
 
     // RAG: search KB in parallel with first LLM call
     const ragContext = await ragSearch(message)
+    const kbMiss = !ragContext  // true = no relevant KB found
     const enrichedPrompt = ragContext
       ? `${systemPrompt}\n\n${ragContext}`
-      : systemPrompt
+      : systemPrompt + '\n\nหากไม่มีข้อมูลในฐานความรู้ → ตอบจากความรู้ทั่วไป แต่แจ้งท้ายว่า "⚠️ ข้อมูลนี้ไม่มีใน KB — ต้องการบันทึกไหมครับ?"'
 
     // Run all tier models in parallel — take first successful reply
     type ModelResult = { reply: string; model: string }
@@ -483,6 +484,8 @@ export async function POST(req: NextRequest) {
     reply: finalReply,
     model: finalModel,
     source: finalSource,
+    kb_miss: typeof kbMiss !== 'undefined' ? kbMiss : false,
+    kb_suggest_content: typeof kbMiss !== 'undefined' && kbMiss ? finalReply : null,
     memorySuggestion: memorySuggestion ? {
       title: memorySuggestion.title,
       type: memorySuggestion.type,

@@ -392,6 +392,7 @@ def run_loop():
     webhook_failures = 0
     HEARTBEAT_INTERVAL = 300  # 5 min heartbeat check
     last_heartbeat = 0
+    last_morning_briefing = 0  # epoch of last briefing sent
 
     while not shutdown:
         try:
@@ -407,8 +408,28 @@ def run_loop():
                 if idle_ticks % 20 == 0:
                     log.info("  … idle, queue empty")
 
-            # Webhook heartbeat check every 5 min
+            # Daily Morning Briefing — send at 08:00 BKK time, once per day
             now = time.time()
+            dt_bkk = datetime.fromtimestamp(now, tz=__import__('zoneinfo').ZoneInfo('Asia/Bangkok'))
+            if dt_bkk.hour == 8 and dt_bkk.minute < 5:
+                today_epoch = int(datetime(dt_bkk.year, dt_bkk.month, dt_bkk.day).timestamp())
+                if last_morning_briefing < today_epoch:
+                    last_morning_briefing = today_epoch
+                    try:
+                        pending = pg_exec("SELECT COUNT(*) FROM agent_tasks WHERE status='pending';").strip()
+                        briefing = call_litellm(
+                            f"สรุป morning briefing สำหรับ Prem (Marketing Manager Batiste/Scrub Daddy) วันนี้ {dt_bkk.strftime('%A %d %B %Y')}\n"
+                            f"งานค้างใน queue: {pending} tasks\n"
+                            f"ให้สรุป: 1) งานวันนี้ที่ควรทำก่อน 2) reminder สำคัญ 3) Jeff พร้อมช่วย\n"
+                            f"ตอบภาษาไทย กระชับ ≤5 บรรทัด",
+                            agent="jeff"
+                        )
+                        telegram_notify(f"🌅 Good Morning Prem\n\n{briefing}")
+                        log.info("Morning briefing sent")
+                    except Exception as me:
+                        log.warning(f"Morning briefing error: {me}")
+
+            # Webhook heartbeat check every 5 min
             if now - last_heartbeat >= HEARTBEAT_INTERVAL:
                 last_heartbeat = now
                 try:

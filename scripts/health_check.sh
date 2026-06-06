@@ -114,7 +114,7 @@ fi
 
 # ── WF01 Integrity Check: detect duplicate node inputs ────────
 N8N_API_KEY=$(grep "^N8N_API_KEY=" "$ENV" | cut -d= -f2)
-WF01_ID="4uVEG8SEM23BDrdu"
+WF01_ID="gd9geVbv3FFnkNk1"
 WF01_CHECK=$(curl -s --max-time 5 \
   -H "X-N8N-API-KEY: $N8N_API_KEY" \
   "http://localhost:5678/api/v1/workflows/$WF01_ID" 2>/dev/null | python3 -c "

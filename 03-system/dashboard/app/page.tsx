@@ -5,7 +5,7 @@ type HITLItem = { id: number; chat_id: string; message: string; created_at: stri
 type LatencyRow = { event_type: string; avg_ms: number; max_ms: number; requests: number; slow_count: number }
 type Status = { litellm: boolean; ollama: boolean; n8n: boolean; timestamp: string }
 type MemorySuggestion = { title: string; type: string; summary: string; actions: string[]; content: string; userMsg: string }
-type ChatMsg = { role: 'user' | 'assistant'; text: string; model?: string; memorySuggestion?: MemorySuggestion; memorySaved?: string }
+type ChatMsg = { role: 'user' | 'assistant'; text: string; model?: string; memorySuggestion?: MemorySuggestion; memorySaved?: string; kb_miss?: boolean; kb_suggest_content?: string | null; kbSaved?: boolean }
 type MemoryFile = { path: string; label: string }
 type ChatSession = { id: number; title: string; created_at: string; updated_at: string }
 type Tab = 'chat' | 'hitl' | 'kb' | 'browser' | 'docs' | 'system' | 'sessions' | 'tasks'
@@ -86,6 +86,7 @@ export default function Dashboard() {
   const [memoryFilesLoading, setMemoryFilesLoading] = useState(false)
   const [filePickerSearch, setFilePickerSearch] = useState('')
   const [isDragging, setIsDragging] = useState(false)
+  const [showTemplates, setShowTemplates] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const dragCounterRef = useRef(0)
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([])
@@ -299,7 +300,7 @@ export default function Dashboard() {
       } else if (replyText.includes('litellm.') && replyText.length > 200) {
         replyText = replyText.split('\n')[0].replace(/litellm\.\w+:\s*/g, '')
       }
-      setChatMessages(m => [...m, { role: 'assistant', text: replyText, model: data.model, memorySuggestion: memorySuggestion || undefined }])
+      setChatMessages(m => [...m, { role: 'assistant', text: replyText, model: data.model, memorySuggestion: memorySuggestion || undefined, kb_miss: data.kb_miss || false, kb_suggest_content: data.kb_suggest_content || null }])
       // Save assistant reply
       if (sid) fetch(`/api/chat-sessions/${sid}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: 'assistant', content: replyText, model: data.model || model }) }).catch(() => {})
       // Refresh session list (title may have updated)
@@ -639,6 +640,46 @@ export default function Dashboard() {
                   {m.role === 'assistant' && m.memorySaved && (
                     <div style={{ fontSize: 11, color: '#1a7f3c', padding: '3px 10px', background: '#e6f9f0', borderRadius: 8 }}>✓ {m.memorySaved}</div>
                   )}
+
+                  {/* KB Save chip — shown when Jeff answered from general knowledge (no KB match) */}
+                  {m.role === 'assistant' && m.kb_miss && !m.kbSaved && (
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 12px', background: '#f0f7ff', border: '1px solid #b3d4ff', borderRadius: 12, fontSize: 12, maxWidth: '72%' }}>
+                      <span style={{ fontSize: 15, marginTop: 1 }}>📚</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, color: '#0050a0', marginBottom: 4 }}>ไม่พบข้อมูลนี้ใน KB — บันทึกคำตอบของ Jeff เข้า KB ไหม?</div>
+                        <textarea
+                          defaultValue={m.kb_suggest_content || m.text}
+                          rows={3}
+                          style={{ width: '100%', fontSize: 11, borderRadius: 6, border: '1px solid #c0d8f5', padding: '4px 6px', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }}
+                          id={`kb-content-${i}`}
+                        />
+                        <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center' }}>
+                          <select id={`kb-pillar-${i}`} defaultValue="JOB" style={{ fontSize: 11, borderRadius: 6, border: '1px solid #c0d8f5', padding: '3px 6px' }}>
+                            <option value="JOB">JOB — งาน</option>
+                            <option value="PERSONAL">PERSONAL — ส่วนตัว</option>
+                          </select>
+                          <button onClick={async () => {
+                            const textarea = document.getElementById(`kb-content-${i}`) as HTMLTextAreaElement
+                            const select = document.getElementById(`kb-pillar-${i}`) as HTMLSelectElement
+                            const content = textarea?.value?.trim()
+                            const pillar = select?.value || 'JOB'
+                            if (!content) return
+                            const res = await fetch('/api/kb/add', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content, pillar }) })
+                            if (res.ok) {
+                              setChatMessages(prev => prev.map((msg, j) => j === i ? { ...msg, kbSaved: true } : msg))
+                            }
+                          }} style={{ background: '#0066cc', color: 'white', border: 'none', borderRadius: 8, padding: '4px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                            บันทึกเข้า KB
+                          </button>
+                          <button onClick={() => setChatMessages(prev => prev.map((msg, j) => j === i ? { ...msg, kb_miss: false } : msg))}
+                            style={{ background: 'none', border: 'none', color: '#6e6e73', cursor: 'pointer', fontSize: 14, padding: '0 2px' }}>✕</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {m.role === 'assistant' && m.kbSaved && (
+                    <div style={{ fontSize: 11, color: '#1a7f3c', padding: '3px 10px', background: '#e6f9f0', borderRadius: 8 }}>✓ บันทึกเข้า KB แล้ว — Jeff จะใช้ข้อมูลนี้ในการตอบครั้งต่อไป</div>
+                  )}
                 </div>
               ))}
               {chatLoading && (
@@ -652,6 +693,33 @@ export default function Dashboard() {
             {/* Input */}
             <div style={{ padding: '12px 24px 16px', borderTop: '1px solid #e8e8ed', background: 'white' }}>
               <div style={{ maxWidth: 760, margin: '0 auto' }}>
+
+                {/* Content Templates */}
+                {showTemplates && (
+                  <div style={{ marginBottom: 10, padding: '10px 12px', background: '#f5f5f7', borderRadius: 14, border: '1px solid #e0e0e5' }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: '#6e6e73', marginBottom: 8 }}>TEMPLATES — คลิกเพื่อใส่ใน input</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {[
+                        { label: 'TikTok Script', prompt: 'เขียน TikTok script สำหรับ Batiste [สินค้า] ความยาว 30 วิ tone ขำๆ กลุ่มเป้าหมาย [persona] จุดเด่น: [จุดเด่น]' },
+                        { label: 'IG Caption', prompt: 'เขียน Instagram caption สำหรับ Batiste [รูปแบบ] ใช้ hashtag ที่เหมาะสม tone [สนุก/ซีเรียส/inspire] CTA: [CTA]' },
+                        { label: 'Campaign Brief', prompt: 'วางแผน campaign [ชื่อ campaign] สินค้า: Batiste งบ: [งบ] ระยะเวลา: [วันที่] เป้าหมาย: [KPI] ช่องทาง: [ช่องทาง]' },
+                        { label: 'KOL Brief', prompt: 'เขียน brief สำหรับ KOL รีวิว Batiste [สินค้า] ข้อความหลัก: [message] สิ่งที่ต้องพูดถึง: [points] สิ่งที่ห้ามพูด: [restrictions]' },
+                        { label: 'Email Vendor', prompt: 'เขียน email ถึง [vendor] เรื่อง [เรื่อง] ต้องการ: [สิ่งที่ต้องการ] deadline: [วันที่] tone: professional' },
+                        { label: 'สรุป Meeting', prompt: 'สรุป meeting ที่เพิ่งเสร็จ: [วาง notes ที่นี่] แยกเป็น: สิ่งที่ตัดสินใจ / action items / คนรับผิดชอบ / deadline' },
+                        { label: 'วิเคราะห์คู่แข่ง', prompt: 'วิเคราะห์ [แบรนด์คู่แข่ง] เทียบ Batiste ด้าน: ราคา / positioning / ช่องทาง / จุดแข็ง-อ่อน / โอกาสสำหรับ Batiste' },
+                        { label: 'สรุปยอดขาย', prompt: 'สรุปยอดขาย Batiste [ช่วงเวลา] ช่องทาง: [online/offline/ทั้งหมด] เทียบ target และ period ก่อน' },
+                      ].map(t => (
+                        <button key={t.label} onClick={() => { setChatInput(t.prompt); setShowTemplates(false) }}
+                          style={{ background: 'white', border: '1px solid #d2d2d7', borderRadius: 20, padding: '5px 12px', fontSize: 12, cursor: 'pointer', color: '#1d1d1f', fontWeight: 500, transition: 'all 0.15s' }}
+                          onMouseOver={e => { (e.target as HTMLElement).style.background = '#0066cc'; (e.target as HTMLElement).style.color = 'white'; (e.target as HTMLElement).style.borderColor = '#0066cc' }}
+                          onMouseOut={e => { (e.target as HTMLElement).style.background = 'white'; (e.target as HTMLElement).style.color = '#1d1d1f'; (e.target as HTMLElement).style.borderColor = '#d2d2d7' }}>
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Attachment preview */}
                 {attachedFile && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, padding: '8px 12px', background: '#f0f7ff', borderRadius: 12, border: '1px solid #c8e0ff' }}>
@@ -665,6 +733,13 @@ export default function Dashboard() {
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  {/* Templates button */}
+                  <button onClick={() => setShowTemplates(v => !v)} title="Content Templates" style={{
+                    background: showTemplates ? '#0066cc' : '#f5f5f7', color: showTemplates ? 'white' : '#6e6e73',
+                    border: '1px solid', borderColor: showTemplates ? '#0066cc' : '#d2d2d7',
+                    borderRadius: 20, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 16, cursor: 'pointer', flexShrink: 0
+                  }}>⚡</button>
                   {/* File attach button */}
                   <input ref={fileInputRef} type="file" accept="image/*,.txt,.md,.pdf,.csv,.json" onChange={handleFileAttach} style={{ display: 'none' }} />
                   <button onClick={() => fileInputRef.current?.click()} disabled={chatLoading} title="Attach file" style={{
