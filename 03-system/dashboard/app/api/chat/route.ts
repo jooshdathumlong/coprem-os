@@ -58,11 +58,11 @@ async function ragSearch(query: string, topK = 5): Promise<string> {
     if (!result) return ''
     const rows = result.split('\n').filter(Boolean).map(r => r.split('|||'))
     const chunks = rows
-      .filter(r => parseFloat(r[3] || '0') > 0.3)
+      .filter(r => parseFloat(r[3] || '0') > 0.5)
       .map(r => `[${r[2]}/${r[1]}] ${r[0].slice(0, 800)}`)
       .join('\n\n---\n\n')
 
-    return chunks ? `## KB Context (จากฐานความรู้ของเปรม — ใช้ข้อมูลนี้ตอบก่อนเสมอ ห้ามเดาหรือสร้างข้อมูลใหม่ถ้ามี context ให้แล้ว)\n${chunks}` : ''
+    return chunks ? `## KB Context (ข้อมูลอ้างอิงจากฐานความรู้ — ใช้เฉพาะเมื่อเกี่ยวข้องกับคำถาม ถ้าไม่เกี่ยวให้ตอบจากความรู้ทั่วไปแทน)\n${chunks}` : ''
   } catch { return '' }
 }
 
