@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readFileSync, existsSync, readdirSync, statSync } from 'fs'
 import { join } from 'path'
+import http from 'http'
 
-const LITELLM_URL = 'http://localhost:4000/v1/chat/completions'
+const LITELLM_URL = 'http://127.0.0.1:4000/v1/chat/completions'
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
 const GEMINI_LITE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent'
 const ROOT = join(process.cwd(), '..', '..')
@@ -40,34 +41,36 @@ function buildSystemPrompt(): string {
   const today = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
   const sections: string[] = []
 
-  // JOS — the operating standard, loaded from file (editable without code deploy)
-  const jos = loadJOS()
-  if (jos) sections.push(jos)
+  // JOS core directives — compressed for runtime (full spec in 03-system/jeff_jos.md)
+  sections.push(`## Jeff Operating Standard
+
+**BEFORE every reply: Reason → Act → Verify**
+1. Read ALL history — find what's already been worked on
+2. Identify Prem's REAL intent (not just surface words)
+3. Apply correct output standard for task type
+4. Check: Does answer address real intent? Used history? Has next action?
+
+**Task Output Standards:**
+- Persona: ชื่อ/อายุ/อาชีพ/เพศ/สัญชาติ + Pain/Desire/Trigger/Objection/Channel/Quote
+- Strategy: 3 Options+trade-offs → Recommendation → Next 3 actions
+- Content: Hook → Body → CTA + platform notes
+- Analysis: Key insight → Evidence → So what? → Recommendation
+
+**History Rules (CRITICAL):**
+- ถ้ามีงานค้างใน history → ต่อจากนั้นเลย ห้ามเริ่มใหม่
+- เปรม paste framework → APPLY กับงานที่คุยอยู่ทันที ไม่ใช่อธิบายซ้ำ
+- "ปรับปรุง/อัพเดต" → หา output ล่าสุดใน history แล้วแก้จากมัน
+
+**Forbidden:** สรุปซ้ำสิ่งที่เปรมบอก | ถามโดยไม่จำเป็น | Generic answers | Sycophancy`)
 
   sections.push(`## CONTEXT — วันนี้คือ ${today}
 - Q2 2026 (เม.ย.–มิ.ย.) — Phase "เร่ง Conversion + เปิด Scrub Daddy"
 - งานเร่งด่วน: รัน Paid Ads, เปิด Shopee/Lazada Official, Launch Scrub Daddy, A/B test creative`)
 
-  // Day job KB
-  const workDir = join(KB_ROOT, 'work')
-  if (existsSync(workDir)) {
-    const files = readdirSync(workDir).filter(f => f.endsWith('.md') && !f.startsWith('_') && f !== 'auto')
-    const workContent = files.map(f => {
-      try { return readFileSync(join(workDir, f), 'utf-8').slice(0, 2000) } catch { return '' }
-    }).filter(Boolean).join('\n\n---\n\n')
-    if (workContent) sections.push(`## งานประจำของเปรม (Day Job)\n${workContent}`)
-  }
-
-  // Prem profile
+  // Prem profile — concise, always included
   const profilePath = join(ROOT, '01-projects/prem-profile.md')
   if (existsSync(profilePath)) {
-    try { sections.push(`## ข้อมูลเปรม\n${readFileSync(profilePath, 'utf-8').slice(0, 1500)}`) } catch { /* skip */ }
-  }
-
-  // Business SSOT
-  const bizPath = join(KB_ROOT, 'personal/business_ssot.md')
-  if (existsSync(bizPath)) {
-    try { sections.push(`## ธุรกิจของเปรม\n${readFileSync(bizPath, 'utf-8').slice(0, 1500)}`) } catch { /* skip */ }
+    try { sections.push(`## ข้อมูลเปรม\n${readFileSync(profilePath, 'utf-8').slice(0, 600)}`) } catch { /* skip */ }
   }
 
   // Auto-memory: past session outputs
@@ -229,15 +232,36 @@ type Msg = { role: 'user' | 'assistant' | 'system'; content: string }
 
 async function callLiteLLM(model: string, systemPrompt: string, historyMsgs: Msg[], message: string, litellmKey: string, maxTokens = 1500): Promise<string | undefined> {
   const messages: Msg[] = [{ role: 'system', content: systemPrompt }, ...historyMsgs, { role: 'user', content: message }]
-  const res = await fetch(LITELLM_URL, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${litellmKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, messages, max_tokens: model.startsWith('ollama') ? 512 : maxTokens, temperature: 0.7 }),
-    signal: AbortSignal.timeout(60000)
+  const payload = { model, messages, max_tokens: model.startsWith('ollama') ? 512 : maxTokens, temperature: 0.7 }
+
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify(payload)
+    const opts: http.RequestOptions = {
+      hostname: '127.0.0.1', port: 4000,
+      path: '/v1/chat/completions', method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${litellmKey}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+      },
+      timeout: 20000,
+    }
+    const req = http.request(opts, (res) => {
+      let data = ''
+      res.on('data', c => data += c)
+      res.on('end', () => {
+        try {
+          const d = JSON.parse(data)
+          if (res.statusCode !== 200) { reject(new Error(`LiteLLM ${res.statusCode}: ${JSON.stringify(d).slice(0, 200)}`)); return }
+          resolve(d?.choices?.[0]?.message?.content)
+        } catch (e) { reject(e) }
+      })
+    })
+    req.on('timeout', () => { req.destroy(); reject(new Error('timeout')) })
+    req.on('error', e => reject(e))
+    req.write(body)
+    req.end()
   })
-  const data = await res.json()
-  if (!res.ok) throw new Error(`LiteLLM ${res.status}: ${JSON.stringify(data).slice(0, 200)}`)
-  return data?.choices?.[0]?.message?.content as string | undefined
 }
 
 // ── Route handler ─────────────────────────────────────────────────────────────
@@ -310,19 +334,30 @@ export async function POST(req: NextRequest) {
       ? [model]
       : ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'groq/llama-3.3-70b', 'ollama/llama3.1:8b']
 
-    for (const m of TIER_MODELS) {
-      try {
-        const r = await callLiteLLM(m, systemPrompt, historyMsgs, message, litellmKey)
-        if (r) { finalReply = r; finalModel = m; finalSource = 'litellm'; break }
-      } catch { /* next tier */ }
-    }
+    // Run all tier models in parallel — take first successful reply
+    type ModelResult = { reply: string; model: string }
+    console.log(`[jeff] calling models: ${TIER_MODELS.join(', ')} key_len=${litellmKey.length} prompt_len=${systemPrompt.length} hist=${historyMsgs.length}`)
+    const winner = await new Promise<ModelResult | null>(resolve => {
+      let pending = TIER_MODELS.length
+      TIER_MODELS.forEach(m => {
+        const t = Date.now()
+        callLiteLLM(m, systemPrompt, historyMsgs, message, litellmKey)
+          .then(r => { console.log(`[jeff] ${m} reply in ${Date.now()-t}ms: ${r ? 'OK' : 'NULL'}`); if (r) resolve({ reply: r, model: m }) })
+          .catch(e => { console.log(`[jeff] ${m} error in ${Date.now()-t}ms: ${String(e).slice(0,80)}`) })
+          .finally(() => { if (--pending === 0) { console.log(`[jeff] all done`); resolve(null) } })
+      })
+    })
+    if (winner) { finalReply = winner.reply; finalModel = winner.model; finalSource = 'litellm' }
 
-    if (!finalReply) return NextResponse.json({ error: `ทุก model ไม่ตอบสนอง — ${lastError.slice(0, 120)}\n\nลองใหม่ใน 1 นาที หรือเลือก model อื่น` }, { status: 502 })
+    if (!finalReply) return NextResponse.json({ error: 'ทุก model ไม่ตอบสนอง — Gemini quota หมด + Groq rate-limit\nลองใหม่ใน 1 นาที' }, { status: 502 })
   }
 
-  // ── Classify in background — suggestion returned to UI for Prem to approve ──
+  // ── Classify with 8s timeout — if slow, skip suggestion this turn ──
   const userText = message || (attachment ? `[ส่งไฟล์: ${attachment.name}]` : '')
-  const memorySuggestionPromise = classifyOnly(userText, finalReply).catch(() => null)
+  const memorySuggestionPromise = Promise.race([
+    classifyOnly(userText, finalReply).catch(() => null),
+    new Promise<null>(res => setTimeout(() => res(null), 8000))
+  ])
 
   // ── Optional auto_chain task ──────────────────────────────────────────────
   if (auto_chain) {
