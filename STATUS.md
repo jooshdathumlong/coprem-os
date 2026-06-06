@@ -987,3 +987,5 @@ PENDING:
 | 2026-06-06 | WF14 NEW: Content Automation (AI Caption via Ollama → DB → Telegram notify) | ✅ |
 | 2026-06-06 | WF15 NEW: Multi-Agent Network (Jeff + Marketing/Creative/Research/Ops agents) | ⚠️ routing ยังใช้ fallback (gemma4 ไม่ follow JSON format) |
 | 2026-06-06 | BUG: gemma4 ผ่าน LiteLLM ส่ง content ว่าง | ROOT: model ไม่ตอบ system prompt | FIX NEEDED: ลอง groq เมื่อ quota reset |
+
+| 2026-06-06 23:20 | BUG: autonomous_loop ERROR ทุก 3 วิ | ROOT: task_queue ขาด columns next_agent/retries/max_retries/started_at/completed_at/result/error | FIX: ALTER TABLE ADD COLUMN IF NOT EXISTS + restart loop |
