@@ -1003,3 +1003,5 @@ PENDING:
 | 2026-06-07 00:04 | FIX audit round 3: path traversal memory-save, embed_kb 768-dim validation, autonomous_loop task timeout 120s + log rotation 5MB |
 
 | 2026-06-07 00:10 | FIX: N8N_BASE_URL ว่าง → https://n8n.peabuntid.com, restart loop+dashboard, WF01 exec success |
+
+| 2026-06-07 00:46 | SESSION END | FIX WF01: duplicate reply (L3 Semantic Search double-connection) + TIER_MODELS local→last + ragContext in user msg + L1-B Classifier local→groq + HITL Alert Thai + RAG threshold 0.3→0.5 | ✅ Telegram ตอบถูกต้อง ไม่ซ้ำ ภาษาไทย |

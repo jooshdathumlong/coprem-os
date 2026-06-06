@@ -1,4 +1,4 @@
-## SYSTEM_STATE — 2026-06-06 23:04
+## SYSTEM_STATE — 2026-06-07 00:46
 | n8n | UP |  |
 | postgres | UP |  |
 | redis | UP | PONG |
@@ -7,6 +7,7 @@
 | Postgres auth | OK |
 | WEBHOOK_URL | OK | https://n8n.peabuntid.com |
 | Telegram webhook | OK | https://n8n.peabuntid.com/webhook/telegram-coprem |
-| Autonomous Loop | UP | PID 52909 (03-system/logs/autonomous_loop.pid) |
+| Autonomous Loop | UP | PID 89053 (03-system/logs/autonomous_loop.pid) |
 | Dashboard | UP | port 3001 |
+| WF01 integrity | OK |
 | Git remote | OK | https://github.com/jooshdathumlong/coprem-os.git |
