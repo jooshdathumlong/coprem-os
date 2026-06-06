@@ -56,3 +56,7 @@ logs/
 dashboard/.next/
 dashboard/tsconfig.tsbuildinfo
 .gitignore
+
+# Large KB course files — tracked locally only
+02-knowledge/categories/
+02-knowledge/courses/
