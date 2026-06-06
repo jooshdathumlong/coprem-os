@@ -206,7 +206,8 @@ export default function Dashboard() {
     if (res.id) { setChatMessages([]); setActiveChatSessionId(res.id); loadChatSessions() }
   }, [loadChatSessions])
 
-  const deleteChatSession = useCallback(async (id: number) => {
+  const deleteChatSession = useCallback(async (id: number, title: string) => {
+    if (!window.confirm(`ลบ "${title}" ใช่ไหม?\nประวัติการคุยจะหายถาวร`)) return
     await fetch('/api/chat-sessions', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
     loadChatSessions()
     if (activeChatSessionId === id) { setChatMessages([]); setActiveChatSessionId(null) }
@@ -453,7 +454,7 @@ export default function Dashboard() {
                       <p style={{ fontSize: 12, fontWeight: activeChatSessionId === s.id ? 600 : 400, color: activeChatSessionId === s.id ? '#0066cc' : '#1d1d1f', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</p>
                       <p style={{ fontSize: 10, color: '#6e6e73', margin: '2px 0 0' }}>{new Date(s.updated_at).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}</p>
                     </div>
-                    <button onClick={e => { e.stopPropagation(); deleteChatSession(s.id) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6e6e73', fontSize: 14, padding: '2px 4px', borderRadius: 4, flexShrink: 0 }}
+                    <button onClick={e => { e.stopPropagation(); deleteChatSession(s.id, s.title) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6e6e73', fontSize: 14, padding: '2px 4px', borderRadius: 4, flexShrink: 0 }}
                       onMouseEnter={e => (e.currentTarget.style.color = '#cc0000')} onMouseLeave={e => (e.currentTarget.style.color = '#6e6e73')}>×</button>
                   </div>
                 ))}
