@@ -1,0 +1,91 @@
+{
+  "name": "WF01 — Telegram → Jeff (RAG)",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "id": "telegram-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "webhookId": "coprem-telegram-jeff",
+      "credentials": {
+        "telegramApi": {
+          "id": "1",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3001/api/chat",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $json.message.text }}"
+            },
+            {
+              "name": "session_id",
+              "value": "=telegram-{{ $json.message.from.id }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "id": "jeff-api",
+      "name": "Jeff API (RAG)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.reply }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-reply",
+      "name": "Send Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [720, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "1",
+          "name": "Telegram Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [[{"node": "Jeff API (RAG)", "type": "main", "index": 0}]]
+    },
+    "Jeff API (RAG)": {
+      "main": [[{"node": "Send Reply", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

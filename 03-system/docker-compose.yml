@@ -27,6 +27,8 @@ services:
       - SUNSETSOL_GOOGLE_API_KEY=${SUNSETSOL_GOOGLE_API_KEY}
       - RLIE_GOOGLE_API_KEY=${RLIE_GOOGLE_API_KEY}
       - PEABANTID_GOOGLE_API_KEY=${PEABANTID_GOOGLE_API_KEY}
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
     volumes:
       - ./data/n8n:/home/node/.n8n
       - ./03-system/workflows/exports:/home/node/exports:ro

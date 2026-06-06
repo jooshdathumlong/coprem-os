@@ -1,4 +1,4 @@
-## SYSTEM_STATE — 2026-06-06 12:29
+## SYSTEM_STATE — 2026-06-06 20:53
 | n8n | UP |  |
 | postgres | UP |  |
 | redis | UP | PONG |
@@ -6,7 +6,7 @@
 | dify | UP |  |
 | Postgres auth | OK |
 | WEBHOOK_URL | OK | https://n8n.peabuntid.com |
-| Telegram webhook | OK | https://n8n.peabuntid.com/webhook/telegram-coprem |
-| Autonomous Loop | UP | PID 67257 (03-system/logs/autonomous_loop.pid) |
+| Telegram webhook | FIXED | was: https://n8n.peabuntid.com/webhook/5f031b75-5666-43f4-bfe8-e130feb53562/webhook → reset to telegram-coprem |
+| Autonomous Loop | UP | PID 87807 (03-system/logs/autonomous_loop.pid) |
 | Dashboard | UP | port 3001 |
 | Git remote | OK | https://github.com/jooshdathumlong/coprem-os.git |

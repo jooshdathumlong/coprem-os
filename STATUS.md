@@ -973,3 +973,17 @@ PENDING:
 | 2026-06-06 | NEW: scripts/verify_system.sh — 37-check audit (paths, stale patterns, launchd, Python syntax, .env keys) | ✅ 37/37 PASS |
 
 | 2026-06-06 | BUG: dashboard chat "(ไม่มีการตอบกลับ)" | ROOT: ROOT depth 1 แทน 2 หลังย้าย dashboard → 03-system/, .env path hardcode Desktop, double req.json(), prem-profile path ผิด | FIX: ROOT="../..", .env dynamic, parse body once, 01-projects/prem-profile.md, throw on !res.ok |
+
+## 2026-06-06 — Full Rebuild + KB-Driven Coprem Build
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-06 | WIPE: Full system wipe + backup → backups/2026-06-06/ | ✅ |
+| 2026-06-06 | REBUILD Phase 1: Infrastructure UP (Postgres, Redis, n8n, LiteLLM) | ✅ |
+| 2026-06-06 | REBUILD Phase 2: Dashboard + RAG pipeline (pgvector + nomic-embed-text) | ✅ |
+| 2026-06-06 | KB EMBED: 3,202 chunks (Ollama local, no rate limit, errors=0) | ✅ |
+| 2026-06-06 | RAG: query translate TH→EN ก่อน search (Gemini → Ollama gemma4) | ✅ |
+| 2026-06-06 | WF01 UPGRADE: Dify → Jeff RAG API + Hybrid Rule-based layer + Error Handler | ✅ |
+| 2026-06-06 | WF13 NEW: Marketing Automation PAM Canvas (LC1→LC2→LC5, Eilinaire+Peabuntid) | ✅ |
+| 2026-06-06 | WF14 NEW: Content Automation (AI Caption via Ollama → DB → Telegram notify) | ✅ |
+| 2026-06-06 | WF15 NEW: Multi-Agent Network (Jeff + Marketing/Creative/Research/Ops agents) | ⚠️ routing ยังใช้ fallback (gemma4 ไม่ follow JSON format) |
+| 2026-06-06 | BUG: gemma4 ผ่าน LiteLLM ส่ง content ว่าง | ROOT: model ไม่ตอบ system prompt | FIX NEEDED: ลอง groq เมื่อ quota reset |

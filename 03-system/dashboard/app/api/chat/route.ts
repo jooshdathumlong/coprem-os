@@ -2,11 +2,73 @@ import { NextRequest, NextResponse } from 'next/server'
 import { readFileSync, existsSync, readdirSync, statSync } from 'fs'
 import { join } from 'path'
 import http from 'http'
+import { execSync } from 'child_process'
+
+// ── Env helpers (must be first — used by ragSearch) ───────────────────────────
+const ROOT = join(process.cwd(), '..', '..')
+function loadEnvKey(key: string): string {
+  try {
+    return execSync(`grep "^${key}=" "${join(ROOT, '.env')}" | cut -d= -f2-`, { encoding: 'utf8' }).trim()
+  } catch { return '' }
+}
+
+// ── RAG: embed query → search pgvector → return top-k context ────────────────
+async function translateToEnglish(text: string): Promise<string> {
+  try {
+    const res = await fetch('http://localhost:11434/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gemma4:latest',
+        messages: [{ role: 'user', content: `Translate to English only, no explanation:\n${text.slice(0, 500)}` }],
+        stream: false,
+      }),
+      signal: AbortSignal.timeout(15000),
+    })
+    const data = await res.json()
+    return data?.message?.content?.trim() || text
+  } catch { return text }
+}
+
+async function ragSearch(query: string, topK = 5): Promise<string> {
+  try {
+    // Translate query to English first (nomic-embed-text is EN-optimized)
+    const enQuery = await translateToEnglish(query)
+
+    // Embed query with Ollama nomic-embed-text (local, no rate limit)
+    const embedRes = await fetch('http://localhost:11434/api/embed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'nomic-embed-text', input: enQuery }),
+      signal: AbortSignal.timeout(10000),
+    })
+    const embedData = await embedRes.json()
+    const vec = embedData?.embeddings?.[0] as number[]
+    if (!vec?.length) return ''
+
+    // Query pgvector
+    const vecStr = '[' + vec.map((x: number) => x.toFixed(6)).join(',') + ']'
+    const sql = `SELECT content, pillar, kb_id, 1 - (embedding <=> '${vecStr}'::vector) AS score FROM memory_embeddings WHERE embedding IS NOT NULL ORDER BY embedding <=> '${vecStr}'::vector LIMIT ${topK};`
+    const pgCid = execSync(`docker ps --filter name=postgres -q`, { encoding: 'utf8' }).trim().split('\n')[0]
+    const result = execSync(
+      `docker exec ${pgCid} psql -U coprem -d coprem_os -t -A -F"|||" -c "${sql.replace(/"/g, '\\"')}"`,
+      { encoding: 'utf8', timeout: 10000, stdio: ['pipe', 'pipe', 'pipe'] }
+    ).trim()
+
+    if (!result) return ''
+    const rows = result.split('\n').filter(Boolean).map(r => r.split('|||'))
+    const chunks = rows
+      .filter(r => parseFloat(r[3] || '0') > 0.3)
+      .map(r => `[${r[2]}/${r[1]}] ${r[0].slice(0, 800)}`)
+      .join('\n\n---\n\n')
+
+    return chunks ? `## KB Context (จากฐานความรู้ของเปรม — ใช้ข้อมูลนี้ตอบก่อนเสมอ ห้ามเดาหรือสร้างข้อมูลใหม่ถ้ามี context ให้แล้ว)\n${chunks}` : ''
+  } catch { return '' }
+}
 
 const LITELLM_URL = 'http://127.0.0.1:4000/v1/chat/completions'
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
 const GEMINI_LITE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent'
-const ROOT = join(process.cwd(), '..', '..')
 const KB_ROOT = join(ROOT, '02-knowledge')
 const AUTO_MEMORY_DIR = join(KB_ROOT, 'work', 'auto')
 
@@ -87,14 +149,6 @@ function getSystemPrompt(): string {
   const prompt = buildSystemPrompt()
   _promptCache = { prompt, ts: now }
   return prompt
-}
-
-// ── Env helpers ───────────────────────────────────────────────────────────────
-function loadEnvKey(key: string): string {
-  try {
-    const { execSync } = require('child_process')
-    return execSync(`grep "^${key}=" "${join(ROOT, '.env')}" | cut -d= -f2-`, { encoding: 'utf8' }).trim()
-  } catch { return '' }
 }
 
 const GEMINI_KEY_NAMES = [
@@ -318,7 +372,7 @@ export async function POST(req: NextRequest) {
       const textMsg = attachment.text
         ? `[ไฟล์: ${attachment.name}]\n\`\`\`\n${attachment.text.slice(0, 12000)}\n\`\`\`\n\n${message || 'วิเคราะห์ไฟล์'}`
         : `[ไฟล์: "${attachment.name}" ไม่สามารถดูภาพได้ขณะนี้ — Gemini quota หมด]\n\n${message || ''}`
-      for (const m of ['groq/llama-3.3-70b', 'gemini-2.0-flash', 'ollama/llama3.1:8b']) {
+      for (const m of ['groq/llama-3.3-70b', 'gemini-2.0-flash', 'ollama/gemma4']) {
         try {
           const r = await callLiteLLM(m, systemPrompt, historyMsgs, textMsg, litellmKey)
           if (r) { finalReply = r; finalModel = m; finalSource = 'text-fallback'; break }
@@ -329,25 +383,50 @@ export async function POST(req: NextRequest) {
     if (!finalReply) return NextResponse.json({ error: 'All models unavailable — try again in a minute' }, { status: 502 })
 
   } else {
-    // ── PATH B: Text only → LiteLLM tier fallback ──
+    // ── PATH B: Text only → RAG + LiteLLM tier fallback ──
     const TIER_MODELS = model && model !== 'auto'
       ? [model]
-      : ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'groq/llama-3.3-70b', 'ollama/llama3.1:8b']
+      : ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'groq/llama-3.3-70b', 'ollama/gemma4']
+
+    // RAG: search KB in parallel with first LLM call
+    const ragContext = await ragSearch(message)
+    const enrichedPrompt = ragContext
+      ? `${systemPrompt}\n\n${ragContext}`
+      : systemPrompt
 
     // Run all tier models in parallel — take first successful reply
     type ModelResult = { reply: string; model: string }
-    console.log(`[jeff] calling models: ${TIER_MODELS.join(', ')} key_len=${litellmKey.length} prompt_len=${systemPrompt.length} hist=${historyMsgs.length}`)
+    console.log(`[jeff] calling models: ${TIER_MODELS.join(', ')} rag=${!!ragContext} prompt_len=${enrichedPrompt.length} hist=${historyMsgs.length}`)
     const winner = await new Promise<ModelResult | null>(resolve => {
       let pending = TIER_MODELS.length
       TIER_MODELS.forEach(m => {
         const t = Date.now()
-        callLiteLLM(m, systemPrompt, historyMsgs, message, litellmKey)
+        callLiteLLM(m, enrichedPrompt, historyMsgs, message, litellmKey)
           .then(r => { console.log(`[jeff] ${m} reply in ${Date.now()-t}ms: ${r ? 'OK' : 'NULL'}`); if (r) resolve({ reply: r, model: m }) })
           .catch(e => { console.log(`[jeff] ${m} error in ${Date.now()-t}ms: ${String(e).slice(0,80)}`) })
           .finally(() => { if (--pending === 0) { console.log(`[jeff] all done`); resolve(null) } })
       })
     })
     if (winner) { finalReply = winner.reply; finalModel = winner.model; finalSource = 'litellm' }
+
+    // Direct Ollama fallback (bypass LiteLLM)
+    if (!finalReply) {
+      try {
+        const ollamaRes = await fetch('http://localhost:11434/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'gemma4:latest',
+            messages: [{ role: 'user', content: `${enrichedPrompt}\n\n---\n\n${message}` }],
+            stream: false,
+          }),
+          signal: AbortSignal.timeout(120000),
+        })
+        const od = await ollamaRes.json()
+        const r = od?.message?.content
+        if (r) { finalReply = r; finalModel = 'ollama/gemma4'; finalSource = 'ollama-direct' }
+      } catch (e) { console.log('[jeff] ollama-direct error:', String(e).slice(0, 80)) }
+    }
 
     if (!finalReply) return NextResponse.json({ error: 'ทุก model ไม่ตอบสนอง — Gemini quota หมด + Groq rate-limit\nลองใหม่ใน 1 นาที' }, { status: 502 })
   }
