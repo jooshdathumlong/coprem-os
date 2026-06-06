@@ -1,6 +1,6 @@
 # COPREM OS — Index (Map of Content)
 
-> Version: 3.1.1 | Updated: 2026-05-31 | Structure: PARA
+> Version: 3.2.0 | Updated: 2026-06-06 | Structure: PARA
 
 ## How to Use This Index
 - Read this file first (L2 in Context Pyramid)
@@ -39,21 +39,26 @@
 | `ego-era/` | Lore rules + style reference | KB-02 |
 | `trading/` | Investment research | KB-03 |
 | `job/` | Marketing + Ops dept knowledge | KB-04 |
-| `personal/` | Mindset, learning, me SSOT + prem-profile | — |
-| `Futureskill/kb/` | 584 คอร์ส จัดหมวด 14 categories (PENDING — Prem กำลังจัด) | KB-06 ACTIVE — 457 courses ✅ |
-| `Futureskill/CATEGORY_RULES.md` | Taxonomy rules v2.0 (LinkedIn/Coursera/ESCO aligned) | — |
-| `02-knowledge/PLAN_FutureSkill_KB.md` | Integration plan 4 phases (CSV→Postgres→Dify) | PENDING |
+| `personal/` | Mindset, learning, me SSOT | — |
+| `work/business_context.md` | RS Lifestyle business data — brands, pricing, KOL, sales | — |
+| `COPREM_Master_Context.md` | Full system snapshot — stack, KBs, scripts, session log | L1 read |
+| `COPREM_Reference_Guide.md` | Quick-reference card | — |
 
 ## 03-system/ — COPREM OS Operational
 | File/Folder | Content | Status |
 |-------------|---------|--------|
-| `COPREM_OS_Master_Blueprint_v8.3.md` | Full system spec (v8.2) | ✅ CEO Approved |
+| `COPREM_OS_Master_Blueprint_v8.3.md` | Full system spec | ✅ CEO Approved |
 | `docker-compose.yml` | Docker stack: n8n+Postgres+Redis+Cloudflared | ✅ Live |
+| `dashboard/` | Next.js dashboard (port 3001) | Phase 4 |
+| `db/migrations/` | Numbered idempotent DB migrations (001–008) | ✅ Applied |
+| `logs/` | Runtime logs + PID files | Auto-created |
+| `memory/` | Agent memory files | Active |
+| `manifests/` | Ollama model manifests | Active |
 | `database/schemas.sql` | 15 DB tables (full schema) | ✅ Created |
 | `workflows/specs/` | WF01–11 specifications (markdown) | Reference |
-| `workflows/exports/` | n8n JSON exports (importable) | ✅ WF01–04,06 |
-| `scripts/` | start_coprem.sh, register_telegram_webhook.sh | ✅ |
-| `agents/` | System prompts: Jeff, Eilinaire, Ego Era, Smart Router | Reference |
+| `workflows/exports/` | n8n JSON exports (importable) | ✅ WF01–11 |
+| `scripts/` | Shell scripts: register_telegram_webhook, setup | ✅ |
+| `agents/` | System prompts: Jeff, Eilinaire, Smart Router | Reference |
 | `job/` | dept_marketing.md, dept_ops.md | KB-04 source |
 
 ## 03-system/workflows/exports/ — Import-ready JSONs
@@ -84,10 +89,6 @@
 ## 04-outputs/ — Deliverables
 Finished work without a specific project home.
 
-## dashboard/ — COPREM Dashboard (Phase 3)
-Next.js dashboard (localhost:3000) — live. Chat, KB, HITL, Status tabs.
-> app/ (old coprem-ui) → archived to _archive/app/
-
 ---
 
 ## Key Files Quick Reference
@@ -97,16 +98,20 @@ Next.js dashboard (localhost:3000) — live. Chat, KB, HITL, Status tabs.
 | `STATUS.md` | Current state + next session tasks |
 | `03-system/COPREM_OS_Master_Blueprint_v8.3.md` | Full architecture spec |
 | `03-system/database/schemas.sql` | All 15 DB table definitions |
-| `COPREM_Master_Context.md` | Full system snapshot — stack, KBs, scripts, quirks, session log |
+| `02-knowledge/COPREM_Master_Context.md` | Full system snapshot — stack, KBs, scripts, quirks, session log |
 | `03-system/docker-compose.yml` | Docker stack config |
 | `.env` | API keys (never commit secrets) |
 | `03-system/skills/SRE_Master_Playbook.md` | Advanced tactical rules 16–25 (DB, API, security, ops) |
 | `02-knowledge/COPREM_OS_24_Frameworks_v1_1.md` | Architecture backlog — 24 framework mappings, Priority Matrix, Framework Interaction Map | L3 grep-only |
-| `db/migrations/` | Numbered idempotent DB migrations (001–006) — source of truth for schema |
-| `db/migrations/006_enable_pgvector.sql` | PGVector extension + memory_embeddings table (L3 semantic search) |
+| `03-system/db/migrations/` | Numbered idempotent DB migrations (001–008) — source of truth for schema |
+| `03-system/db/migrations/006_enable_pgvector.sql` | PGVector extension + memory_embeddings table (L3 semantic search) |
 | `scripts/coprem` | CLI wrapper — coprem status, cost.today, kb.sync, killswitch, etc. |
 | `.env.example` | Env var template for new machine setup — all keys, no real values || `scripts/fix_credentials.py` | Sync n8n Postgres credentials with .env password — run after every restart |
-| `scripts/post_restart.sh` | Self-healing after n8n restart: credentials + zombie cleanup + Telegram webhook |
+| `scripts/verify_system.sh` | 37-check system audit — paths, stale patterns, launchd, Python, .env |
+| `scripts/docker_wait_start.sh` | Startup: polls Docker ready → compose up → pg_isready → post_restart |
+| `scripts/post_restart.sh` | Self-healing after restart: credentials + zombie cleanup + Telegram webhook + loop + dashboard |
+| `01-projects/prem-profile.md` | Prem profile (EN) |
+| `01-projects/prem-profile-th.md` | Prem profile (TH) |
 | `scripts/gemini_router.py` | Gemini 6-key rotation script (CLI) — daily/RPM quota detection |
 | `03-system/litellm/config.yaml` | LiteLLM proxy config — 6 Gemini keys + Groq fallback |
 | `scripts/apply_migrations.sh` | (auto-registered 2026-06-01) |
