@@ -390,6 +390,10 @@ def run_loop():
     signal.signal(signal.SIGHUP, on_signal)
 
     idle_ticks = 0
+    webhook_failures = 0
+    HEARTBEAT_INTERVAL = 300  # 5 min heartbeat check
+    last_heartbeat = 0
+
     while not shutdown:
         try:
             tasks = fetch_pending_tasks()
@@ -403,6 +407,27 @@ def run_loop():
                 idle_ticks += 1
                 if idle_ticks % 20 == 0:
                     log.info("  … idle, queue empty")
+
+            # Webhook heartbeat check every 5 min
+            now = time.time()
+            if now - last_heartbeat >= HEARTBEAT_INTERVAL:
+                last_heartbeat = now
+                try:
+                    r = requests.post(
+                        f"{N8N_BASE}/webhook/telegram-coprem",
+                        json={"source": "heartbeat", "message": {"text": "__ping__", "chat": {"id": 0}, "from": {"id": 0}}},
+                        timeout=10
+                    )
+                    if r.status_code >= 400:
+                        webhook_failures += 1
+                        if webhook_failures >= 3:
+                            log.error(f"⚠️ Webhook failing {webhook_failures}x — check n8n WF01")
+                    else:
+                        webhook_failures = 0
+                except Exception as whe:
+                    webhook_failures += 1
+                    log.warning(f"Webhook heartbeat fail #{webhook_failures}: {whe}")
+
         except Exception as e:
             log.error(f"Loop error: {e}")
 

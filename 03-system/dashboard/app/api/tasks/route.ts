@@ -47,10 +47,27 @@ export async function POST(req: NextRequest) {
     const agent = (body.assigned_to || 'jeff').replace(/'/g, "''")
     const next = (body.next_agent || '').replace(/'/g, "''")
     const prio = Number(body.priority) || 5
-    // Use dollar-quoting for payload to avoid shell/SQL quoting conflicts
-    pg(`INSERT INTO task_queue (type, payload, assigned_to, next_agent, priority, run_at) VALUES ('${type}', '${payload}', '${agent}', '${next}', ${prio}, NOW());`)
+    // Idempotency: skip if same key already pending/running
+    const ikey = body.idempotency_key ? `'${String(body.idempotency_key).replace(/'/g, "''")}'` : 'NULL'
+    pg(`INSERT INTO task_queue (type, payload, assigned_to, next_agent, priority, run_at, idempotency_key)
+        VALUES ('${type}', '${payload}', '${agent}', '${next}', ${prio}, NOW(), ${ikey})
+        ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL AND status NOT IN ('done','failed')
+        DO NOTHING;`)
     return NextResponse.json({ ok: true })
   } catch (e) { return NextResponse.json({ ok: false, error: String(e) }) }
+}
+
+export async function DELETE(req: NextRequest) {
+  // GET full task detail by id (?id=xxx)
+  try {
+    const id = (req.nextUrl.searchParams.get('id') || '').replace(/'/g, "''")
+    if (!id) return NextResponse.json({ error: 'missing id' }, { status: 400 })
+    const out = pg(`SELECT id, type, status, payload, result, error, created_at, started_at, completed_at FROM task_queue WHERE id='${id}' LIMIT 1;`)
+    const line = out.trim().split('\n').find(l => l.includes('|||'))
+    if (!line) return NextResponse.json({ error: 'not found' }, { status: 404 })
+    const [tid, type, status, payload, result, error, created_at, started_at, completed_at] = line.split('|||')
+    return NextResponse.json({ id: tid, type, status, payload, result, error, created_at, started_at, completed_at })
+  } catch (e) { return NextResponse.json({ error: String(e) }, { status: 500 }) }
 }
 
 export async function PATCH(req: NextRequest) {

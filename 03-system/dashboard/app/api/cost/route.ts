@@ -3,7 +3,13 @@ import { NextResponse } from 'next/server'
 const LITELLM = 'http://localhost:4000'
 const KEY = process.env.LITELLM_MASTER_KEY || ''
 
+let _cache: { data: object; ts: number } | null = null
+const CACHE_TTL = 60_000 // 60s
+
 export async function GET() {
+  if (_cache && Date.now() - _cache.ts < CACHE_TTL) {
+    return NextResponse.json({ ..._cache.data, cached: true })
+  }
   const headers = { Authorization: `Bearer ${KEY}` }
 
   // Try /global/spend (LiteLLM v1.x actual endpoint)
@@ -17,12 +23,9 @@ export async function GET() {
         const r2 = await fetch(`${LITELLM}/spend/logs?limit=0`, { headers, signal: AbortSignal.timeout(3000) })
         if (r2.ok) { const d2 = await r2.json(); by_model = d2.spend_per_model ?? {} }
       } catch { /* optional */ }
-      return NextResponse.json({
-        total_spend: d.spend ?? 0,
-        daily_spend: d.spend ?? 0,
-        max_budget: d.max_budget ?? null,
-        by_model,
-      })
+      const result = { total_spend: d.spend ?? 0, daily_spend: d.spend ?? 0, max_budget: d.max_budget ?? null, by_model }
+      _cache = { data: result, ts: Date.now() }
+      return NextResponse.json(result)
     }
   } catch { /* fallthrough */ }
 
