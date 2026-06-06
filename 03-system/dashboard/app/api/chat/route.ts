@@ -317,7 +317,7 @@ export async function POST(req: NextRequest) {
       } catch { /* next tier */ }
     }
 
-    if (!finalReply) return NextResponse.json({ error: 'All models unavailable' }, { status: 502 })
+    if (!finalReply) return NextResponse.json({ error: `ทุก model ไม่ตอบสนอง — ${lastError.slice(0, 120)}\n\nลองใหม่ใน 1 นาที หรือเลือก model อื่น` }, { status: 502 })
   }
 
   // ── Classify in background — suggestion returned to UI for Prem to approve ──
