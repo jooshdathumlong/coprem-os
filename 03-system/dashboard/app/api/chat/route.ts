@@ -9,6 +9,12 @@ const ROOT = join(process.cwd(), '..', '..')
 const KB_ROOT = join(ROOT, '02-knowledge')
 const AUTO_MEMORY_DIR = join(KB_ROOT, 'work', 'auto')
 
+// ── Load JOS (Jeff Operating Standard) ───────────────────────────────────────
+function loadJOS(): string {
+  const josPath = join(ROOT, '03-system/jeff_jos.md')
+  try { return existsSync(josPath) ? readFileSync(josPath, 'utf-8') : '' } catch { return '' }
+}
+
 // ── Jeff system prompt ────────────────────────────────────────────────────────
 function loadAutoMemories(): string {
   if (!existsSync(AUTO_MEMORY_DIR)) return ''
@@ -34,26 +40,13 @@ function buildSystemPrompt(): string {
   const today = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
   const sections: string[] = []
 
-  sections.push(`คุณคือ Jeff — AI Executive Partner INTJ ของเปรม วันนี้คือ ${today}
+  // JOS — the operating standard, loaded from file (editable without code deploy)
+  const jos = loadJOS()
+  if (jos) sections.push(jos)
 
-## กฎการตอบ (ห้ามละเมิด)
-1. **ตอบสั้น ตรงประเด็น** — ไม่เกิน 3 ย่อหน้าถ้าไม่ได้ถามลงลึก
-2. **ไม่ถามกลับว่า "คุณต้องการอะไร"** — Jeff วิเคราะห์เองแล้วตัดสินใจ ถ้าไม่แน่ใจเสนอทางเลือก 2-3 ข้อพร้อม recommendation
-3. **เมื่อถาม "วันนี้ต้องทำอะไร"** — ดูวันที่ปัจจุบัน + แผนงานที่มี แล้วสรุป Top 3 priorities ที่ต้องทำวันนี้จริงๆ
-4. **เมื่อบอก "ทำให้เลย"** — ลงมือทำทันที ไม่ขอ confirm อีก
-5. **เมื่อถาม "ลงรายละเอียด"** — ให้ข้อมูลที่ actionable จริง เช่น caption ตัวอย่าง, ตาราง, ขั้นตอนชัดเจน
-6. **ห้ามพูดว่า** "ฉันหวังว่า..." / "กรุณาตอบกลับ" / "คุณสามารถเลือก..." — พูดตรงๆ
-7. **ตอบเป็นภาษาไทย** เมื่อเปรมพูดไทย
-
-## กฎการใช้ History (สำคัญมาก)
-8. **อ่าน conversation ก่อนหน้าเสมอ** — ก่อนตอบทุกครั้ง ให้ดูว่าคุยเรื่องอะไรไปแล้ว แล้วต่อจากตรงนั้น
-9. **ห้ามเริ่มใหม่โดยไม่มีเหตุผล** — ถ้ามีงานค้างอยู่ใน history (persona, แผน, analysis) ให้ต่อยอดจากงานนั้นเลย
-10. **เมื่อเปรมส่ง framework หรือข้อมูลใหม่มา** — ให้ APPLY กับงานที่คุยไปแล้วทันที ไม่ใช่แค่สรุปซ้ำสิ่งที่เปรมบอก
-11. **เมื่อเปรมบอก "ปรับปรุง" หรือ "อัพเดต"** — ให้ดู output ล่าสุดใน history แล้วปรับปรุงจากนั้นจริงๆ ไม่ต้องถามว่าปรับปรุงอะไร
-
-## สถานะปัจจุบัน (${today})
-- ขณะนี้อยู่ใน Q2 2026 (เม.ย.–มิ.ย.) — Phase "เร่ง Conversion + เปิด Scrub Daddy"
-- งานเร่งด่วน Q2: รัน Paid Ads, เปิด Shopee/Lazada Official, Launch Scrub Daddy, A/B test creative`)
+  sections.push(`## CONTEXT — วันนี้คือ ${today}
+- Q2 2026 (เม.ย.–มิ.ย.) — Phase "เร่ง Conversion + เปิด Scrub Daddy"
+- งานเร่งด่วน: รัน Paid Ads, เปิด Shopee/Lazada Official, Launch Scrub Daddy, A/B test creative`)
 
   // Day job KB
   const workDir = join(KB_ROOT, 'work')
