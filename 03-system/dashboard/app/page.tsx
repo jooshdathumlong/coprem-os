@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 type HITLItem = { id: number; chat_id: string; message: string; created_at: string; resolved_at: string | null; resolution: string | null }
 type LatencyRow = { event_type: string; avg_ms: number; max_ms: number; requests: number; slow_count: number }
 type Status = { litellm: boolean; ollama: boolean; n8n: boolean; timestamp: string }
-type ChatMsg = { role: 'user' | 'assistant'; text: string; model?: string }
+type MemorySuggestion = { title: string; type: string; summary: string; actions: string[]; content: string; userMsg: string }
+type ChatMsg = { role: 'user' | 'assistant'; text: string; model?: string; memorySuggestion?: MemorySuggestion; memorySaved?: boolean }
 type ChatSession = { id: number; title: string; created_at: string; updated_at: string }
 type Tab = 'chat' | 'hitl' | 'kb' | 'browser' | 'docs' | 'system' | 'sessions' | 'tasks'
 type Task = { id: string; type: string; status: string; priority: number; assigned_to: string; next_agent: string; retries: number; max_retries: number; result: string; error: string; run_at: string; created_at: string }
@@ -285,13 +286,14 @@ export default function Dashboard() {
         })
       })
       const data = await res.json()
+      const memorySuggestion: MemorySuggestion | null = data.memorySuggestion || null
       let replyText = data.reply || data.error || '(No response)'
       if (replyText.includes('RateLimitError') || replyText.includes('RESOURCE_EXHAUSTED')) {
         replyText = 'Quota exceeded for this model — try another model (Groq 70B is available)'
       } else if (replyText.includes('litellm.') && replyText.length > 200) {
         replyText = replyText.split('\n')[0].replace(/litellm\.\w+:\s*/g, '')
       }
-      setChatMessages(m => [...m, { role: 'assistant', text: replyText, model: data.model }])
+      setChatMessages(m => [...m, { role: 'assistant', text: replyText, model: data.model, memorySuggestion: memorySuggestion || undefined }])
       // Save assistant reply
       if (sid) fetch(`/api/chat-sessions/${sid}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: 'assistant', content: replyText, model: data.model || model }) }).catch(() => {})
       // Refresh session list (title may have updated)
@@ -521,7 +523,7 @@ export default function Dashboard() {
                 </div>
               )}
               {chatMessages.map((m, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: m.role === 'user' ? 'flex-end' : 'flex-start', gap: 6 }}>
                   <div style={{
                     maxWidth: '72%', padding: '12px 16px', fontSize: 14, lineHeight: 1.55, borderRadius: 18,
                     background: m.role === 'user' ? '#0066cc' : '#f5f5f7',
@@ -532,6 +534,28 @@ export default function Dashboard() {
                     {m.role === 'assistant' && <p style={{ fontSize: 11, color: '#6e6e73', marginBottom: 4 }}>Jeff{m.model && m.model !== 'auto (Jeff)' ? ` · ${m.model}` : ''}</p>}
                     <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{m.text}</p>
                   </div>
+
+                  {/* Memory suggestion chip */}
+                  {m.role === 'assistant' && m.memorySuggestion && !m.memorySaved && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', background: '#fffbeb', border: '1px solid #f5d06e', borderRadius: 12, fontSize: 12, maxWidth: '72%' }}>
+                      <span style={{ fontSize: 16 }}>💾</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ fontWeight: 600, color: '#92660a' }}>{m.memorySuggestion.title}</span>
+                        <span style={{ color: '#b07a1a', marginLeft: 6 }}>· {m.memorySuggestion.type}</span>
+                      </div>
+                      <button onClick={async () => {
+                        await fetch('/api/memory-save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(m.memorySuggestion) })
+                        setChatMessages(prev => prev.map((msg, j) => j === i ? { ...msg, memorySaved: true } : msg))
+                      }} style={{ background: '#f5a623', color: 'white', border: 'none', borderRadius: 8, padding: '4px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                        บันทึก
+                      </button>
+                      <button onClick={() => setChatMessages(prev => prev.map((msg, j) => j === i ? { ...msg, memorySuggestion: undefined } : msg))}
+                        style={{ background: 'none', border: 'none', color: '#b07a1a', cursor: 'pointer', fontSize: 16, padding: '0 2px' }}>✕</button>
+                    </div>
+                  )}
+                  {m.role === 'assistant' && m.memorySaved && (
+                    <div style={{ fontSize: 11, color: '#1a7f3c', padding: '3px 10px', background: '#e6f9f0', borderRadius: 8 }}>✓ บันทึกลง Memory แล้ว</div>
+                  )}
                 </div>
               ))}
               {chatLoading && (

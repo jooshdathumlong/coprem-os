@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFileSync, existsSync, readdirSync, writeFileSync, mkdirSync, statSync } from 'fs'
+import { readFileSync, existsSync, readdirSync, statSync } from 'fs'
 import { join } from 'path'
 
 const LITELLM_URL = 'http://localhost:4000/v1/chat/completions'
@@ -110,7 +110,7 @@ interface MemoryResult {
   actions: string[]
 }
 
-async function classifyAndSave(userMsg: string, jeffReply: string): Promise<void> {
+async function classifyOnly(userMsg: string, jeffReply: string): Promise<MemoryResult | null> {
   const classifyPrompt = `วิเคราะห์บทสนทนานี้แล้วตอบ JSON เท่านั้น ไม่มีข้อความอื่น:
 
 User: ${userMsg.slice(0, 500)}
@@ -162,55 +162,17 @@ Jeff: ${jeffReply.slice(0, 1000)}
     } catch { /* skip */ }
   }
 
-  if (!raw) return
+  if (!raw) return null
 
   // Parse JSON
   let result: MemoryResult
   try {
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
     result = jsonMatch ? JSON.parse(jsonMatch[0]) : { save: false, type: 'none', title: '', summary: '', actions: [] }
-  } catch { return }
+  } catch { return null }
 
-  if (!result.save || result.type === 'none' || !result.title) return
-
-  // Save to auto-memory
-  try {
-    mkdirSync(AUTO_MEMORY_DIR, { recursive: true })
-    const dateStr = new Date().toISOString().slice(0, 10)
-    const safeTitle = result.title.replace(/[^ก-๙a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_').slice(0, 50)
-    const filename = `${dateStr}_${safeTitle}.md`
-    const fileContent = `# ${result.title}
-> type: ${result.type} | บันทึก: ${new Date().toLocaleString('th-TH')}
-
-## สรุป
-${result.summary}
-
-## เนื้อหาเต็ม
-${jeffReply}
-
-## บริบทคำถาม
-${userMsg.slice(0, 300)}
-`
-    writeFileSync(join(AUTO_MEMORY_DIR, filename), fileContent, 'utf-8')
-    // Bust prompt cache so next request loads the new memory
-    _promptCache = null
-  } catch { /* non-critical */ }
-
-  // Create tasks for action items
-  if (result.actions?.length) {
-    try {
-      const { execSync } = require('child_process')
-      const cid = execSync(`docker ps --filter name=postgres -q`, { encoding: 'utf8' }).trim().split('\n')[0]
-      for (const action of result.actions.slice(0, 3)) {
-        const safeAction = action.replace(/'/g, "''").slice(0, 200)
-        const payload = JSON.stringify({ prompt: safeAction, notify_telegram: false }).replace(/'/g, "''")
-        execSync(
-          `docker exec ${cid} psql -U coprem -d coprem_os -c "INSERT INTO task_queue (type, payload, assigned_to, priority, run_at) VALUES ('analysis', '${payload}', 'jeff', 6, NOW() + INTERVAL '2 minutes');"`,
-          { encoding: 'utf8', stdio: 'pipe' }
-        )
-      }
-    } catch { /* non-critical */ }
-  }
+  if (!result.save || result.type === 'none' || !result.title) return null
+  return result
 }
 
 // ── Gemini native API (attachments) ───────────────────────────────────────────
@@ -354,9 +316,9 @@ export async function POST(req: NextRequest) {
     if (!finalReply) return NextResponse.json({ error: 'All models unavailable' }, { status: 502 })
   }
 
-  // ── Fire-and-forget: classify + save memory + create tasks ────────────────
+  // ── Classify in background — suggestion returned to UI for Prem to approve ──
   const userText = message || (attachment ? `[ส่งไฟล์: ${attachment.name}]` : '')
-  classifyAndSave(userText, finalReply).catch(() => { /* never surface to user */ })
+  const memorySuggestionPromise = classifyOnly(userText, finalReply).catch(() => null)
 
   // ── Optional auto_chain task ──────────────────────────────────────────────
   if (auto_chain) {
@@ -369,5 +331,20 @@ export async function POST(req: NextRequest) {
     } catch { /* non-critical */ }
   }
 
-  return NextResponse.json({ reply: finalReply, model: finalModel, source: finalSource })
+  // Await classify (runs in parallel while user reads Jeff's reply — usually <3s)
+  const memorySuggestion = await memorySuggestionPromise
+
+  return NextResponse.json({
+    reply: finalReply,
+    model: finalModel,
+    source: finalSource,
+    memorySuggestion: memorySuggestion ? {
+      title: memorySuggestion.title,
+      type: memorySuggestion.type,
+      summary: memorySuggestion.summary,
+      actions: memorySuggestion.actions,
+      content: finalReply,
+      userMsg: userText,
+    } : null,
+  })
 }
