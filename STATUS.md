@@ -1011,3 +1011,7 @@ PENDING:
 | 2026-06-07 02:05 | FEATURE: KB Save flow + /save command + Content Templates + Morning Briefing | Dashboard: KB miss chip + pillar selector + save button; Telegram: /save [content] → embed → confirm; Templates: 8 content templates (TikTok/IG/Campaign/KOL/Email/Meeting/Analysis/Sales); Morning Briefing: 08:00 BKK daily via autonomous loop; WF01 new ID: gd9geVbv3FFnkNk1 | OK |
 
 | 2026-06-07 02:17 | FIX: HITL Gate — ตอนนี้ HITL เฉพาะ domain risky (trade/publish/delete/system/finance) เท่านั้น | ROOT: hitl_required=true ทุก message สั้น/คลุมเครือ | FIX: เพิ่ม condition domain check ใน HITL Gate | WF01 ID: YGsPwn5DqXPDrWp3 |
+
+| 2026-06-07 03:23 | VERIFIED | Jeff Persona Fix | "ทำ persona scrub daddy" → Jeff ตอบ Persona: Scrub Daddy ถูกต้อง (exec 596). Root cause: Action Words rule missing in system prompt. Fix: buildSystemPrompt() + LOCAL_SYSTEM updated, dashboard restarted. |
+| 2026-06-07 03:23 | VERIFIED | HITL Fix | HITL gate ต้องการ domain risky (trade/publish/delete/system/finance) — ไม่ block ทุก message แล้ว |
+| 2026-06-07 03:23 | VERIFIED | RAG Pillar Filter | WHERE pillar IN ('JOB','PERSONAL') — SKILL 3156 entries ไม่ contaminate JOB results แล้ว |
