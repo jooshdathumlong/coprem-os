@@ -14,11 +14,15 @@ CREATE TABLE IF NOT EXISTS memory_embeddings (
   pillar       TEXT,                       -- JOB, PERSONAL, CREATIVE
   kb_id        TEXT,                       -- KB-01 to KB-05
   tags         TEXT[],
-  embedding    vector(3072),               -- text-embedding-3-large = 3072 dims
+  embedding    vector(768),                -- nomic-embed-text (Ollama) = 768 dims
   created_at   TIMESTAMPTZ DEFAULT NOW(),
   expires_at   TIMESTAMPTZ,
   archived     BOOLEAN DEFAULT FALSE
 );
+
+-- Dedup: prevent same KB segment from being embedded twice
+ALTER TABLE memory_embeddings DROP CONSTRAINT IF EXISTS uq_kb_content;
+ALTER TABLE memory_embeddings ADD CONSTRAINT uq_kb_content UNIQUE (kb_id, pillar, content);
 
 CREATE INDEX IF NOT EXISTS idx_memory_type ON memory_embeddings(memory_type);
 CREATE INDEX IF NOT EXISTS idx_memory_pillar ON memory_embeddings(pillar);

@@ -997,3 +997,5 @@ PENDING:
 | 2026-06-06 23:56 | BUG: embed_kb.py column embedding_768 ไม่มีใน DB | ROOT: column จริงชื่อ embedding | FIX: แก้ทุก reference |
 | 2026-06-06 23:56 | BUG: litellm config มี ollama/gemma4 (model ไม่มีใน Ollama) | FIX: ลบออก |
 | 2026-06-06 23:56 | BUG: WF01 L1-A Preprocessor — const const msgId SyntaxError | ROOT: typo double const | FIX: แก้ผ่าน n8n API ✅ |
+
+| 2026-06-06 23:58 | FIX audit round 2: migration 006 vector dim 3072→768, UNIQUE constraint uq_kb_content, ลบ plist เก่า com.coprem.autonomous-loop |
