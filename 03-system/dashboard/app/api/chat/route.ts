@@ -386,7 +386,7 @@ export async function POST(req: NextRequest) {
     // ── PATH B: Text only → RAG + LiteLLM tier fallback ──
     const TIER_MODELS = model && model !== 'auto'
       ? [model]
-      : ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'groq/llama-3.3-70b', 'ollama/gemma4']
+      : ['local', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'groq/llama-3.3-70b', 'ollama/gemma4']
 
     // RAG: search KB in parallel with first LLM call
     const ragContext = await ragSearch(message)

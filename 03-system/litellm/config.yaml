@@ -103,10 +103,10 @@ model_list:
       rpm_limit: 14
       tpm_limit: 900000
 
-  # ── Ollama Tier 3 — local Mac (tuned: 4096 ctx, 120s timeout) ───────────
+  # ── Ollama Tier 3 — local Mac, no quota ─────────────────────────────────
   - model_name: ollama/llama3.1
     litellm_params:
-      model: ollama/gemma4
+      model: ollama/llama3.1:8b
       api_base: http://host.docker.internal:11434
       timeout: 120
 
@@ -115,6 +115,20 @@ model_list:
       model: ollama/gemma4
       api_base: http://host.docker.internal:11434
       timeout: 120
+
+  # ── local: qwen2.5:3b — 2GB, follow instruction ดี, ไม่มี quota ─────────
+  - model_name: local
+    litellm_params:
+      model: ollama/qwen2.5:3b
+      api_base: http://host.docker.internal:11434
+      timeout: 60
+
+  # ── local-fast: qwen2.5:3b (same as local — gemma4 ไม่ใช้แล้ว ประหยัด RAM)
+  - model_name: local-fast
+    litellm_params:
+      model: ollama/qwen2.5:3b
+      api_base: http://host.docker.internal:11434
+      timeout: 60
 
 router_settings:
   routing_strategy: usage-based-routing-v2
