@@ -5,7 +5,8 @@ type HITLItem = { id: number; chat_id: string; message: string; created_at: stri
 type LatencyRow = { event_type: string; avg_ms: number; max_ms: number; requests: number; slow_count: number }
 type Status = { litellm: boolean; ollama: boolean; n8n: boolean; timestamp: string }
 type MemorySuggestion = { title: string; type: string; summary: string; actions: string[]; content: string; userMsg: string }
-type ChatMsg = { role: 'user' | 'assistant'; text: string; model?: string; memorySuggestion?: MemorySuggestion; memorySaved?: boolean }
+type ChatMsg = { role: 'user' | 'assistant'; text: string; model?: string; memorySuggestion?: MemorySuggestion; memorySaved?: string }
+type MemoryFile = { path: string; label: string }
 type ChatSession = { id: number; title: string; created_at: string; updated_at: string }
 type Tab = 'chat' | 'hitl' | 'kb' | 'browser' | 'docs' | 'system' | 'sessions' | 'tasks'
 type Task = { id: string; type: string; status: string; priority: number; assigned_to: string; next_agent: string; retries: number; max_retries: number; result: string; error: string; run_at: string; created_at: string }
@@ -80,6 +81,10 @@ export default function Dashboard() {
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const [attachedFile, setAttachedFile] = useState<{ name: string; type: string; dataUrl: string; text?: string } | null>(null)
+  const [filePicker, setFilePicker] = useState<{ suggestion: MemorySuggestion; msgIdx: number } | null>(null)
+  const [memoryFiles, setMemoryFiles] = useState<MemoryFile[]>([])
+  const [memoryFilesLoading, setMemoryFilesLoading] = useState(false)
+  const [filePickerSearch, setFilePickerSearch] = useState('')
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const dragCounterRef = useRef(0)
@@ -425,6 +430,72 @@ export default function Dashboard() {
         </div>
       </nav>
 
+      {/* ── File Picker Modal ── */}
+      {filePicker && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setFilePicker(null)}>
+          <div style={{ background: 'white', borderRadius: 20, padding: 24, width: 520, maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: 16, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0 }}>📂 เลือกไฟล์ KB</h2>
+                <p style={{ fontSize: 12, color: '#6e6e73', margin: '4px 0 0' }}>02-knowledge/work/</p>
+              </div>
+              <button onClick={() => setFilePicker(null)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#6e6e73' }}>✕</button>
+            </div>
+
+            {/* Search */}
+            <input value={filePickerSearch} onChange={e => setFilePickerSearch(e.target.value)} placeholder="ค้นหาไฟล์..."
+              style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #d2d2d7', fontSize: 13, outline: 'none' }}
+              onFocus={e => (e.target.style.borderColor = '#0066cc')} onBlur={e => (e.target.style.borderColor = '#d2d2d7')} />
+
+            {/* File list */}
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {memoryFilesLoading ? (
+                <p style={{ color: '#6e6e73', fontSize: 13, textAlign: 'center', padding: 20 }}>กำลังโหลด...</p>
+              ) : memoryFiles.filter(f => !filePickerSearch || f.label.toLowerCase().includes(filePickerSearch.toLowerCase())).length === 0 ? (
+                <p style={{ color: '#6e6e73', fontSize: 13, textAlign: 'center', padding: 20 }}>ไม่พบไฟล์</p>
+              ) : memoryFiles.filter(f => !filePickerSearch || f.label.toLowerCase().includes(filePickerSearch.toLowerCase())).map(f => (
+                <div key={f.path} style={{ border: '1px solid #e8e8ed', borderRadius: 12, padding: '10px 14px', cursor: 'pointer' }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = '#0066cc')}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = '#e8e8ed')}>
+                  <p style={{ fontSize: 13, color: '#1d1d1f', margin: '0 0 8px', fontWeight: 500 }}>📄 {f.label}</p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={async () => {
+                      const res = await fetch('/api/memory-save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...filePicker.suggestion, targetPath: f.path, writeMode: 'append' }) })
+                      const data = await res.json()
+                      setChatMessages(prev => prev.map((msg, j) => j === filePicker.msgIdx ? { ...msg, memorySaved: `เพิ่มใน: ${data.path}` } : msg))
+                      setFilePicker(null)
+                    }} style={{ flex: 1, background: '#0066cc', color: 'white', border: 'none', borderRadius: 8, padding: '6px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                      + เพิ่มเข้าไฟล์นี้
+                    </button>
+                    <button onClick={async () => {
+                      if (!window.confirm(`เขียนทับไฟล์ "${f.label}" ใช่ไหม?`)) return
+                      const res = await fetch('/api/memory-save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...filePicker.suggestion, targetPath: f.path, writeMode: 'overwrite' }) })
+                      const data = await res.json()
+                      setChatMessages(prev => prev.map((msg, j) => j === filePicker.msgIdx ? { ...msg, memorySaved: `อัพเดต: ${data.path}` } : msg))
+                      setFilePicker(null)
+                    }} style={{ background: 'white', color: '#cc0000', border: '1px solid #cc0000', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                      เขียนทับ
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Create new file */}
+            <button onClick={async () => {
+              const res = await fetch('/api/memory-save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...filePicker.suggestion, writeMode: 'new' }) })
+              const data = await res.json()
+              setChatMessages(prev => prev.map((msg, j) => j === filePicker.msgIdx ? { ...msg, memorySaved: `สร้างไฟล์ใหม่: ${data.path}` } : msg))
+              setFilePicker(null)
+            }} style={{ background: '#f5f5f7', color: '#1d1d1f', border: '1px solid #d2d2d7', borderRadius: 12, padding: '10px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              ➕ สร้างไฟล์ใหม่ใน auto/
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Content area */}
       <div style={{ flex: 1, overflow: 'hidden' }}>
 
@@ -538,24 +609,35 @@ export default function Dashboard() {
 
                   {/* Memory suggestion chip */}
                   {m.role === 'assistant' && m.memorySuggestion && !m.memorySaved && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', background: '#fffbeb', border: '1px solid #f5d06e', borderRadius: 12, fontSize: 12, maxWidth: '72%' }}>
-                      <span style={{ fontSize: 16 }}>💾</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', background: '#fffbeb', border: '1px solid #f5d06e', borderRadius: 12, fontSize: 12, maxWidth: '72%' }}>
+                      <span style={{ fontSize: 15 }}>💾</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ fontWeight: 600, color: '#92660a' }}>{m.memorySuggestion.title}</span>
-                        <span style={{ color: '#b07a1a', marginLeft: 6 }}>· {m.memorySuggestion.type}</span>
+                        <span style={{ color: '#b07a1a', marginLeft: 5 }}>· {m.memorySuggestion.type}</span>
                       </div>
+                      {/* Save as new file */}
                       <button onClick={async () => {
-                        await fetch('/api/memory-save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(m.memorySuggestion) })
-                        setChatMessages(prev => prev.map((msg, j) => j === i ? { ...msg, memorySaved: true } : msg))
-                      }} style={{ background: '#f5a623', color: 'white', border: 'none', borderRadius: 8, padding: '4px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                        บันทึก
+                        const res = await fetch('/api/memory-save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...m.memorySuggestion, writeMode: 'new' }) })
+                        const data = await res.json()
+                        setChatMessages(prev => prev.map((msg, j) => j === i ? { ...msg, memorySaved: `สร้างไฟล์ใหม่: ${data.path}` } : msg))
+                      }} style={{ background: '#f5a623', color: 'white', border: 'none', borderRadius: 8, padding: '4px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        + ไฟล์ใหม่
+                      </button>
+                      {/* Open file picker */}
+                      <button onClick={() => {
+                        setFilePicker({ suggestion: m.memorySuggestion!, msgIdx: i })
+                        setFilePickerSearch('')
+                        setMemoryFilesLoading(true)
+                        fetch('/api/memory-save?action=list').then(r => r.json()).then(d => { setMemoryFiles(d); setMemoryFilesLoading(false) }).catch(() => setMemoryFilesLoading(false))
+                      }} style={{ background: 'white', color: '#92660a', border: '1px solid #f5d06e', borderRadius: 8, padding: '4px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        📂 เลือกไฟล์
                       </button>
                       <button onClick={() => setChatMessages(prev => prev.map((msg, j) => j === i ? { ...msg, memorySuggestion: undefined } : msg))}
-                        style={{ background: 'none', border: 'none', color: '#b07a1a', cursor: 'pointer', fontSize: 16, padding: '0 2px' }}>✕</button>
+                        style={{ background: 'none', border: 'none', color: '#b07a1a', cursor: 'pointer', fontSize: 15, padding: '0 2px' }}>✕</button>
                     </div>
                   )}
                   {m.role === 'assistant' && m.memorySaved && (
-                    <div style={{ fontSize: 11, color: '#1a7f3c', padding: '3px 10px', background: '#e6f9f0', borderRadius: 8 }}>✓ บันทึกลง Memory แล้ว</div>
+                    <div style={{ fontSize: 11, color: '#1a7f3c', padding: '3px 10px', background: '#e6f9f0', borderRadius: 8 }}>✓ {m.memorySaved}</div>
                   )}
                 </div>
               ))}
