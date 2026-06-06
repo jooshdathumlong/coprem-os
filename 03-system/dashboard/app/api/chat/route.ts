@@ -82,7 +82,8 @@ export async function POST(req: NextRequest) {
   const key = execSync(`grep LITELLM_MASTER_KEY "${envPath}" | cut -d= -f2-`, { encoding: 'utf8' }).trim()
 
   // Build messages array with history (last 20 messages = 10 exchanges)
-  type Msg = { role: 'user' | 'assistant' | 'system'; content: string }
+  type MsgContent = string | Array<{type: string; text?: string; image_url?: {url: string}}>
+  type Msg = { role: 'user' | 'assistant' | 'system'; content: MsgContent }
   const historyMsgs: Msg[] = (Array.isArray(history) ? history.slice(-20) : [])
     .map((h) => { const hh = h as { role: string; text: string }; return { role: hh.role as 'user' | 'assistant', content: hh.text } })
 
@@ -101,10 +102,17 @@ export async function POST(req: NextRequest) {
         userContent = `[ไฟล์แนบ: ${attachment.name}]\n\`\`\`\n${attachment.text.slice(0, 8000)}\n\`\`\`\n\n${message || 'โปรดวิเคราะห์ไฟล์นี้'}`
       }
     }
+    // Non-vision models (Groq, Ollama) require string content — extract text if array
+    const VISION_MODELS = ['gemini']
+    const supportsVision = VISION_MODELS.some(v => m.includes(v))
+    const safeContent: MsgContent = Array.isArray(userContent) && !supportsVision
+      ? (userContent.find(c => c.type === 'text')?.text || message || '')
+      : userContent
+
     const messages: Msg[] = [
       { role: 'system', content: systemPrompt },
       ...historyMsgs,
-      { role: 'user', content: userContent as string }
+      { role: 'user', content: safeContent }
     ]
     const res = await fetch(LITELLM_URL, {
       method: 'POST',
