@@ -97,6 +97,28 @@ else
   echo "| Dashboard | DOWN | run post_restart.sh to start |" >> /tmp/state.md
 fi
 
+# ── WF01 Integrity Check: detect duplicate node inputs ────────
+N8N_API_KEY=$(grep "^N8N_API_KEY=" "$ENV" | cut -d= -f2)
+WF01_ID="4uVEG8SEM23BDrdu"
+WF01_CHECK=$(curl -s --max-time 5 \
+  -H "X-N8N-API-KEY: $N8N_API_KEY" \
+  "http://localhost:5678/api/v1/workflows/$WF01_ID" 2>/dev/null | python3 -c "
+import sys,json
+try:
+  d=json.load(sys.stdin)
+  conns=d.get('connections',{})
+  # Count how many nodes connect to L3 Inject Context
+  inject_inputs=0
+  for src,outs in conns.items():
+    for lst in outs.get('main',[]):
+      for c in lst:
+        if c.get('node')=='L3 Inject Context': inject_inputs+=1
+  if inject_inputs>1: print(f'WARN:L3 Inject Context has {inject_inputs} inputs — duplicate reply risk')
+  else: print('OK')
+except: print('SKIP')
+" 2>/dev/null)
+echo "| WF01 integrity | ${WF01_CHECK:-SKIP} |" >> /tmp/state.md
+
 # ── Git remote safety check ────────────────────────────────────
 GIT_REMOTE=$(git -C "$ROOT" remote get-url origin 2>/dev/null || echo "")
 if [[ "$GIT_REMOTE" == *"@"* ]] || [[ "$GIT_REMOTE" == *"ghp_"* ]]; then
