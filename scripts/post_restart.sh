@@ -73,7 +73,7 @@ if ! pgrep -x ollama > /dev/null 2>&1; then
   sleep 3
 fi
 if curl -sf http://localhost:11434/api/tags > /dev/null 2>&1; then
-  log "Ollama: ✅ running (llama3.1:8b + qwen2.5:7b)"
+  log "Ollama: ✅ running (qwen2.5:3b + nomic-embed-text)"
 else
   log "Ollama: ⚠️  not reachable"
 fi

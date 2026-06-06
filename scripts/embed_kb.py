@@ -2,7 +2,7 @@
 """
 S1 — KB Semantic Embedder
 Reads KB segments from Dify API, embeds via nomic-embed-text (Ollama),
-stores in memory_embeddings.embedding_768 for vector search.
+stores in memory_embeddings.embedding for vector search.
 Run: python3 scripts/embed_kb.py
 """
 import os, sys, json, time, hashlib, subprocess, urllib.request, urllib.parse
@@ -79,7 +79,7 @@ def pg_upsert(pg_cid: str, content: str, pillar: str, kb_id: str, embedding: lis
     safe_pillar = pillar.replace("'", "''")
     safe_kb_id = kb_id.replace("'", "''")
     sql = (
-        f"INSERT INTO memory_embeddings (content, memory_type, pillar, kb_id, embedding_768) "
+        f"INSERT INTO memory_embeddings (content, memory_type, pillar, kb_id, embedding) "
         f"VALUES ('{safe_content}', 'kb_segment', '{safe_pillar}', '{safe_kb_id}', '{embedding_str}'::vector) "
         f"ON CONFLICT DO NOTHING;"
     )
@@ -124,7 +124,7 @@ def main():
                     print(f"  Embedded {total} segments so far...")
                 time.sleep(0.05)
 
-    print(f"\nDone: {total} segments embedded into memory_embeddings.embedding_768")
+    print(f"\nDone: {total} segments embedded into memory_embeddings.embedding")
     if errors:
         print(f"WARNING: {errors} segments failed to insert — check PG ERRORs above")
 

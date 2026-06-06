@@ -993,3 +993,7 @@ PENDING:
 | 2026-06-06 23:43 | FIX: git push — ลบ 02-knowledge/categories/ + courses/ ออกจาก history ด้วย git filter-repo (4.9GB) | ROOT: GitHub block files >100MB | FIX: filter-repo --invert-paths + force push ✅ |
 
 | 2026-06-06 23:49 | IMPROVE: Dashboard timeout local→90s, launchd auto-restart loop, port 3001 conflict fix | ✅ |
+
+| 2026-06-06 23:56 | BUG: embed_kb.py column embedding_768 ไม่มีใน DB | ROOT: column จริงชื่อ embedding | FIX: แก้ทุก reference |
+| 2026-06-06 23:56 | BUG: litellm config มี ollama/gemma4 (model ไม่มีใน Ollama) | FIX: ลบออก |
+| 2026-06-06 23:56 | BUG: WF01 L1-A Preprocessor — const const msgId SyntaxError | ROOT: typo double const | FIX: แก้ผ่าน n8n API ✅ |
