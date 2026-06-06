@@ -288,6 +288,21 @@ type Msg = { role: 'user' | 'assistant' | 'system'; content: string }
 const LOCAL_SYSTEM = `You are Jeff, AI Executive Partner. Answer in Thai. Be direct and concise.
 Rules: Answer the question directly. No roleplay. No repeating the question. No filler words.`
 
+// Circuit breaker: skip model for 5 min after 3 consecutive failures
+const _cbState: Record<string, { count: number; openUntil: number }> = {}
+function cbOpen(model: string): boolean {
+  const s = _cbState[model]
+  if (!s) return false
+  if (s.openUntil > Date.now()) return true
+  delete _cbState[model]; return false
+}
+function cbFail(model: string) {
+  if (!_cbState[model]) _cbState[model] = { count: 0, openUntil: 0 }
+  _cbState[model].count++
+  if (_cbState[model].count >= 3) _cbState[model].openUntil = Date.now() + 5 * 60 * 1000
+}
+function cbSuccess(model: string) { delete _cbState[model] }
+
 async function callLiteLLM(model: string, systemPrompt: string, historyMsgs: Msg[], message: string, litellmKey: string, maxTokens = 1500, ragContext = ''): Promise<string | undefined> {
   const isLocal = model.startsWith('ollama') || model === 'local' || model === 'local-fast'
   // Local models: short system + KB context injected into user message to avoid roleplay
@@ -406,14 +421,16 @@ export async function POST(req: NextRequest) {
 
     // Run all tier models in parallel — take first successful reply
     type ModelResult = { reply: string; model: string }
-    console.log(`[jeff] calling models: ${TIER_MODELS.join(', ')} rag=${!!ragContext} prompt_len=${enrichedPrompt.length} hist=${historyMsgs.length}`)
+    const activeModels = TIER_MODELS.filter(m => { if (cbOpen(m)) { console.log(`[jeff] ${m} circuit OPEN — skipping`); return false }; return true })
+    console.log(`[jeff] calling models: ${activeModels.join(', ')} rag=${!!ragContext} prompt_len=${enrichedPrompt.length} hist=${historyMsgs.length}`)
     const winner = await new Promise<ModelResult | null>(resolve => {
-      let pending = TIER_MODELS.length
-      TIER_MODELS.forEach(m => {
+      let pending = activeModels.length
+      if (pending === 0) { resolve(null); return }
+      activeModels.forEach(m => {
         const t = Date.now()
         callLiteLLM(m, enrichedPrompt, historyMsgs, message, litellmKey, 1500, ragContext)
-          .then(r => { console.log(`[jeff] ${m} reply in ${Date.now()-t}ms: ${r ? 'OK' : 'NULL'}`); if (r) resolve({ reply: r, model: m }) })
-          .catch(e => { console.log(`[jeff] ${m} error in ${Date.now()-t}ms: ${String(e).slice(0,80)}`) })
+          .then(r => { console.log(`[jeff] ${m} reply in ${Date.now()-t}ms: ${r ? 'OK' : 'NULL'}`); if (r) { cbSuccess(m); resolve({ reply: r, model: m }) } else { cbFail(m) } })
+          .catch(e => { console.log(`[jeff] ${m} error in ${Date.now()-t}ms: ${String(e).slice(0,80)}`); cbFail(m) })
           .finally(() => { if (--pending === 0) { console.log(`[jeff] all done`); resolve(null) } })
       })
     })

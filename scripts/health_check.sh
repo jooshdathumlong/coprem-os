@@ -8,6 +8,14 @@ ENV="$ROOT/.env"
 
 echo "## SYSTEM_STATE — $(date '+%Y-%m-%d %H:%M')" > /tmp/state.md
 
+# ── Config validation (fast check) ───────────────────────────
+python3 "$SCRIPT_DIR/validate_config.py" > /tmp/validate_out.txt 2>&1
+if grep -q "FAIL" /tmp/validate_out.txt; then
+  echo "| Config validation | FAIL | $(grep FAIL /tmp/validate_out.txt | head -1) |" >> /tmp/state.md
+else
+  echo "| Config validation | OK |" >> /tmp/state.md
+fi
+
 # ── Infrastructure checks ─────────────────────────────────────
 check() {
   local name=$1 cmd=$2 note=$3

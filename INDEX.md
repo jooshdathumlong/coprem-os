@@ -126,3 +126,6 @@ Finished work without a specific project home.
 | `scripts/sync_validator.py` | (auto-registered 2026-06-01) |
 | `04-outputs/command-center.html` | COPREM Command Center — single-page dashboard (Task + KB viewer + Jeff chat) |
 | `04-outputs/coprem-dashboard.html` | COPREM Executive Dashboard v1 (system status + chat) |
+| `scripts/edit_workflow.py` | Safe n8n workflow editor — DELETE+POST pattern, auto-verifies webhook after edit |
+| `scripts/validate_config.py` | Config validation — .env keys, Ollama models, n8n/LiteLLM reachability, DB tables |
+| `03-system/db/migrations/009_trace_id.sql` | Add trace_id UUID to audit_log + inbox_log for end-to-end request tracing |
