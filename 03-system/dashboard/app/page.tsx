@@ -79,7 +79,9 @@ export default function Dashboard() {
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const [attachedFile, setAttachedFile] = useState<{ name: string; type: string; dataUrl: string; text?: string } | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const dragCounterRef = useRef(0)
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([])
   const [activeChatSessionId, setActiveChatSessionId] = useState<number | null>(null)
   const [hitlItems, setHITLItems] = useState<HITLItem[]>([])
@@ -110,9 +112,7 @@ export default function Dashboard() {
   const [taskSubmitting, setTaskSubmitting] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
-  function handleFileAttach(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  function processFile(file: File) {
     const reader = new FileReader()
     const isImage = file.type.startsWith('image/')
     reader.onload = ev => {
@@ -120,15 +120,35 @@ export default function Dashboard() {
       if (isImage) {
         setAttachedFile({ name: file.name, type: file.type, dataUrl })
       } else {
-        // Text / markdown / PDF → read as text and include inline
         const textReader = new FileReader()
-        textReader.onload = te => {
-          setAttachedFile({ name: file.name, type: file.type, dataUrl, text: te.target?.result as string })
-        }
+        textReader.onload = te => setAttachedFile({ name: file.name, type: file.type, dataUrl, text: te.target?.result as string })
         textReader.readAsText(file)
       }
     }
     reader.readAsDataURL(file)
+  }
+
+  function handleDragEnter(e: React.DragEvent) {
+    e.preventDefault(); e.stopPropagation()
+    dragCounterRef.current++
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) setIsDragging(true)
+  }
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault(); e.stopPropagation()
+    dragCounterRef.current--
+    if (dragCounterRef.current === 0) setIsDragging(false)
+  }
+  function handleDragOver(e: React.DragEvent) { e.preventDefault(); e.stopPropagation() }
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault(); e.stopPropagation()
+    setIsDragging(false); dragCounterRef.current = 0
+    const file = e.dataTransfer.files?.[0]
+    if (file) processFile(file)
+  }
+
+  function handleFileAttach(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) processFile(file)
     e.target.value = ''
   }
 
@@ -438,7 +458,33 @@ export default function Dashboard() {
             </div>
 
             {/* Chat main area */}
-            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+            <div
+              style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, position: 'relative' }}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+            {/* Drag-and-drop overlay */}
+            {isDragging && (
+              <div style={{
+                position: 'absolute', inset: 0, zIndex: 50,
+                background: 'rgba(0, 102, 204, 0.08)',
+                border: '2px dashed #0066cc',
+                borderRadius: 16, margin: 8,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                gap: 12, pointerEvents: 'none',
+                backdropFilter: 'blur(2px)',
+              }}>
+                <div style={{ fontSize: 48 }}>📎</div>
+                <p style={{ fontSize: 18, fontWeight: 600, color: '#0066cc', margin: 0 }}>
+                  {lang === 'th' ? 'วางไฟล์ที่นี่' : 'Drop file here'}
+                </p>
+                <p style={{ fontSize: 13, color: '#6e6e73', margin: 0 }}>
+                  {lang === 'th' ? 'รูปภาพ, PDF, TXT, MD, CSV, JSON' : 'Images, PDF, TXT, MD, CSV, JSON'}
+                </p>
+              </div>
+            )}
             {/* Model selector */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderBottom: '1px solid #e8e8ed', background: '#f5f5f7', overflowX: 'auto', flexShrink: 0 }}>
               <span style={{ fontSize: 12, color: '#6e6e73', flexShrink: 0, fontWeight: 500 }}>{L.chat.model}</span>
@@ -533,7 +579,7 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-            </div>{/* end chat main area */}
+            </div>{/* end chat main area + drag zone */}
           </div>
         )}
 

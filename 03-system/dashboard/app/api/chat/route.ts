@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
   // Build messages array with history (last 20 messages = 10 exchanges)
   type Msg = { role: 'user' | 'assistant' | 'system'; content: string }
   const historyMsgs: Msg[] = (Array.isArray(history) ? history.slice(-20) : [])
-    .map((h: { role: string; text: string }) => ({ role: h.role as 'user' | 'assistant', content: h.text }))
+    .map((h) => { const hh = h as { role: string; text: string }; return { role: hh.role as 'user' | 'assistant', content: hh.text } })
 
   const callLiteLLM = async (m: string, maxTokens = 1500) => {
     // Build user content: text + optional attachment
