@@ -50,7 +50,8 @@ async function ragSearch(query: string, topK = 5): Promise<string> {
     // Query pgvector — JOB+PERSONAL only (exclude SKILL: 3156 entries would drown business KB)
     const vecStr = '[' + vec.map((x: number) => x.toFixed(6)).join(',') + ']'
     const sql = `SELECT content, pillar, kb_id, 1 - (embedding <=> '${vecStr}'::vector) AS score FROM memory_embeddings WHERE embedding IS NOT NULL AND pillar IN ('JOB','PERSONAL') ORDER BY embedding <=> '${vecStr}'::vector LIMIT ${topK};`
-    const pgCid = execSync(`docker ps --filter label=coprem.service=postgres -q 2>/dev/null || docker ps --filter name=postgres -q`, { encoding: 'utf8' }).trim().split('\n')[0]
+    const pgCidByLabel = execSync('docker ps --filter label=coprem.service=postgres -q', { encoding: 'utf8' }).trim()
+    const pgCid = pgCidByLabel ? pgCidByLabel.split('\n')[0] : execSync('docker ps --filter name=postgres -q', { encoding: 'utf8' }).trim().split('\n')[0]
     const result = execSync(
       `docker exec ${pgCid} psql -U coprem -d coprem_os -t -A -F"|||" -c "${sql.replace(/"/g, '\\"')}"`,
       { encoding: 'utf8', timeout: 10000, stdio: ['pipe', 'pipe', 'pipe'] }
@@ -368,6 +369,7 @@ export async function POST(req: NextRequest) {
   let finalReply = ''
   let finalModel = ''
   let finalSource = ''
+  let kbMiss = false
 
   // ── PATH A: Attachment → Gemini native → LiteLLM vision → text fallback ──
   if (attachment) {
@@ -418,7 +420,7 @@ export async function POST(req: NextRequest) {
 
     // RAG: search KB in parallel with first LLM call
     const ragContext = await ragSearch(message)
-    const kbMiss = !ragContext  // true = no relevant KB found
+    kbMiss = !ragContext  // true = no relevant KB found
     const enrichedPrompt = ragContext
       ? `${systemPrompt}\n\n${ragContext}`
       : systemPrompt + '\n\nหากไม่มีข้อมูลในฐานความรู้ → ตอบจากความรู้ทั่วไป แต่แจ้งท้ายว่า "⚠️ ข้อมูลนี้ไม่มีใน KB — ต้องการบันทึกไหมครับ?"'
@@ -487,8 +489,8 @@ export async function POST(req: NextRequest) {
     reply: finalReply,
     model: finalModel,
     source: finalSource,
-    kb_miss: typeof kbMiss !== 'undefined' ? kbMiss : false,
-    kb_suggest_content: typeof kbMiss !== 'undefined' && kbMiss ? finalReply : null,
+    kb_miss: kbMiss,
+    kb_suggest_content: kbMiss ? finalReply : null,
     memorySuggestion: memorySuggestion ? {
       title: memorySuggestion.title,
       type: memorySuggestion.type,

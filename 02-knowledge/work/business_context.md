@@ -196,3 +196,21 @@
 - **Mini Event EmQuartier (22 May–4 Jun 2025):** Target 10,000 | Actual **52,200 THB** (522% achieve)
 - Batiste 2026 MKT budget estimate: 1,000,000 THB
   - KOL/Influencer: 275,000 (confirmed) | Ads: 370,000 | Content: 42,000 | Affiliate: 65,000 | GWP: 118,500
+
+
+---
+_Added via dashboard 2026-06-06_
+
+Batiste dry shampoo ราคา 299 บาท ช่องทายขาย Shopee Lazada
+
+
+---
+_Added via dashboard 2026-06-06_
+
+Scrub Daddy ฟองน้ำเปลี่ยนสีตามน้ำร้อนเย็น ราคา 199 บาท ขาย TikTok Shop
+
+
+---
+_Added via dashboard 2026-06-06_
+
+Scrub Daddy ราคา 199 บาท ขาย TikTok Shop

@@ -11,8 +11,9 @@ function loadEnvKey(key: string): string {
 
 function getPgCid(): string {
   try {
-    const r = execSync('docker ps --filter label=coprem.service=postgres -q 2>/dev/null || docker ps --filter name=postgres -q', { encoding: 'utf8' })
-    return r.trim().split('\n')[0]
+    const byLabel = execSync('docker ps --filter label=coprem.service=postgres -q', { encoding: 'utf8' }).trim()
+    if (byLabel) return byLabel.split('\n')[0]
+    return execSync('docker ps --filter name=postgres -q', { encoding: 'utf8' }).trim().split('\n')[0]
   } catch { return '' }
 }
 

@@ -1015,3 +1015,10 @@ PENDING:
 | 2026-06-07 03:23 | VERIFIED | Jeff Persona Fix | "ทำ persona scrub daddy" → Jeff ตอบ Persona: Scrub Daddy ถูกต้อง (exec 596). Root cause: Action Words rule missing in system prompt. Fix: buildSystemPrompt() + LOCAL_SYSTEM updated, dashboard restarted. |
 | 2026-06-07 03:23 | VERIFIED | HITL Fix | HITL gate ต้องการ domain risky (trade/publish/delete/system/finance) — ไม่ block ทุก message แล้ว |
 | 2026-06-07 03:23 | VERIFIED | RAG Pillar Filter | WHERE pillar IN ('JOB','PERSONAL') — SKILL 3156 entries ไม่ contaminate JOB results แล้ว |
+
+| 2026-06-07 03:34 | BUG FIX | kbMiss TS scope error | kbMiss declared inside else-block แต่ used นอก scope → moved to outer scope. FIX: let kbMiss = false ก่อน PATH A/B |
+| 2026-06-07 03:34 | BUG FIX | getPgCid() label fallback | docker ps label filter exit 0 ว่าง → || ไม่ trigger. FIX: check byLabel ก่อนใน JS แยก 2 calls |
+| 2026-06-07 03:34 | BUG FIX | Save to KB jsonBody syntax | n8n template {{ }} ไม่ใช่ n8n expression. FIX: specifyBody=keypair + bodyParameters |
+| 2026-06-07 03:34 | BUG FIX | Save Confirm Reply credential | id="1" ไม่มีอยู่. FIX: เปลี่ยนเป็น bekevyLkkiivHo0L "Telegram Bot" |
+| 2026-06-07 03:34 | VERIFIED | /save command E2E | /save ข้อความ → KB embed → Telegram confirm ✅ ทำงานครบ |
+| 2026-06-07 03:34 | INFO | WF01 ID updated | v4I9Kej9VjM2bdEm (after Save Confirm Reply credential fix) |
