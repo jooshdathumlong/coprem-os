@@ -19,7 +19,7 @@ async function translateToEnglish(text: string): Promise<string> {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gemma4:latest',
+        model: 'qwen2.5:3b',
         messages: [{ role: 'user', content: `Translate to English only, no explanation:\n${text.slice(0, 500)}` }],
         stream: false,
       }),
@@ -372,7 +372,7 @@ export async function POST(req: NextRequest) {
       const textMsg = attachment.text
         ? `[ไฟล์: ${attachment.name}]\n\`\`\`\n${attachment.text.slice(0, 12000)}\n\`\`\`\n\n${message || 'วิเคราะห์ไฟล์'}`
         : `[ไฟล์: "${attachment.name}" ไม่สามารถดูภาพได้ขณะนี้ — Gemini quota หมด]\n\n${message || ''}`
-      for (const m of ['groq/llama-3.3-70b', 'gemini-2.0-flash', 'ollama/gemma4']) {
+      for (const m of ['groq/llama-3.3-70b', 'gemini-2.0-flash', 'ollama/qwen2.5:3b']) {
         try {
           const r = await callLiteLLM(m, systemPrompt, historyMsgs, textMsg, litellmKey)
           if (r) { finalReply = r; finalModel = m; finalSource = 'text-fallback'; break }
@@ -386,7 +386,7 @@ export async function POST(req: NextRequest) {
     // ── PATH B: Text only → RAG + LiteLLM tier fallback ──
     const TIER_MODELS = model && model !== 'auto'
       ? [model]
-      : ['local', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'groq/llama-3.3-70b', 'ollama/gemma4']
+      : ['local', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'groq/llama-3.3-70b', 'ollama/qwen2.5:3b']
 
     // RAG: search KB in parallel with first LLM call
     const ragContext = await ragSearch(message)
@@ -416,7 +416,7 @@ export async function POST(req: NextRequest) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'gemma4:latest',
+            model: 'qwen2.5:3b',
             messages: [{ role: 'user', content: `${enrichedPrompt}\n\n---\n\n${message}` }],
             stream: false,
           }),
@@ -424,7 +424,7 @@ export async function POST(req: NextRequest) {
         })
         const od = await ollamaRes.json()
         const r = od?.message?.content
-        if (r) { finalReply = r; finalModel = 'ollama/gemma4'; finalSource = 'ollama-direct' }
+        if (r) { finalReply = r; finalModel = 'ollama/qwen2.5:3b'; finalSource = 'ollama-direct' }
       } catch (e) { console.log('[jeff] ollama-direct error:', String(e).slice(0, 80)) }
     }
 

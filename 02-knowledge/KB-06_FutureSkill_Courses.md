@@ -33,7 +33,6 @@
 | 23 | Principles of using AI for graphic design | [link](https://learn.futureskill.co/learning/course/1798) |
 | 24 | [RERUN LIVE] AI Driven Future | [link](https://learn.futureskill.co/learning/course/4927) |
 | 25 | Claude Cowork: Extending Reach with Connectors | [link](https://learn.futureskill.co/learning/course/4915) |
-| 26 | Personal AI Secretary: Set up and talk to OpenClaw for the first time | [link](https://learn.futureskill.co/learning/course/5042) |
 | 27 | Gemini CLI: Let AI look at files and draw conclusions | [link](https://learn.futureskill.co/learning/course/4913) |
 | 28 | Claude Cowork: Set up work queues and order via mobile phone. | [link](https://learn.futureskill.co/learning/course/5103) |
 | 29 | Transform your work with Claude Cowork, managing files and work systems completely in one place. | [link](https://learn.futureskill.co/learning/course/5107) |
@@ -293,7 +292,6 @@
 | 26 | Calculating project costs and financial returns | [link](https://learn.futureskill.co/learning/course/2155) |
 | 27 | Strategy for building a Beauty brand with Data and Market Validation | [link](https://learn.futureskill.co/learning/course/4905) |
 | 28 | Create a clear fashion brand identity with visual and communication strategies. | [link](https://learn.futureskill.co/learning/course/4904) |
-| 29 | Business Automation: Let OpenClaw handle repetitive business tasks for you every day. | [link](https://learn.futureskill.co/learning/course/5044) |
 | 30 | Upgrading RAG to be usable in the business world | [link](https://learn.futureskill.co/learning/course/4297) |
 | 31 | (Webinar) Before starting a business It must come from the right idea! | [link](https://learn.futureskill.co/learning/course/4224) |
 | 32 | Think and make decisions strategically. for winning results for both the team and the organization | [link](https://learn.futureskill.co/learning/course/4300) |
@@ -400,7 +398,6 @@
 | 29 | n8n Affiliate Automation: Create an automatic affiliate product sales system. | [link](https://learn.futureskill.co/learning/course/4189) |
 | 30 | Create Workflow Automation and connect the system with n8n. | [link](https://learn.futureskill.co/learning/course/2397) |
 | 31 | Podcast: Understanding Automation Make.com and n8n systems | [link](https://learn.futureskill.co/learning/course/1829) |
-| 32 | Productivity Shortcut: Create Auto-Work Systems 24/7 with OpenClaw | [link](https://learn.futureskill.co/learning/course/5110) |
 | 33 | Workflow Power Automate reduces repetitive work. Make it easier with Power Automate and Microsoft 365 Application. | [link](https://learn.futureskill.co/learning/course/492) |
 
 ## Content Creation & Creative Skills
@@ -612,7 +609,6 @@
 | 63 | Apply information for decision making | [link](https://learn.futureskill.co/learning/course/5040) |
 | 64 | Choose the right Metric, read the numbers correctly. | [link](https://learn.futureskill.co/learning/course/5039) |
 | 65 | Resilience and Adaptability Quotient: Fall fast, get up quickly. | [link](https://learn.futureskill.co/learning/course/4899) |
-| 66 | Research & Content: Let OpenClaw be your Research Assistant and help you write your work. | [link](https://learn.futureskill.co/learning/course/5043) |
 | 67 | Social Connection & Longevity: Build connections for longevity. | [link](https://learn.futureskill.co/learning/course/5106) |
 | 68 | Enhance your web app with Database and Real-Time Sync with Lovable + Supabase | [link](https://learn.futureskill.co/learning/course/4194) |
 | 69 | Style and publish content like a Capcut pro. | [link](https://learn.futureskill.co/learning/course/3883) |

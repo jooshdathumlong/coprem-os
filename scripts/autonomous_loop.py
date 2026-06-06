@@ -174,7 +174,7 @@ TIER_MODELS = [
     "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
     "groq/llama-3.3-70b",
-    "ollama/llama3.1:8b",
+    "ollama/qwen2.5:3b",
 ]
 
 def call_litellm(prompt: str, agent: str = "jeff", model: str = "auto") -> str:
