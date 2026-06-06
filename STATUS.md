@@ -1009,3 +1009,5 @@ PENDING:
 | 2026-06-07 01:47 | ARCH: Phase 1–3 complete | Added label-based container lookup, circuit breaker (3-fail/5min), trace_id migration, validate_config.py (17/17 checks pass), edit_workflow.py (safe DELETE+POST pattern), response.ok guard in route.ts | OK |
 
 | 2026-06-07 02:05 | FEATURE: KB Save flow + /save command + Content Templates + Morning Briefing | Dashboard: KB miss chip + pillar selector + save button; Telegram: /save [content] → embed → confirm; Templates: 8 content templates (TikTok/IG/Campaign/KOL/Email/Meeting/Analysis/Sales); Morning Briefing: 08:00 BKK daily via autonomous loop; WF01 new ID: gd9geVbv3FFnkNk1 | OK |
+
+| 2026-06-07 02:17 | FIX: HITL Gate — ตอนนี้ HITL เฉพาะ domain risky (trade/publish/delete/system/finance) เท่านั้น | ROOT: hitl_required=true ทุก message สั้น/คลุมเครือ | FIX: เพิ่ม condition domain check ใน HITL Gate | WF01 ID: YGsPwn5DqXPDrWp3 |
