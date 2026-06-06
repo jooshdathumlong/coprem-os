@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
         max_tokens: m.startsWith('ollama') ? 512 : maxTokens,
         temperature: 0.7
       }),
-      signal: AbortSignal.timeout(30000)
+      signal: AbortSignal.timeout(90000)
     })
     const data = await res.json()
     if (!res.ok) throw new Error(`LiteLLM ${res.status}: ${JSON.stringify(data).slice(0, 200)}`)
