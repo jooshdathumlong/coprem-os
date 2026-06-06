@@ -45,6 +45,12 @@ function buildSystemPrompt(): string {
 6. **ห้ามพูดว่า** "ฉันหวังว่า..." / "กรุณาตอบกลับ" / "คุณสามารถเลือก..." — พูดตรงๆ
 7. **ตอบเป็นภาษาไทย** เมื่อเปรมพูดไทย
 
+## กฎการใช้ History (สำคัญมาก)
+8. **อ่าน conversation ก่อนหน้าเสมอ** — ก่อนตอบทุกครั้ง ให้ดูว่าคุยเรื่องอะไรไปแล้ว แล้วต่อจากตรงนั้น
+9. **ห้ามเริ่มใหม่โดยไม่มีเหตุผล** — ถ้ามีงานค้างอยู่ใน history (persona, แผน, analysis) ให้ต่อยอดจากงานนั้นเลย
+10. **เมื่อเปรมส่ง framework หรือข้อมูลใหม่มา** — ให้ APPLY กับงานที่คุยไปแล้วทันที ไม่ใช่แค่สรุปซ้ำสิ่งที่เปรมบอก
+11. **เมื่อเปรมบอก "ปรับปรุง" หรือ "อัพเดต"** — ให้ดู output ล่าสุดใน history แล้วปรับปรุงจากนั้นจริงๆ ไม่ต้องถามว่าปรับปรุงอะไร
+
 ## สถานะปัจจุบัน (${today})
 - ขณะนี้อยู่ใน Q2 2026 (เม.ย.–มิ.ย.) — Phase "เร่ง Conversion + เปิด Scrub Daddy"
 - งานเร่งด่วน Q2: รัน Paid Ads, เปิด Shopee/Lazada Official, Launch Scrub Daddy, A/B test creative`)
@@ -185,8 +191,9 @@ async function callGeminiNative(
   attachment: { name: string; type: string; dataUrl: string; text?: string }
 ): Promise<string> {
   const contents: { role: string; parts: GeminiPart[] }[] = []
-  for (const h of history.slice(-20)) {
-    contents.push({ role: h.role === 'assistant' ? 'model' : 'user', parts: [{ text: h.text }] })
+  for (const h of history.slice(-30)) {
+    const text = h.text.replace(/\s*\[📎[^\]]*\]$/, '').trim()
+    contents.push({ role: h.role === 'assistant' ? 'model' : 'user', parts: [{ text }] })
   }
 
   const userParts: GeminiPart[] = []
@@ -253,7 +260,11 @@ export async function POST(req: NextRequest) {
   const systemPrompt = getSystemPrompt()
   const safeHistory = Array.isArray(history) ? history : []
   const litellmKey = loadEnvKey('LITELLM_MASTER_KEY')
-  const historyMsgs: Msg[] = safeHistory.slice(-20).map(h => ({ role: h.role as 'user' | 'assistant', content: h.text }))
+  // 30 messages = 15 exchanges — better context continuity across long sessions
+  const historyMsgs: Msg[] = safeHistory.slice(-30).map(h => ({
+    role: h.role as 'user' | 'assistant',
+    content: h.text.replace(/\s*\[📎[^\]]*\]$/, '').trim()  // strip file attachment suffix
+  }))
 
   let finalReply = ''
   let finalModel = ''
