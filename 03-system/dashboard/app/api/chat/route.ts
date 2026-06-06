@@ -194,14 +194,59 @@ export async function POST(req: NextRequest) {
   const systemPrompt = getSystemPrompt()
   const safeHistory = Array.isArray(history) ? history : []
 
-  // ── PATH A: Attachment → Gemini native (no proxy, no compression needed) ──
+  // ── PATH A: Attachment → Gemini native → LiteLLM gemini → text-only fallback ──
   if (attachment) {
+    const litellmKey = loadEnvKey('LITELLM_MASTER_KEY')
+    const historyMsgs: Msg[] = safeHistory.slice(-20).map(h => ({
+      role: h.role as 'user' | 'assistant', content: h.text
+    }))
+
+    // A1: Gemini native (best quality, direct API)
     try {
       const reply = await callGeminiNative(systemPrompt, safeHistory, message || '', attachment)
       return NextResponse.json({ reply, model: 'gemini-2.0-flash', source: 'gemini-native' })
-    } catch (e: unknown) {
-      return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 502 })
+    } catch { /* quota/error — try next path */ }
+
+    // A2: LiteLLM gemini (uses LiteLLM's own key config)
+    if (attachment.type.startsWith('image/')) {
+      for (const m of ['gemini-2.0-flash', 'gemini-2.0-flash-lite']) {
+        try {
+          const msgs = [
+            { role: 'system' as const, content: systemPrompt },
+            ...historyMsgs,
+            { role: 'user' as const, content: [
+              { type: 'text', text: message || 'โปรดวิเคราะห์รูปภาพนี้' },
+              { type: 'image_url', image_url: { url: attachment.dataUrl } }
+            ] as unknown as string }
+          ]
+          const res = await fetch(LITELLM_URL, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${litellmKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: m, messages: msgs, max_tokens: 1500, temperature: 0.7 }),
+            signal: AbortSignal.timeout(60000)
+          })
+          const data = await res.json()
+          if (res.ok) {
+            const reply = data?.choices?.[0]?.message?.content
+            if (reply) return NextResponse.json({ reply, model: m, source: 'litellm-vision' })
+          }
+        } catch { /* try next */ }
+      }
     }
+
+    // A3: Text-only fallback — describe what was attached, ask model to help without image
+    const textMsg = attachment.text
+      ? `[ไฟล์แนบ: ${attachment.name}]\n\`\`\`\n${attachment.text.slice(0, 12000)}\n\`\`\`\n\n${message || 'โปรดวิเคราะห์ไฟล์นี้'}`
+      : `[หมายเหตุ: ผู้ใช้แนบไฟล์ "${attachment.name}" (${attachment.type}) แต่ไม่สามารถประมวลผลภาพได้ขณะนี้ — Gemini quota หมด]\n\n${message || 'โปรดช่วยตอบจากข้อความที่มี'}`
+
+    for (const m of ['groq/llama-3.3-70b', 'gemini-2.0-flash', 'ollama/llama3.1:8b']) {
+      try {
+        const reply = await callLiteLLM(m, systemPrompt, historyMsgs, textMsg, litellmKey)
+        if (reply) return NextResponse.json({ reply, model: m, source: 'text-fallback' })
+      } catch { /* next */ }
+    }
+
+    return NextResponse.json({ error: 'All models unavailable — please try again in a minute' }, { status: 502 })
   }
 
   // ── PATH B: Text only → LiteLLM tier fallback ──────────────────────────────
