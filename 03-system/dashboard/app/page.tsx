@@ -113,37 +113,20 @@ export default function Dashboard() {
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   function processFile(file: File) {
-    const isImage = file.type.startsWith('image/')
-    if (isImage) {
-      // Compress + resize to max 1024px before base64 to avoid timeout
-      const reader = new FileReader()
-      reader.onload = ev => {
-        const img = new Image()
-        img.onload = () => {
-          const MAX = 1024
-          let { width, height } = img
-          if (width > MAX || height > MAX) {
-            if (width > height) { height = Math.round(height * MAX / width); width = MAX }
-            else { width = Math.round(width * MAX / height); height = MAX }
-          }
-          const canvas = document.createElement('canvas')
-          canvas.width = width; canvas.height = height
-          canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.82)
-          setAttachedFile({ name: file.name, type: 'image/jpeg', dataUrl })
-        }
-        img.src = ev.target?.result as string
-      }
-      reader.readAsDataURL(file)
-    } else {
-      const reader = new FileReader()
-      reader.onload = ev => {
+    const reader = new FileReader()
+    reader.onload = ev => {
+      const dataUrl = ev.target?.result as string
+      const isText = file.type.startsWith('text/') || /\.(md|txt|csv|json)$/i.test(file.name)
+      if (isText) {
         const textReader = new FileReader()
-        textReader.onload = te => setAttachedFile({ name: file.name, type: file.type, dataUrl: ev.target?.result as string, text: te.target?.result as string })
+        textReader.onload = te => setAttachedFile({ name: file.name, type: file.type, dataUrl, text: te.target?.result as string })
         textReader.readAsText(file)
+      } else {
+        // Images, PDFs — pass raw to Gemini native (no compression needed)
+        setAttachedFile({ name: file.name, type: file.type, dataUrl })
       }
-      reader.readAsDataURL(file)
     }
+    reader.readAsDataURL(file)
   }
 
   function handleDragEnter(e: React.DragEvent) {
