@@ -22,10 +22,15 @@ until docker info > /dev/null 2>&1; do
 done
 log "Docker Desktop ready (${ELAPSED}s)"
 
-# 2. Start containers
-log "Starting COPREM containers..."
+# 2. Start containers (skip if already running)
 cd "$ROOT"
-docker compose -f "$COMPOSE_FILE" --env-file .env up -d 2>&1 | tail -5 | tee -a "$LOG"
+RUNNING=$(docker ps --filter name=03-system-postgres-1 -q 2>/dev/null)
+if [ -n "$RUNNING" ]; then
+  log "Containers already running — skipping compose up"
+else
+  log "Starting COPREM containers..."
+  docker compose -f "$COMPOSE_FILE" --env-file .env up -d 2>&1 | tail -5 | tee -a "$LOG"
+fi
 
 # 3. Wait for postgres container to exist
 log "Waiting for containers to start..."
