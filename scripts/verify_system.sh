@@ -87,7 +87,7 @@ done
 echo ""
 echo "[ 3 ] Launchd agents"
 
-for label in com.coprem.autostart com.coprem.autonomous-loop; do
+for label in com.coprem.autostart com.coprem.autonomous_loop; do
   if launchctl list "$label" > /dev/null 2>&1; then
     ok "$label loaded"
   else
