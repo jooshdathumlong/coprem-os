@@ -284,10 +284,15 @@ async function callGeminiNative(
 // ── LiteLLM (text, tier fallback) ─────────────────────────────────────────────
 type Msg = { role: 'user' | 'assistant' | 'system'; content: string }
 
+const LOCAL_SYSTEM = `You are Jeff, AI Executive Partner. Answer in Thai. Be direct and concise.
+Rules: Answer the question directly. No roleplay. No repeating the question. No filler words.`
+
 async function callLiteLLM(model: string, systemPrompt: string, historyMsgs: Msg[], message: string, litellmKey: string, maxTokens = 1500): Promise<string | undefined> {
-  const messages: Msg[] = [{ role: 'system', content: systemPrompt }, ...historyMsgs, { role: 'user', content: message }]
   const isLocal = model.startsWith('ollama') || model === 'local' || model === 'local-fast'
-  const payload = { model, messages, max_tokens: isLocal ? 512 : maxTokens, temperature: 0.7 }
+  // Local models need a short, direct prompt — long prompts cause roleplay/hallucination
+  const effectiveSystem = isLocal ? LOCAL_SYSTEM : systemPrompt
+  const messages: Msg[] = [{ role: 'system', content: effectiveSystem }, ...historyMsgs, { role: 'user', content: message }]
+  const payload = { model, messages, max_tokens: isLocal ? 600 : maxTokens, temperature: isLocal ? 0.3 : 0.7 }
 
   return new Promise((resolve, reject) => {
     const body = JSON.stringify(payload)
@@ -418,7 +423,7 @@ export async function POST(req: NextRequest) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model: 'qwen2.5:3b',
-            messages: [{ role: 'user', content: `${enrichedPrompt}\n\n---\n\n${message}` }],
+            messages: [{ role: 'system', content: LOCAL_SYSTEM }, { role: 'user', content: message }],
             stream: false,
           }),
           signal: AbortSignal.timeout(120000),
