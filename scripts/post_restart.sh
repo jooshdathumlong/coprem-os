@@ -60,7 +60,9 @@ else
 fi
 
 # 6. Ensure Prem is in users table
-docker exec 03-system-postgres-1 psql -U coprem -d coprem_os -t -c \
+_PG=$(docker ps --filter label=coprem.service=postgres -q 2>/dev/null | head -1)
+[ -z "$_PG" ] && _PG=$(docker ps --filter name=postgres -q 2>/dev/null | head -1)
+docker exec $_PG psql -U coprem -d coprem_os -t -c \
   "INSERT INTO users (chat_id, first_name, username, status, approved_at)
    VALUES (7731591925, 'Prem', 'prem', 'approved', NOW())
    ON CONFLICT (chat_id) DO NOTHING;" > /dev/null 2>&1

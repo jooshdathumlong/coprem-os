@@ -42,6 +42,7 @@ async function ragSearch(query: string, topK = 5): Promise<string> {
       body: JSON.stringify({ model: 'nomic-embed-text', input: enQuery }),
       signal: AbortSignal.timeout(10000),
     })
+    if (!embedRes.ok) return ''
     const embedData = await embedRes.json()
     const vec = embedData?.embeddings?.[0] as number[]
     if (!vec?.length) return ''

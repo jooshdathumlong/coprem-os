@@ -17,15 +17,20 @@ check() {
 }
 
 check "n8n"      "curl -sf --max-time 5 http://localhost:5678/healthz"
-check "postgres" "docker exec 03-system-postgres-1 pg_isready -U coprem -d coprem_os -q"
-check "redis"    "docker exec 03-system-redis-1 redis-cli ping" "PONG"
+PG_CID=$(docker ps --filter label=coprem.service=postgres -q 2>/dev/null | head -1)
+REDIS_CID=$(docker ps --filter label=coprem.service=redis -q 2>/dev/null | head -1)
+# fallback: name-based if labels not yet applied
+[ -z "$PG_CID" ] && PG_CID=$(docker ps --filter name=postgres -q 2>/dev/null | head -1)
+[ -z "$REDIS_CID" ] && REDIS_CID=$(docker ps --filter name=redis -q 2>/dev/null | head -1)
+check "postgres" "docker exec $PG_CID pg_isready -U coprem -d coprem_os -q"
+check "redis"    "docker exec $REDIS_CID redis-cli ping" "PONG"
 LITELLM_KEY=$(grep "^LITELLM_MASTER_KEY=" "$ENV" | cut -d= -f2)
 check "litellm"  "curl -sf --max-time 5 -H 'Authorization: Bearer $LITELLM_KEY' http://localhost:4000/v1/models" "port 4000"
 check "dify"     "curl -sL --max-time 5 -o /dev/null -w '%{http_code}' https://cloud.dify.ai | grep -q 200"
 
 # Postgres auth
 PG_PASS=$(grep "^POSTGRES_PASSWORD=" "$ENV" | cut -d= -f2)
-docker exec 03-system-postgres-1 psql -U coprem -d coprem_os \
+docker exec $PG_CID psql -U coprem -d coprem_os \
   -c "SELECT 1" -q > /dev/null 2>&1 \
   && echo "| Postgres auth | OK |" >> /tmp/state.md \
   || echo "| Postgres auth | FAIL |" >> /tmp/state.md
@@ -34,7 +39,7 @@ docker exec 03-system-postgres-1 psql -U coprem -d coprem_os \
 N8N_UP=$(curl -sf --max-time 3 http://localhost:5678/healthz 2>/dev/null && echo "yes" || echo "no")
 if [[ "$N8N_UP" == "yes" ]]; then
   # Test if Postgres credential works by checking a recent execution
-  CRED_OK=$(docker exec 03-system-postgres-1 psql -U coprem -d coprem_os -t -c \
+  CRED_OK=$(docker exec $PG_CID psql -U coprem -d coprem_os -t -c \
     "SELECT COUNT(*) FROM credentials_entity WHERE id = '226PbeVgki0neEi4';" 2>/dev/null | tr -d ' ')
   if [[ "$CRED_OK" == "1" ]]; then
     # Always sync credentials on health check (idempotent, safe)
@@ -52,7 +57,9 @@ if [ -n "$ZOMBIE" ]; then
 fi
 
 # ── Auto-fix: WEBHOOK_URL check ───────────────────────────────
-WH_URL=$(docker exec 03-system-n8n-1 printenv WEBHOOK_URL 2>/dev/null)
+N8N_CID=$(docker ps --filter label=coprem.service=n8n -q 2>/dev/null | head -1)
+[ -z "$N8N_CID" ] && N8N_CID=$(docker ps --filter name=n8n -q 2>/dev/null | head -1)
+WH_URL=$(docker exec $N8N_CID printenv WEBHOOK_URL 2>/dev/null)
 if [[ "$WH_URL" == *"localhost"* ]]; then
   echo "| WEBHOOK_URL | WRONG | was localhost — restart needed |" >> /tmp/state.md
 else

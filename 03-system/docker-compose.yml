@@ -4,6 +4,8 @@ services:
   n8n:
     image: n8nio/n8n:latest
     restart: unless-stopped
+    labels:
+      - "coprem.service=n8n"
     ports:
       - "5678:5678"
     environment:
@@ -47,6 +49,8 @@ services:
   postgres:
     image: pgvector/pgvector:pg16
     restart: unless-stopped
+    labels:
+      - "coprem.service=postgres"
     environment:
       - POSTGRES_DB=coprem
       - POSTGRES_USER=coprem
@@ -66,6 +70,8 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    labels:
+      - "coprem.service=redis"
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - ./data/redis:/data
