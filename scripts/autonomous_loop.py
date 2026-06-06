@@ -11,9 +11,10 @@ Run:
   echo $! > logs/autonomous_loop.pid
 """
 
-import os, sys, time, json, signal, logging, subprocess
+import os, sys, time, json, signal, logging, subprocess, threading
 from datetime import datetime
 from pathlib import Path
+from logging.handlers import RotatingFileHandler
 import psycopg2
 import psycopg2.extras
 import requests
@@ -24,12 +25,17 @@ LOG_DIR = ROOT / "03-system" / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 PID_FILE = LOG_DIR / "autonomous_loop.pid"
 
+_log_file = LOG_DIR / "autonomous_loop.log"
+_rot_handler = RotatingFileHandler(_log_file, maxBytes=5*1024*1024, backupCount=3)
+_rot_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)],
+    handlers=[logging.StreamHandler(sys.stdout), _rot_handler],
 )
 log = logging.getLogger("coprem.loop")
+
+TASK_TIMEOUT = 120  # seconds — max time allowed per task before forced failure
 
 POLL_INTERVAL = 3  # seconds
 
@@ -333,10 +339,23 @@ def process_task(task: dict):
 
     LLM_TYPES = {"analysis", "report", "chat"}
     try:
-        result = handler(task)
+        result_holder: list = []
+        exc_holder: list = []
+        def _run():
+            try:
+                result_holder.append(handler(task))
+            except Exception as ex:
+                exc_holder.append(ex)
+        t = threading.Thread(target=_run, daemon=True)
+        t.start()
+        t.join(timeout=TASK_TIMEOUT)
+        if t.is_alive():
+            raise RuntimeError(f"Task timed out after {TASK_TIMEOUT}s")
+        if exc_holder:
+            raise exc_holder[0]
+        result = result_holder[0] if result_holder else "OK"
         mark_done(task_id, result or "OK")
         log.info(f"  ✓ done: {str(result)[:80]}")
-        # Throttle between LiteLLM calls to avoid rate limits
         if task_type in LLM_TYPES:
             time.sleep(2)
     except Exception as e:

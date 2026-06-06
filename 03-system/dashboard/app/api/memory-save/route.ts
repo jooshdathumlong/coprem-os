@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { writeFileSync, mkdirSync, existsSync, readdirSync, readFileSync, statSync } from 'fs'
-import { join, relative } from 'path'
+import { join, relative, normalize } from 'path'
 
 const ROOT = join(process.cwd(), '..', '..')
 const KB_WORK_DIR = join(ROOT, '02-knowledge', 'work')
@@ -33,8 +33,8 @@ export async function GET(req: NextRequest) {
   if (action === 'read') {
     const path = req.nextUrl.searchParams.get('path') || ''
     // Security: only allow reads inside 02-knowledge/work/
-    const full = join(KB_WORK_DIR, path.replace(/\.\./g, ''))
-    if (!full.startsWith(KB_WORK_DIR)) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
+    const full = normalize(join(KB_WORK_DIR, path))
+    if (!full.startsWith(KB_WORK_DIR + '/') && full !== KB_WORK_DIR) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
     try {
       const content = readFileSync(full, 'utf-8')
       return NextResponse.json({ content })
@@ -54,9 +54,8 @@ export async function POST(req: NextRequest) {
   let filepath: string
   if (targetPath) {
     // Write to existing file (overwrite or append)
-    const safe = targetPath.replace(/\.\./g, '')
-    filepath = join(KB_WORK_DIR, safe)
-    if (!filepath.startsWith(KB_WORK_DIR)) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
+    filepath = normalize(join(KB_WORK_DIR, targetPath))
+    if (!filepath.startsWith(KB_WORK_DIR + '/') && filepath !== KB_WORK_DIR) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
   } else {
     // Create new file in auto/
     mkdirSync(AUTO_DIR, { recursive: true })

@@ -999,3 +999,5 @@ PENDING:
 | 2026-06-06 23:56 | BUG: WF01 L1-A Preprocessor — const const msgId SyntaxError | ROOT: typo double const | FIX: แก้ผ่าน n8n API ✅ |
 
 | 2026-06-06 23:58 | FIX audit round 2: migration 006 vector dim 3072→768, UNIQUE constraint uq_kb_content, ลบ plist เก่า com.coprem.autonomous-loop |
+
+| 2026-06-07 00:04 | FIX audit round 3: path traversal memory-save, embed_kb 768-dim validation, autonomous_loop task timeout 120s + log rotation 5MB |

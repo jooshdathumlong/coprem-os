@@ -73,6 +73,9 @@ def get_pg_container() -> str:
     return cid
 
 def pg_upsert(pg_cid: str, content: str, pillar: str, kb_id: str, embedding: list[float]):
+    if len(embedding) != 768:
+        print(f"  ERROR: expected 768-dim embedding, got {len(embedding)} — skipping")
+        return
     embedding_str = "[" + ",".join(str(x) for x in embedding) + "]"
     # Escape single quotes in content
     safe_content = content.replace("'", "''")
