@@ -286,7 +286,8 @@ type Msg = { role: 'user' | 'assistant' | 'system'; content: string }
 
 async function callLiteLLM(model: string, systemPrompt: string, historyMsgs: Msg[], message: string, litellmKey: string, maxTokens = 1500): Promise<string | undefined> {
   const messages: Msg[] = [{ role: 'system', content: systemPrompt }, ...historyMsgs, { role: 'user', content: message }]
-  const payload = { model, messages, max_tokens: model.startsWith('ollama') ? 512 : maxTokens, temperature: 0.7 }
+  const isLocal = model.startsWith('ollama') || model === 'local' || model === 'local-fast'
+  const payload = { model, messages, max_tokens: isLocal ? 512 : maxTokens, temperature: 0.7 }
 
   return new Promise((resolve, reject) => {
     const body = JSON.stringify(payload)
@@ -298,7 +299,7 @@ async function callLiteLLM(model: string, systemPrompt: string, historyMsgs: Msg
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(body),
       },
-      timeout: 20000,
+      timeout: isLocal ? 90000 : 20000,
     }
     const req = http.request(opts, (res) => {
       let data = ''

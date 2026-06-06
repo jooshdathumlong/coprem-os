@@ -991,3 +991,5 @@ PENDING:
 | 2026-06-06 23:20 | BUG: autonomous_loop ERROR ทุก 3 วิ | ROOT: task_queue ขาด columns next_agent/retries/max_retries/started_at/completed_at/result/error | FIX: ALTER TABLE ADD COLUMN IF NOT EXISTS + restart loop |
 
 | 2026-06-06 23:43 | FIX: git push — ลบ 02-knowledge/categories/ + courses/ ออกจาก history ด้วย git filter-repo (4.9GB) | ROOT: GitHub block files >100MB | FIX: filter-repo --invert-paths + force push ✅ |
+
+| 2026-06-06 23:49 | IMPROVE: Dashboard timeout local→90s, launchd auto-restart loop, port 3001 conflict fix | ✅ |
