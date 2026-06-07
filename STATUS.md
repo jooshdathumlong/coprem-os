@@ -1104,3 +1104,16 @@ PENDING:
 | 2026-06-07 | NEW: 20 KB files across 15 categories | ✅ all categories have files |
 | 2026-06-07 | Categories: ai-ml/cloud-devops/cybersecurity/digital-marketing/business/management/productivity/communication/career/language/health/misc/data-science/content-creative | ✅ |
 | 2026-06-07 | Total KB: 22 files across 15 categories | ✅ |
+
+## 2026-06-07 — KB Full Import (FutureSkill Courses)
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-07 | IMPORT: FutureSkill course catalog 2,790 files → 15 categories | ✅ 2,299 files visible in dashboard |
+
+## 2026-06-07 — BUG FIX: health_check.sh (Krit)
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-07 | BUG: ROOT path ผิด infra/scripts/../.env → แก้เป็น ../../.env | ✅ |
+| 2026-06-07 | BUG: LiteLLM check ใช้ localhost แทน docker exec → แก้ check ใน container | ✅ |
+| 2026-06-07 | BUG: Autonomous Loop PID check ไม่ auto-restart → เพิ่ม auto-restart logic | ✅ |
+| 2026-06-07 | RESULT: health_check.sh ทุก service UP — n8n/postgres/redis/litellm/dify/webhook/loop | ✅ |

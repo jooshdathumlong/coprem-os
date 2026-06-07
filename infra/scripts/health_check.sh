@@ -3,7 +3,7 @@
 # Auto-detects and fixes common issues (credential drift, zombie containers, webhook).
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT="$SCRIPT_DIR/.."
+ROOT="$SCRIPT_DIR/../.."
 ENV="$ROOT/.env"
 
 echo "## SYSTEM_STATE — $(date '+%Y-%m-%d %H:%M')" > /tmp/state.md
@@ -33,7 +33,13 @@ REDIS_CID=$(docker ps --filter label=coprem.service=redis -q 2>/dev/null | head 
 check "postgres" "docker exec $PG_CID pg_isready -U coprem -d coprem_os -q"
 check "redis"    "docker exec $REDIS_CID redis-cli ping" "PONG"
 LITELLM_KEY=$(grep "^LITELLM_MASTER_KEY=" "$ENV" | cut -d= -f2)
-check "litellm"  "curl -sf --max-time 5 -H 'Authorization: Bearer $LITELLM_KEY' http://localhost:4000/v1/models" "port 4000"
+LITELLM_CID=$(docker ps --filter label=coprem.service=litellm -q 2>/dev/null | head -1)
+[ -z "$LITELLM_CID" ] && LITELLM_CID=$(docker ps --filter name=litellm -q 2>/dev/null | head -1)
+if [ -n "$LITELLM_CID" ] && docker exec "$LITELLM_CID" curl -sf --max-time 5 http://localhost:4000/health/liveliness > /dev/null 2>&1; then
+  echo "| litellm | UP | port 4000 |" >> /tmp/state.md
+else
+  check "litellm"  "curl -sf --max-time 5 http://localhost:4000/health/liveliness" "port 4000"
+fi
 check "dify"     "curl -sL --max-time 5 -o /dev/null -w '%{http_code}' https://cloud.dify.ai | grep -q 200"
 
 # Postgres auth
@@ -92,17 +98,35 @@ else
   echo "| Telegram webhook | FIXED | was: $TG_WH_URL → reset to $EXPECTED_WH_PATH ($FIX_RESULT) |" >> /tmp/state.md
 fi
 
-# ── Autonomous loop PID check ─────────────────────────────────
-PID_FILE="$ROOT/03-system/logs/autonomous_loop.pid"
+# ── Autonomous loop PID check (check both canonical + legacy paths) ──────────
+PID_FILE="$ROOT/system/logs/autonomous_loop.pid"
+PID_FILE_LEGACY="$ROOT/03-system/logs/autonomous_loop.pid"
+[ ! -f "$PID_FILE" ] && [ -f "$PID_FILE_LEGACY" ] && PID_FILE="$PID_FILE_LEGACY"
+
 if [ -f "$PID_FILE" ]; then
   LOOP_PID=$(cat "$PID_FILE")
   if kill -0 "$LOOP_PID" 2>/dev/null; then
-    echo "| Autonomous Loop | UP | PID $LOOP_PID (03-system/logs/autonomous_loop.pid) |" >> /tmp/state.md
+    echo "| Autonomous Loop | UP | PID $LOOP_PID |" >> /tmp/state.md
   else
-    echo "| Autonomous Loop | DOWN | PID $LOOP_PID dead — restart with post_restart.sh |" >> /tmp/state.md
+    # PID dead — auto-restart
+    mkdir -p "$ROOT/system/logs"
+    nohup python3 "$ROOT/scripts/autonomous_loop.py" >> "$ROOT/system/logs/autonomous_loop.log" 2>&1 &
+    NEW_PID=$!
+    echo $NEW_PID > "$ROOT/system/logs/autonomous_loop.pid"
+    echo "| Autonomous Loop | RESTARTED | was dead PID $LOOP_PID → new PID $NEW_PID |" >> /tmp/state.md
   fi
 else
-  echo "| Autonomous Loop | UNKNOWN | no PID file |" >> /tmp/state.md
+  # No PID file — start loop
+  mkdir -p "$ROOT/system/logs"
+  LOOP_SCRIPT="$ROOT/scripts/autonomous_loop.py"
+  if [ -f "$LOOP_SCRIPT" ]; then
+    nohup python3 "$LOOP_SCRIPT" >> "$ROOT/system/logs/autonomous_loop.log" 2>&1 &
+    NEW_PID=$!
+    echo $NEW_PID > "$ROOT/system/logs/autonomous_loop.pid"
+    echo "| Autonomous Loop | STARTED | PID $NEW_PID |" >> /tmp/state.md
+  else
+    echo "| Autonomous Loop | UNKNOWN | no PID file, script not found |" >> /tmp/state.md
+  fi
 fi
 
 # ── Dashboard check ───────────────────────────────────────────
