@@ -1124,3 +1124,8 @@ PENDING:
 | 2026-06-07 | ROOT CAUSE: scanCategory() readFileSync 2299 files ทุก request ไม่มี cache | found |
 | 2026-06-07 | FIX: in-memory cache TTL 5min + lazy pre-warm + Cache-Control header | ✅ |
 | 2026-06-07 | RESULT: cold=4.5s → cached=33ms (136x faster) | ✅ |
+
+## 2026-06-07 — SESSION END
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-07 19:36 | SESSION END | All services UP | 10 agents deployed, 4 workflows active, KB 2299 files |
