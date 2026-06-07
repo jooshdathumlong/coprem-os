@@ -1,0 +1,403 @@
+{
+  "updatedAt": "2026-05-31T21:35:18.753Z",
+  "createdAt": "2026-05-31T21:35:18.753Z",
+  "id": "Jsiq1AR2ozMtepQb",
+  "name": "WF L1-C — Provider Router",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "l1c-route",
+        "responseMode": "responseNode"
+      },
+      "id": "5bb24b5f-d1da-4950-a9b1-d6da2b109492",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "2c8ec36b-a0ad-4425-88f7-8627747083db"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT provider, is_throttled FROM rate_limit_registry WHERE is_throttled = true;"
+      },
+      "id": "3d81d0ea-98f7-4bd8-84c2-9433bbcfa267",
+      "name": "Check Rate Limits",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "226PbeVgki0neEi4",
+          "name": "Postgres COPREM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// S3 + Phase 4: Single router, agent mode selection by domain\nconst wh = $('Webhook').first().json;\nconst input = wh.body || wh;\n\nconst TIER_MODELS = {\n  0: 'gemini-2.0-flash',\n  1: 'gemini-2.0-flash-lite',\n  2: 'groq/llama-3.3-70b',\n  3: 'ollama/llama3.1',\n};\n\nconst AGENT_MAP = { JOB: 'jeff', PERSONAL: 'eilinaire', CREATIVE: 'ego_era' };\n\n// Phase 4: Agent mode by domain\nconst DOMAIN_AGENT = {\n  'marketing': 'marketing',\n  'writing':   'writing',\n  'trading':   'trading',\n};\n\nconst SYSTEM_PROMPTS = {\n  'marketing': 'You are Jeff, COPREM Marketing Strategist. Analyze marketing opportunities, suggest campaigns, and provide data-driven insights. Reply in Thai when user writes Thai. ALWAYS propose your plan first and wait for approval before any external action.',\n  'writing':   'You are Jeff, COPREM Writing Partner. Help craft compelling content, refine prose, and maintain brand voice. Reply in Thai when user writes Thai. ALWAYS propose your draft first and wait for approval before publishing.',\n  'trading':   'You are Jeff, COPREM Market Analyst (READ-ONLY). Provide market analysis, identify opportunities, and explain risks. NEVER execute trades or provide specific trade instructions. Analyst mode only. Reply in Thai when user writes Thai.',\n  'default':   'You are Jeff, Prems INTJ AI Executive Partner. Be direct, analytical. Reply in Thai when user writes Thai.',\n};\n\nconst pillar = ((input.pillar || 'JOB').split('.')[0]).toUpperCase();\nconst domain = (input.domain || '').toLowerCase();\nconst throttled = {};\n\nfor (const row of $('Check Rate Limits').all()) {\n  if (row.json.is_throttled) throttled[row.json.provider] = true;\n}\n\nlet tier = 0;\nif (throttled['gemini-2.0-flash'] && throttled['gemini-2.0-flash-lite']) tier = 3;\nelse if (throttled['gemini-2.0-flash'] && throttled['groq/llama-3.3-70b']) tier = 3;\nelse if (throttled['gemini-2.0-flash']) tier = 2;\n\nlet selectedModel = TIER_MODELS[tier];\nif (throttled[selectedModel]) selectedModel = 'ollama/llama3.1';\n\nconst agent_mode = DOMAIN_AGENT[domain] || null;\nconst system_prompt = SYSTEM_PROMPTS[agent_mode] || SYSTEM_PROMPTS['default'];\n\nreturn [{ json: {\n  assigned_agent: AGENT_MAP[pillar] || 'jeff',\n  selected_model: selectedModel,\n  agent_mode,\n  system_prompt,\n  tier,\n  pillar,\n  domain,\n  message: input.message || '',\n  user_id: input.user_id || '',\n  context: input.context || '',\n  routed_at: new Date().toISOString()\n}}];"
+      },
+      "id": "0bc9f5b9-56f5-4767-a8af-5ec101ec9961",
+      "name": "Select Model",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO audit_log (event_type, source, payload) VALUES ('AGENT_CALLED', 'L1-C', '{{ JSON.stringify({model: $(\"Select Model\").first().json.selected_model, agent: $(\"Select Model\").first().json.assigned_agent, pillar: $(\"Select Model\").first().json.pillar}) }}'::jsonb);\nSELECT 1 AS ok;"
+      },
+      "id": "b735952f-3f30-4390-973d-75f83e3bc5a4",
+      "name": "Log to Audit",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        720,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "226PbeVgki0neEi4",
+          "name": "Postgres COPREM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://litellm:4000/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 187234854205c015f2d8379d5455a0a8"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \n  \"model\": \"{{ $('Select Model').first().json.selected_model }}\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"{{ $('Select Model').first().json.tier === 3 ? 'You are Jeff, AI assistant. Be direct and concise. Reply in Thai if user writes Thai.' : $('Select Model').first().json.system_prompt + ($('Select Model').first().json.context ? '\\\\n---\\\\n' + $('Select Model').first().json.context : '') }}\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $('Select Model').first().json.message }}\"\n    }\n  ],\n  \"max_tokens\": {{ $('Select Model').first().json.tier === 3 ? 512 : 1200 }}\n}",
+        "options": {}
+      },
+      "id": "0c470e23-cba3-477b-861d-092f743d70dd",
+      "name": "Route to Dify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ assigned_agent: $('Select Model').first().json.assigned_agent, selected_model: $('Select Model').first().json.selected_model, routed_at: $('Select Model').first().json.routed_at, dify_reply: ($json.choices && $json.choices[0]) ? $json.choices[0].message.content : '' }) }}"
+      },
+      "id": "94a82de0-c478-421c-a139-467c47d27b55",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Rate Limits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Rate Limits": {
+      "main": [
+        [
+          {
+            "node": "Select Model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Model": {
+      "main": [
+        [
+          {
+            "node": "Log to Audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to Audit": {
+      "main": [
+        [
+          {
+            "node": "Route to Dify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route to Dify": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "48d952dc-781b-47f7-a4af-aff26230fc80",
+  "activeVersionId": "48d952dc-781b-47f7-a4af-aff26230fc80",
+  "versionCounter": 1,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-31T21:35:18.753Z",
+      "createdAt": "2026-05-31T21:35:18.753Z",
+      "role": "workflow:owner",
+      "workflowId": "Jsiq1AR2ozMtepQb",
+      "projectId": "zcgfC5I8AUAr3U8J",
+      "project": {
+        "updatedAt": "2026-05-30T20:55:56.474Z",
+        "createdAt": "2026-05-30T20:51:13.491Z",
+        "id": "zcgfC5I8AUAr3U8J",
+        "name": "Jeff COPREM <jooshdathumlong@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-31T21:35:18.753Z",
+    "createdAt": "2026-05-31T21:35:18.753Z",
+    "versionId": "48d952dc-781b-47f7-a4af-aff26230fc80",
+    "workflowId": "Jsiq1AR2ozMtepQb",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "l1c-route",
+          "responseMode": "responseNode"
+        },
+        "id": "5bb24b5f-d1da-4950-a9b1-d6da2b109492",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          0,
+          0
+        ],
+        "webhookId": "2c8ec36b-a0ad-4425-88f7-8627747083db"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT provider, is_throttled FROM rate_limit_registry WHERE is_throttled = true;"
+        },
+        "id": "3d81d0ea-98f7-4bd8-84c2-9433bbcfa267",
+        "name": "Check Rate Limits",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2,
+        "position": [
+          240,
+          0
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "226PbeVgki0neEi4",
+            "name": "Postgres COPREM"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// S3 + Phase 4: Single router, agent mode selection by domain\nconst wh = $('Webhook').first().json;\nconst input = wh.body || wh;\n\nconst TIER_MODELS = {\n  0: 'gemini-2.0-flash',\n  1: 'gemini-2.0-flash-lite',\n  2: 'groq/llama-3.3-70b',\n  3: 'ollama/llama3.1',\n};\n\nconst AGENT_MAP = { JOB: 'jeff', PERSONAL: 'eilinaire', CREATIVE: 'ego_era' };\n\n// Phase 4: Agent mode by domain\nconst DOMAIN_AGENT = {\n  'marketing': 'marketing',\n  'writing':   'writing',\n  'trading':   'trading',\n};\n\nconst SYSTEM_PROMPTS = {\n  'marketing': 'You are Jeff, COPREM Marketing Strategist. Analyze marketing opportunities, suggest campaigns, and provide data-driven insights. Reply in Thai when user writes Thai. ALWAYS propose your plan first and wait for approval before any external action.',\n  'writing':   'You are Jeff, COPREM Writing Partner. Help craft compelling content, refine prose, and maintain brand voice. Reply in Thai when user writes Thai. ALWAYS propose your draft first and wait for approval before publishing.',\n  'trading':   'You are Jeff, COPREM Market Analyst (READ-ONLY). Provide market analysis, identify opportunities, and explain risks. NEVER execute trades or provide specific trade instructions. Analyst mode only. Reply in Thai when user writes Thai.',\n  'default':   'You are Jeff, Prems INTJ AI Executive Partner. Be direct, analytical. Reply in Thai when user writes Thai.',\n};\n\nconst pillar = ((input.pillar || 'JOB').split('.')[0]).toUpperCase();\nconst domain = (input.domain || '').toLowerCase();\nconst throttled = {};\n\nfor (const row of $('Check Rate Limits').all()) {\n  if (row.json.is_throttled) throttled[row.json.provider] = true;\n}\n\nlet tier = 0;\nif (throttled['gemini-2.0-flash'] && throttled['gemini-2.0-flash-lite']) tier = 3;\nelse if (throttled['gemini-2.0-flash'] && throttled['groq/llama-3.3-70b']) tier = 3;\nelse if (throttled['gemini-2.0-flash']) tier = 2;\n\nlet selectedModel = TIER_MODELS[tier];\nif (throttled[selectedModel]) selectedModel = 'ollama/llama3.1';\n\nconst agent_mode = DOMAIN_AGENT[domain] || null;\nconst system_prompt = SYSTEM_PROMPTS[agent_mode] || SYSTEM_PROMPTS['default'];\n\nreturn [{ json: {\n  assigned_agent: AGENT_MAP[pillar] || 'jeff',\n  selected_model: selectedModel,\n  agent_mode,\n  system_prompt,\n  tier,\n  pillar,\n  domain,\n  message: input.message || '',\n  user_id: input.user_id || '',\n  context: input.context || '',\n  routed_at: new Date().toISOString()\n}}];"
+        },
+        "id": "0bc9f5b9-56f5-4767-a8af-5ec101ec9961",
+        "name": "Select Model",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          480,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO audit_log (event_type, source, payload) VALUES ('AGENT_CALLED', 'L1-C', '{{ JSON.stringify({model: $(\"Select Model\").first().json.selected_model, agent: $(\"Select Model\").first().json.assigned_agent, pillar: $(\"Select Model\").first().json.pillar}) }}'::jsonb);\nSELECT 1 AS ok;"
+        },
+        "id": "b735952f-3f30-4390-973d-75f83e3bc5a4",
+        "name": "Log to Audit",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2,
+        "position": [
+          720,
+          0
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "226PbeVgki0neEi4",
+            "name": "Postgres COPREM"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://litellm:4000/v1/chat/completions",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "Bearer 187234854205c015f2d8379d5455a0a8"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={ \n  \"model\": \"{{ $('Select Model').first().json.selected_model }}\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"{{ $('Select Model').first().json.tier === 3 ? 'You are Jeff, AI assistant. Be direct and concise. Reply in Thai if user writes Thai.' : $('Select Model').first().json.system_prompt + ($('Select Model').first().json.context ? '\\\\n---\\\\n' + $('Select Model').first().json.context : '') }}\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $('Select Model').first().json.message }}\"\n    }\n  ],\n  \"max_tokens\": {{ $('Select Model').first().json.tier === 3 ? 512 : 1200 }}\n}",
+          "options": {}
+        },
+        "id": "0c470e23-cba3-477b-861d-092f743d70dd",
+        "name": "Route to Dify",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          960,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify({ assigned_agent: $('Select Model').first().json.assigned_agent, selected_model: $('Select Model').first().json.selected_model, routed_at: $('Select Model').first().json.routed_at, dify_reply: ($json.choices && $json.choices[0]) ? $json.choices[0].message.content : '' }) }}"
+        },
+        "id": "94a82de0-c478-421c-a139-467c47d27b55",
+        "name": "Respond",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          1200,
+          0
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Check Rate Limits",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Rate Limits": {
+        "main": [
+          [
+            {
+              "node": "Select Model",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Select Model": {
+        "main": [
+          [
+            {
+              "node": "Log to Audit",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Log to Audit": {
+        "main": [
+          [
+            {
+              "node": "Route to Dify",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Route to Dify": {
+        "main": [
+          [
+            {
+              "node": "Respond",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Jeff COPREM",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-31T21:35:18.785Z",
+        "id": 107,
+        "workflowId": "Jsiq1AR2ozMtepQb",
+        "versionId": "48d952dc-781b-47f7-a4af-aff26230fc80",
+        "event": "activated",
+        "userId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      }
+    ]
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "name": "WF07 — Feedback Collector",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "id": "tg-trigger-fb",
+      "name": "Telegram Trigger — Feedback",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "credentials": {"telegramApi": {"id": "bekevyLkkiivHo0L", "name": "Telegram Bot"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "const msg = $json.message?.text || '';\nconst userId = $json.message?.from?.id;\n\n// Match /rate N or ⭐ count (1-5)\nconst rateMatch = msg.match(/\\/rate\\s+([1-5])/i) || msg.match(/(⭐{1,5})/);\nif (!rateMatch) return null; // not a feedback message\n\nlet score;\nif (rateMatch[1] && /^[1-5]$/.test(rateMatch[1])) {\n  score = parseInt(rateMatch[1]);\n} else if (rateMatch[1]) {\n  score = rateMatch[1].length; // count stars\n}\n\nconst flagged = score < 3;\nreturn {\n  score,\n  flagged,\n  user_id: userId,\n  raw_message: msg,\n  is_feedback: true\n};"
+      },
+      "id": "parse-rating",
+      "name": "Code — Parse Rating",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [{"id": "is-feedback", "leftValue": "={{ $json.is_feedback }}", "rightValue": true, "operator": {"type": "boolean", "operation": "equals"}}],
+          "combinator": "and"
+        }
+      },
+      "id": "check-is-feedback",
+      "name": "Is Feedback?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO task_board (pillar, task_desc, assigned_agent, status, feedback_score, created_at)\nVALUES ('FEEDBACK', 'User rating: {{ $json.score }}/5', 'jeff', CASE WHEN {{ $json.flagged }} THEN 'flagged' ELSE 'ok' END, {{ $json.score }}, NOW())\nRETURNING id, feedback_score, status;"
+      },
+      "id": "save-feedback",
+      "name": "Postgres — Save Feedback",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [900, 200],
+      "credentials": {"postgres": {"id": "WubLzl6gzdGXf2QQ", "name": "Postgres coprem_os"}}
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO audit_log (event_type, source, payload, timestamp)\nVALUES ('FEEDBACK_RECEIVED', 'telegram', '{\"score\": {{ $('Code — Parse Rating').item.json.score }}, \"flagged\": {{ $('Code — Parse Rating').item.json.flagged }}}'::jsonb, NOW());"
+      },
+      "id": "audit-feedback",
+      "name": "L7 — Audit FEEDBACK_RECEIVED",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [900, 360],
+      "credentials": {"postgres": {"id": "WubLzl6gzdGXf2QQ", "name": "Postgres coprem_os"}}
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger — Feedback').item.json.message.chat.id }}",
+        "text": "={{ $('Code — Parse Rating').item.json.flagged ? '⚠️ Noted — score ' + $('Code — Parse Rating').item.json.score + '/5 flagged for review.' : '✅ Thanks! Score ' + $('Code — Parse Rating').item.json.score + '/5 recorded.' }}",
+        "additionalFields": {}
+      },
+      "id": "reply-ack",
+      "name": "Telegram — Acknowledge",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1140, 280],
+      "credentials": {"telegramApi": {"id": "bekevyLkkiivHo0L", "name": "Telegram Bot"}}
+    }
+  ],
+  "connections": {
+    "Telegram Trigger — Feedback": {"main": [[{"node": "Code — Parse Rating", "type": "main", "index": 0}]]},
+    "Code — Parse Rating": {"main": [[{"node": "Is Feedback?", "type": "main", "index": 0}]]},
+    "Is Feedback?": {
+      "main": [
+        [
+          {"node": "Postgres — Save Feedback", "type": "main", "index": 0},
+          {"node": "L7 — Audit FEEDBACK_RECEIVED", "type": "main", "index": 0}
+        ],
+        []
+      ]
+    },
+    "Postgres — Save Feedback": {"main": [[{"node": "Telegram — Acknowledge", "type": "main", "index": 0}]]},
+    "L7 — Audit FEEDBACK_RECEIVED": {"main": [[{"node": "Telegram — Acknowledge", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"}
+}

@@ -1,0 +1,343 @@
+{
+  "updatedAt": "2026-05-30T21:05:35.869Z",
+  "createdAt": "2026-05-30T21:03:39.338Z",
+  "id": "XOwT8imiSTKWDJDf",
+  "name": "WF06 — Health Ping",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "Every 6h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 */6 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "n2",
+      "name": "Check n8n",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        200
+      ],
+      "parameters": {
+        "url": "http://localhost:5678/healthz",
+        "method": "GET",
+        "options": {}
+      }
+    },
+    {
+      "id": "n3",
+      "name": "Check Dify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        400
+      ],
+      "parameters": {
+        "url": "https://api.dify.ai/v1/info",
+        "method": "GET",
+        "options": {}
+      }
+    },
+    {
+      "id": "n4",
+      "name": "Evaluate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const ok=$('Check n8n').first().json.status==='ok';\nreturn [{json:{ok,msg:ok?'✅ Coprem alive':'🔴 ALERT: down'}}];"
+      }
+    },
+    {
+      "id": "n5",
+      "name": "Notify",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        920,
+        300
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "chatId": "7731591925",
+        "text": "={{ $json.msg }} | {{ $now.toISO() }}"
+      },
+      "webhookId": "e41b430f-508d-4035-a79e-5745ea053ca2"
+    }
+  ],
+  "connections": {
+    "Every 6h": {
+      "main": [
+        [
+          {
+            "node": "Check n8n",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Dify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check n8n": {
+      "main": [
+        [
+          {
+            "node": "Evaluate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Dify": {
+      "main": [
+        [
+          {
+            "node": "Evaluate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate": {
+      "main": [
+        [
+          {
+            "node": "Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": null,
+  "staticData": {
+    "node:Every 6h": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "a28611b6-6e1b-4018-b630-a225376c978b",
+  "activeVersionId": "a28611b6-6e1b-4018-b630-a225376c978b",
+  "versionCounter": 1,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-30T21:03:39.338Z",
+      "createdAt": "2026-05-30T21:03:39.338Z",
+      "role": "workflow:owner",
+      "workflowId": "XOwT8imiSTKWDJDf",
+      "projectId": "zcgfC5I8AUAr3U8J",
+      "project": {
+        "updatedAt": "2026-05-30T20:55:56.474Z",
+        "createdAt": "2026-05-30T20:51:13.491Z",
+        "id": "zcgfC5I8AUAr3U8J",
+        "name": "Jeff COPREM <jooshdathumlong@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      }
+    }
+  ],
+  "tags": [],
+  "parentFolder": null,
+  "activeVersion": {
+    "updatedAt": "2026-05-30T21:03:39.338Z",
+    "createdAt": "2026-05-30T21:03:39.338Z",
+    "versionId": "a28611b6-6e1b-4018-b630-a225376c978b",
+    "workflowId": "XOwT8imiSTKWDJDf",
+    "nodes": [
+      {
+        "id": "n1",
+        "name": "Every 6h",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          200,
+          300
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 */6 * * *"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "n2",
+        "name": "Check n8n",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          440,
+          200
+        ],
+        "parameters": {
+          "url": "http://localhost:5678/healthz",
+          "method": "GET",
+          "options": {}
+        }
+      },
+      {
+        "id": "n3",
+        "name": "Check Dify",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          440,
+          400
+        ],
+        "parameters": {
+          "url": "https://api.dify.ai/v1/info",
+          "method": "GET",
+          "options": {}
+        }
+      },
+      {
+        "id": "n4",
+        "name": "Evaluate",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          680,
+          300
+        ],
+        "parameters": {
+          "jsCode": "const ok=$('Check n8n').first().json.status==='ok';\nreturn [{json:{ok,msg:ok?'✅ Coprem alive':'🔴 ALERT: down'}}];"
+        }
+      },
+      {
+        "id": "n5",
+        "name": "Notify",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          920,
+          300
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "7731591925",
+          "text": "={{ $json.msg }} | {{ $now.toISO() }}"
+        },
+        "webhookId": "e41b430f-508d-4035-a79e-5745ea053ca2"
+      }
+    ],
+    "connections": {
+      "Every 6h": {
+        "main": [
+          [
+            {
+              "node": "Check n8n",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Check Dify",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check n8n": {
+        "main": [
+          [
+            {
+              "node": "Evaluate",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Dify": {
+        "main": [
+          [
+            {
+              "node": "Evaluate",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Evaluate": {
+        "main": [
+          [
+            {
+              "node": "Notify",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Jeff COPREM",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": []
+  },
+  "scopes": [
+    "workflow:create",
+    "workflow:delete",
+    "workflow:execute",
+    "workflow:execute-chat",
+    "workflow:list",
+    "workflow:move",
+    "workflow:publish",
+    "workflow:read",
+    "workflow:share",
+    "workflow:unpublish",
+    "workflow:unshare",
+    "workflow:update",
+    "workflow:updateRedactionSetting"
+  ],
+  "checksum": "bf860464cd4456c33098204ba8fe29e7b2fc2ce64fbb0f0b056dc4c2a107d54d"
+}

@@ -1,0 +1,128 @@
+services:
+
+  # ── n8n: Workflow Orchestration (Module 3) ──────────────────
+  n8n:
+    image: n8nio/n8n:latest
+    restart: unless-stopped
+    labels:
+      - "coprem.service=n8n"
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_SECURE_COOKIE=false
+      - WEBHOOK_URL=https://n8n.peabuntid.com
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=coprem
+      - DB_POSTGRESDB_USER=coprem
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - GENERIC_TIMEZONE=Asia/Bangkok
+      - TZ=Asia/Bangkok
+      - EILINAIRE_GOOGLE_API_KEY=${EILINAIRE_GOOGLE_API_KEY}
+      - JOOSHDATHUMLONG_GOOGLE_API_KEY=${JOOSHDATHUMLONG_GOOGLE_API_KEY}
+      - MAHITTISAK_GOOGLE_API_KEY=${MAHITTISAK_GOOGLE_API_KEY}
+      - SUNSETSOL_GOOGLE_API_KEY=${SUNSETSOL_GOOGLE_API_KEY}
+      - RLIE_GOOGLE_API_KEY=${RLIE_GOOGLE_API_KEY}
+      - PEABANTID_GOOGLE_API_KEY=${PEABANTID_GOOGLE_API_KEY}
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - COPREM_ENV=${COPREM_ENV}
+    volumes:
+      - ./data/n8n:/home/node/.n8n
+      - ./03-system/workflows/exports:/home/node/exports:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - coprem-internal
+
+  # ── PostgreSQL: Two databases ─────────────────────────────────
+  # coprem    → n8n internal tables
+  # coprem_os → COPREM application tables (users, inbox_log, etc.)
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    labels:
+      - "coprem.service=postgres"
+    environment:
+      - POSTGRES_DB=coprem
+      - POSTGRES_USER=coprem
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+      - ./03-system/database/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coprem -d coprem"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - coprem-internal
+
+  # ── Redis: L1.5 Session Context Manager ─────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    labels:
+      - "coprem.service=redis"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - ./data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - coprem-internal
+
+  # ── LiteLLM: Multi-key Gemini Proxy ─────────────────────────
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
+      - EILINAIRE_GOOGLE_API_KEY=${EILINAIRE_GOOGLE_API_KEY}
+      - JOOSHDATHUMLONG_GOOGLE_API_KEY=${JOOSHDATHUMLONG_GOOGLE_API_KEY}
+      - MAHITTISAK_GOOGLE_API_KEY=${MAHITTISAK_GOOGLE_API_KEY}
+      - SUNSETSOL_GOOGLE_API_KEY=${SUNSETSOL_GOOGLE_API_KEY}
+      - RLIE_GOOGLE_API_KEY=${RLIE_GOOGLE_API_KEY}
+      - PEABANTID_GOOGLE_API_KEY=${PEABANTID_GOOGLE_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - UI_USERNAME=${UI_USERNAME}
+      - UI_PASSWORD=${UI_PASSWORD}
+      - DATABASE_URL=postgresql://coprem:${POSTGRES_PASSWORD}@postgres:5432/litellm
+      - LITELLM_DROP_PARAMS=true
+    volumes:
+      - ./litellm/config.yaml:/app/config.yaml:ro
+    networks:
+      - coprem-internal
+
+  # ── Cloudflared: Named Tunnel (Cloudflare Zero Trust) ───────
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    environment:
+      - CLOUDFLARE_TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - n8n
+    networks:
+      - coprem-internal
+
+networks:
+  coprem-internal:
+    driver: bridge
+
+volumes:
+  data:

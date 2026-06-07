@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COPREM — Command Center</title>
+<style>
+:root {
+  --bg: #080810;
+  --s1: #0f0f1a;
+  --s2: #161625;
+  --s3: #1e1e30;
+  --border: #252540;
+  --border2: #303050;
+  --accent: #7c6dfa;
+  --accent2: #f06292;
+  --accent3: #00e5a0;
+  --yellow: #ffd166;
+  --red: #ff4d6d;
+  --blue: #4fc3f7;
+  --text: #e8e8f5;
+  --text2: #7777a0;
+  --text3: #4a4a6a;
+  --r: 10px;
+  --r-sm: 7px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:13px;}
+
+/* ─── SCROLLBARS ─── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* ─── LAYOUT ─── */
+.shell{display:grid;grid-template-rows:52px 1fr;height:100vh;}
+.body{display:grid;grid-template-columns:240px 1fr 360px;overflow:hidden;}
+
+/* ─── TOPBAR ─── */
+topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;background:var(--s1);border-bottom:1px solid var(--border);
+  position:relative;z-index:10;
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-logo{
+  width:32px;height:32px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:#fff;letter-spacing:-0.5px;
+}
+.brand h1{font-size:14px;font-weight:700;letter-spacing:.3px;}
+.brand span{font-size:10px;color:var(--text2);letter-spacing:.8px;}
+
+.sys-pills{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.pill{
+  display:flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:20px;
+  font-size:10px;font-weight:600;letter-spacing:.3px;
+  border:1px solid;
+}
+.pill-ok{background:rgba(0,229,160,.08);color:var(--accent3);border-color:rgba(0,229,160,.2);}
+.pill-warn{background:rgba(255,209,102,.08);color:var(--yellow);border-color:rgba(255,209,102,.2);}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.top-right{display:flex;align-items:center;gap:16px;}
+.clock{text-align:right;}
+.clock .t{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:1px;}
+.clock .d{font-size:10px;color:var(--text2);}
+
+/* ─── LEFT NAV ─── */
+leftnav{
+  display:flex;flex-direction:column;
+  background:var(--s1);border-right:1px solid var(--border);
+  overflow-y:auto;
+}
+.nav-section{padding:14px 12px 6px;}
+.nav-label{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;padding:0 6px 8px;}
+.nav-item{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 10px;border-radius:var(--r-sm);
+  cursor:pointer;transition:.15s;color:var(--text2);
+  border:1px solid transparent;
+  margin-bottom:2px;
+}
+.nav-item:hover{background:var(--s2);color:var(--text);}
+.nav-item.active{background:rgba(124,109,250,.12);color:var(--accent);border-color:rgba(124,109,250,.25);}
+.nav-item .icon{font-size:14px;width:20px;text-align:center;flex-shrink:0;}
+.nav-item .label{font-size:12px;line-height:1.3;}
+.nav-item .sub{font-size:10px;color:var(--text3);line-height:1;}
+.nav-group{margin-left:14px;border-left:1px solid var(--border);padding-left:8px;}
+
+.divider{height:1px;background:var(--border);margin:6px 12px;}
+
+/* ─── CENTER PANEL ─── */
+center-panel{
+  display:flex;flex-direction:column;overflow:hidden;background:var(--bg);
+}
+
+/* ─── TASK TABLE ─── */
+.task-table-wrap{
+  background:var(--s1);border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.task-table-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 18px;border-bottom:1px solid var(--border);
+}
+.task-table-header h3{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;}
+.task-count{font-size:10px;color:var(--text3);}
+table{width:100%;border-collapse:collapse;}
+th{
+  text-align:left;padding:7px 14px;
+  font-size:9px;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:1px;
+  border-bottom:1px solid var(--border);background:var(--s1);
+}
+td{padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.02);}
+.pri-badge{
+  padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;white-space:nowrap;
+}
+.pri-now{background:rgba(255,77,109,.15);color:var(--red);}
+.pri-q{background:rgba(124,109,250,.15);color:var(--accent);}
+.pri-hold{background:rgba(119,119,160,.1);color:var(--text2);}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;}
+.s-live{background:var(--accent3);}
+.s-pending{background:var(--yellow);}
+.s-blocked{background:var(--red);}
+.dice-chip{
+  font-size:11px;font-weight:700;color:var(--accent);
+  background:rgba(124,109,250,.1);border-radius:5px;padding:2px 6px;
+}
+
+/* ─── CONTENT VIEWER ─── */
+.content-area{flex:1;overflow-y:auto;padding:24px 28px;}
+.viewer-header{
+  display:flex;align-items:center;gap:10px;margin-bottom:20px;
+  padding-bottom:14px;border-bottom:1px solid var(--border);
+}
+.viewer-icon{font-size:24px;}
+.viewer-title h2{font-size:18px;font-weight:700;}
+.viewer-title p{font-size:12px;color:var(--text2);margin-top:2px;}
+.kb-tag{
+  font-size:10px;font-weight:700;padding:3px 9px;border-radius:8px;
+  background:rgba(124,109,250,.15);color:var(--accent);margin-left:auto;
+}
+
+.content-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.content-card{
+  background:var(--s1);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px;transition:.15s;cursor:default;
+}
+.content-card:hover{border-color:var(--border2);}
+.card-tag{
+  font-size:9px;font-weight:700;color:var(--accent);letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.card-title{font-size:14px;font-weight:600;margin-bottom:8px;line-height:1.3;}
+.card-body{font-size:12px;color:var(--text2);line-height:1.65;}
+.card-body li{margin-left:14px;margin-bottom:3px;}
+.card-body strong{color:var(--text);}
+.card-body ul{margin-top:4px;}
+
+.checklist{display:flex;flex-direction:column;gap:5px;margin-top:6px;}
+.check-item{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:12px;color:var(--text2);padding:5px 0;
+  border-bottom:1px solid var(--border);
+}
+.check-item:last-child{border-bottom:none;}
+.check-box{
+  width:16px;height:16px;border-radius:4px;
+  border:1.5px solid var(--border2);flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:.15s;
+}
+.check-box.done{background:var(--accent);border-color:var(--accent);color:#fff;font-size:10px;}
+
+.rule-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:8px 10px;border-radius:var(--r-sm);
+  background:var(--s2);margin-bottom:6px;font-size:12px;color:var(--text2);
+}
+.rule-num{
+  font-size:10px;font-weight:700;color:var(--accent);
+  background:rgba(124,109,250,.15);border-radius:4px;
+  padding:2px 6px;flex-shrink:0;
+}
+
+.home-view{display:block;}
+.home-view .hidden{display:none;}
+
+/* ─── RIGHT: JEFF CHAT ─── */
+chat-panel{
+  display:flex;flex-direction:column;
+  background:var(--s1);border-left:1px solid var(--border);
+}
+.chat-top{
+  padding:14px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+  background:var(--s1);
+}
+.jeff-av{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,rgba(124,109,250,.4),rgba(240,98,146,.4));
+  border:1px solid rgba(124,109,250,.4);
+  display:flex;align-items:center;justify-content:center;font-size:17px;
+  flex-shrink:0;
+}
+.jeff-info h3{font-size:13px;font-weight:600;}
+.jeff-info p{font-size:10px;color:var(--text2);}
+.model-tag{
+  margin-left:auto;font-size:9px;font-weight:600;
+  padding:3px 8px;border-radius:8px;
+  background:rgba(0,229,160,.08);color:var(--accent3);
+  border:1px solid rgba(0,229,160,.15);
+}
+
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
+.msg{display:flex;gap:8px;max-width:92%;animation:msgIn .25s ease;}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{align-self:flex-end;flex-direction:row-reverse;}
+.msg-av{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;margin-top:2px;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+}
+.msg.jeff .msg-av{background:rgba(124,109,250,.15);border:1px solid rgba(124,109,250,.3);}
+.msg.user .msg-av{background:var(--s3);border:1px solid var(--border2);}
+.msg-bubble{padding:10px 14px;border-radius:14px;font-size:12px;line-height:1.6;}
+.msg.jeff .msg-bubble{background:var(--s2);border:1px solid var(--border);border-top-left-radius:4px;}
+.msg.user .msg-bubble{background:linear-gradient(135deg,var(--accent),#9b8efb);border-top-right-radius:4px;color:#fff;}
+.msg-time{font-size:9px;color:var(--text3);margin-top:3px;}
+.msg.user .msg-time{text-align:right;}
+
+.typing-row{display:flex;gap:8px;align-items:center;}
+.typing-dots{display:flex;gap:3px;padding:10px 14px;background:var(--s2);border-radius:14px;border-top-left-radius:4px;}
+.typing-dots span{width:5px;height:5px;background:var(--text2);border-radius:50%;animation:td 1.2s infinite;}
+.typing-dots span:nth-child(2){animation-delay:.2s;}
+.typing-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes td{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+
+.chat-footer{
+  padding:12px 14px;border-top:1px solid var(--border);
+  display:flex;flex-direction:column;gap:8px;
+}
+.quick-cmds{display:flex;gap:5px;flex-wrap:wrap;}
+.qcmd{
+  font-size:10px;padding:4px 9px;border-radius:8px;
+  background:var(--s2);border:1px solid var(--border);
+  color:var(--text2);cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.qcmd:hover{border-color:var(--accent);color:var(--accent);}
+.input-row{display:flex;gap:8px;align-items:flex-end;}
+.chat-input{
+  flex:1;background:var(--s2);border:1px solid var(--border);
+  border-radius:10px;padding:10px 13px;color:var(--text);font-size:12px;
+  resize:none;min-height:38px;max-height:100px;outline:none;font-family:inherit;
+  transition:.15s;
+}
+.chat-input:focus{border-color:var(--accent);}
+.chat-input::placeholder{color:var(--text3);}
+.send-btn{
+  width:38px;height:38px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),#9b8efb);
+  border:none;border-radius:10px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:.15s;
+}
+.send-btn:hover{opacity:.85;transform:scale(1.05);}
+.send-btn:active{transform:scale(.96);}
+.send-btn svg{width:16px;height:16px;fill:white;}
+
+/* ─── WEBHOOK CONFIG ─── */
+.webhook-bar{
+  display:flex;align-items:center;gap:6px;padding:0 14px 10px;
+}
+.webhook-input{
+  flex:1;background:var(--bg);border:1px solid var(--border);
+  border-radius:6px;padding:5px 10px;color:var(--text2);font-size:10px;
+  outline:none;font-family:inherit;
+}
+.webhook-input:focus{border-color:var(--accent);}
+.webhook-label{font-size:9px;color:var(--text3);white-space:nowrap;}
+
+/* ─── ANIMATIONS ─── */
+.fade-in{animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ═══ TOPBAR ═══ -->
+<topbar>
+  <div class="brand">
+    <div class="brand-logo">C</div>
+    <div>
+      <h1>COPREM OS</h1>
+      <span>COMMAND CENTER</span>
+    </div>
+  </div>
+
+  <div class="sys-pills">
+    <div class="pill pill-ok"><div class="dot"></div>n8n UP</div>
+    <div class="pill pill-ok"><div class="dot"></div>Postgres</div>
+    <div class="pill pill-ok"><div class="dot"></div>Redis PONG</div>
+    <div class="pill pill-ok"><div class="dot"></div>LiteLLM :4000</div>
+    <div class="pill pill-ok"><div class="dot"></div>Dify</div>
+    <div class="pill pill-ok"><div class="dot"></div>Telegram OK</div>
+    <div class="pill pill-warn" id="costPill"><div class="dot"></div>Cost $0.15</div>
+  </div>
+
+  <div class="top-right">
+    <div class="clock">
+      <div class="t" id="clk">--:--:--</div>
+      <div class="d" id="clkd">---</div>
+    </div>
+  </div>
+</topbar>
+
+<!-- ═══ BODY ═══ -->
+<div class="body">
+
+<!-- ─── LEFT NAV ─── -->
+<leftnav>
+  <div class="nav-section">
+    <div class="nav-label">📊 Dashboard</div>
+    <div class="nav-item active" onclick="showView('home')" id="nav-home">
+      <span class="icon">🏠</span>
+      <div><div class="label">ภาพรวม</div><div class="sub">Task + Status</div></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="nav-section">
+    <div class="nav-label">📚 คอร์สเรียน (AI จัดหมวด)</div>
+    <div class="nav-item" onclick="showView('learn-lang')" id="nav-learn-lang">
+      <span class="icon">🗣️</span>
+      <div><div class="label">ภาษาอังกฤษธุรกิจ</div><div class="sub">Business English</div></div>
+    </div>
+    <div class="nav-item" onclick="showView('learn-marketing')" id="nav-learn-marketing">
+      <span class="icon">📣</span>
+      <div><div class="label">Marketing & Sales</div><div class="sub">AIDA · 7Ps · SLA</div></div>
+    </div>
+    <div class="nav-item" onclick="showView('learn-trading')" id="nav-learn-trading">
+      <span class="icon">📈</span>
+      <div><div class="label">Trading Rules</div><div class="sub">Risk · Setup · Psych</div></div>
+    </div>
+    <div class="nav-item" onclick="showView('learn-mindset')" id="nav-learn-mindset">
+      <span class="icon">🧠</span>
+      <div><div class="label">Mindset SSOT</div><div class="sub">Binary · Focus · Energy</div></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="nav-section">
+    <div class="nav-label">🗂️ โปรเจกต์</div>
+    <div class="nav-item" onclick="showView('proj-peabuntid')" id="nav-proj-peabuntid">
+      <span class="icon">🌿</span>
+      <div><div class="label">Peabuntid</div><div class="sub">Product · Sitemap</div></div>
+    </div>
+    <div class="nav-item" onclick="showView('proj-eilinaire')" id="nav-proj-eilinaire">
+      <span class="icon">✨</span>
+      <div><div class="label">Eilinaire</div><div class="sub">Brand · Architecture</div></div>
+    </div>
+    <div class="nav-item" onclick="showView('proj-wf01')" id="nav-proj-wf01">
+      <span class="icon">⚙️</span>
+      <div><div class="label">WF01 Pipeline</div><div class="sub">24 nodes · Exec 159</div></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="nav-section">
+    <div class="nav-label">📋 System</div>
+    <div class="nav-item" onclick="showView('log')" id="nav-log">
+      <span class="icon">🔍</span>
+      <div><div class="label">Event Log</div><div class="sub">Session 6 · Bug log</div></div>
+    </div>
+  </div>
+</leftnav>
+
+<!-- ─── CENTER PANEL ─── -->
+<center-panel>
+
+  <!-- TASK TABLE (always visible) -->
+  <div class="task-table-wrap">
+    <div class="task-table-header">
+      <h3>📌 Task Pipeline — DICE Priority</h3>
+      <span class="task-count">4 tasks · 1 Active</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Domain</th>
+            <th>DICE</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Gate / Progress</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>WF01 stability — 1-week no-error</strong></td>
+            <td>JOB</td>
+            <td><span class="dice-chip">7</span></td>
+            <td><span class="pri-badge pri-now">NOW</span></td>
+            <td><span class="status-dot s-live"></span>Active</td>
+            <td>Day <strong>1</strong> / 7</td>
+          </tr>
+          <tr>
+            <td>Feedback score tracking (10 tasks)</td>
+            <td>JOB</td>
+            <td><span class="dice-chip">5</span></td>
+            <td><span class="pri-badge pri-q">QUEUE</span></td>
+            <td><span class="status-dot s-pending"></span>In Progress</td>
+            <td>3 / 10 done</td>
+          </tr>
+          <tr>
+            <td>Blueprint v8.3 spec draft</td>
+            <td>JOB</td>
+            <td><span class="dice-chip">3</span></td>
+            <td><span class="pri-badge pri-hold">DEFER</span></td>
+            <td><span class="status-dot s-blocked"></span>Gated</td>
+            <td>Wait: WF01 stable 1wk</td>
+          </tr>
+          <tr>
+            <td>PERSONAL pillar activation</td>
+            <td>PERSONAL</td>
+            <td><span class="dice-chip">2</span></td>
+            <td><span class="pri-badge pri-hold">DEFER</span></td>
+            <td><span class="status-dot s-blocked"></span>Suspended</td>
+            <td>Score > 4.0 required</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CONTENT VIEWER -->
+  <div class="content-area" id="contentArea">
+
+    <!-- HOME VIEW -->
+    <div id="view-home" class="fade-in">
+      <div class="viewer-header">
+        <div class="viewer-icon">🏠</div>
+        <div class="viewer-title">
+          <h2>ภาพรวม — COPREM OS</h2>
+          <p>Session 6 · 2026-06-01 · WF01 Live · 24 nodes · Exec 159 ✅</p>
+        </div>
+        <span class="kb-tag">SYSTEM STATE</span>
+      </div>
+      <div class="content-grid">
+        <div class="content-card">
+          <div class="card-tag">⚡ Services</div>
+          <div class="card-title">Infrastructure — All UP</div>
+          <div class="card-body">
+            <ul>
+              <li><strong>n8n</strong> — WF01 running, 24 nodes</li>
+              <li><strong>Postgres</strong> — auth OK</li>
+              <li><strong>Redis</strong> — PONG</li>
+              <li><strong>LiteLLM</strong> — port 4000 live</li>
+              <li><strong>Dify</strong> — KB 5 sources active</li>
+              <li><strong>Telegram webhook</strong> — OK @ n8n.peabuntid.com</li>
+            </ul>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">📊 Session Metrics</div>
+          <div class="card-title">Session 6 — L3 KB Retrieval Live</div>
+          <div class="card-body">
+            <ul>
+              <li><strong>Executions:</strong> 159 (all success)</li>
+              <li><strong>KB Sources:</strong> 5 (segments verified)</li>
+              <li><strong>Active Model:</strong> Ollama Tier 3</li>
+              <li><strong>Fallback:</strong> llama3.1:8b / qwen2.5:7b</li>
+              <li><strong>Cost today:</strong> $0.15 / $1.00 limit</li>
+              <li><strong>WF01:</strong> Day 1/7 stability window</li>
+            </ul>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">🏛️ Pillar Progress</div>
+          <div class="card-title">JOB Pillar — Active Only</div>
+          <div class="card-body" style="margin-top:8px;">
+            <div style="margin-bottom:10px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>WF01 Stability</span><span style="color:var(--accent)">1/7 days</span></div>
+              <div style="background:var(--border);border-radius:4px;height:5px;"><div style="width:14%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>Feedback Tasks</span><span style="color:var(--yellow)">3/10</span></div>
+              <div style="background:var(--border);border-radius:4px;height:5px;"><div style="width:30%;height:100%;background:linear-gradient(90deg,var(--yellow),var(--accent));border-radius:4px;"></div></div>
+            </div>
+            <div style="margin-top:10px;font-size:11px;color:var(--text3);">PERSONAL / CREATIVE — suspended until JOB unlocked</div>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">🚧 Active Gates</div>
+          <div class="card-title">Architecture Constraints</div>
+          <div class="card-body">
+            <ul>
+              <li><strong>Gate:</strong> WF01 end-to-end before new feature</li>
+              <li><strong>No-Spec:</strong> No Blueprint v8.3+ until 1wk stable</li>
+              <li><strong>Job-First:</strong> 3mo window — JOB+PERSONAL only</li>
+              <li><strong>Deferred:</strong> Next.js Dashboard, Discord, Big Tech DNA</li>
+              <li><strong>Cost T1:</strong> >$1/day → Gemini Pro</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENGLISH VIEW -->
+    <div id="view-learn-lang" style="display:none;" class="fade-in">
+      <div class="viewer-header">
+        <div class="viewer-icon">🗣️</div>
+        <div class="viewer-title">
+          <h2>ภาษาอังกฤษธุรกิจ</h2>
+          <p>Business English — AI จัดหมวดหมู่จาก learning_ssot.md</p>
+        </div>
+        <span class="kb-tag">KB-LEARN</span>
+      </div>
+      <div class="content-grid">
+        <div class="content-card">
+          <div class="card-tag">📖 Grammar & Mechanics</div>
+          <div class="card-title">โครงสร้างภาษา</div>
+          <div class="card-body">
+            <ul>
+              <li><strong>Parts of Speech:</strong> Nouns · Pronouns · Verbs · Adj · Adv · Prep · Conj</li>
+              <li><strong>Sentence:</strong> Subject + Verb + Object + Modifiers</li>
+              <li><strong>Tenses:</strong> Present / Past / Future / Perfect / Continuous / Passive</li>
+              <li><strong>5W1H:</strong> Who · What · Where · When · Why · How</li>
+            </ul>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">💼 Business Communication</div>
+          <div class="card-title">การสื่อสารในองค์กร</div>
+          <div class="card-body">
+            <ul>
+              <li><strong>General:</strong> Greetings · Thanking · Apologizing · Welcoming</li>
+              <li><strong>Email:</strong> Professional structuring for impact & clarity</li>
+              <li><strong>Meetings:</strong> Lead internal / external / teleconference / webinar</li>
+              <li><strong>Negotiation:</strong> Share ideas · Express agreement · Tactful disagreement</li>
+            </ul>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">🎤 Public Speaking</div>
+          <div class="card-title">การพูดในที่สาธารณะ</div>
+          <div class="card-body">
+            <ul>
+              <li><strong>Mindset:</strong> Overcome fear · Recognize patterns · Build confidence</li>
+              <li><strong>Storytelling:</strong> Product Story · Brand Story · Testimonials</li>
+              <li><strong>Pitching:</strong> Elevator pitch · CTA strategies · Gauge audience</li>
+            </ul>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">✅ Practice Checklist</div>
+          <div class="card-title">เช็คลิสต์ฝึกฝน</div>
+          <div class="checklist" id="cl-lang">
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>ฝึก 5W1H ในบทสนทนาจริง</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>เขียน Email ธุรกิจ 1 ฉบับ/วัน</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>อ่านออกเสียงนาน 5 นาที</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>ฝึก elevator pitch 60 วิ</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MARKETING VIEW -->
+    <div id="view-learn-marketing" style="display:none;" class="fade-in">
+      <div class="viewer-header">
+        <div class="viewer-icon">📣</div>
+        <div class="viewer-title">
+          <h2>Marketing & Sales</h2>
+          <p>AIDA · 7Ps · Smarketing — AI จัดหมวดจาก me_ssot.md</p>
+        </div>
+        <span class="kb-tag">KB-LEARN</span>
+      </div>
+      <div class="content-grid">
+        <div class="content-card">
+          <div class="card-tag">🎯 AIDA Model</div>
+          <div class="card-title">Marketing Strategy</div>
+          <div class="card-body">
+            <ul>
+              <li><strong>Attention:</strong> Content Marketing · SEO · Ads · PR</li>
+              <li><strong>Interest:</strong> Deep-dive content · Webinars · Case studies</li>
+              <li><strong>Desire:</strong> Testimonials · Demos · Free trials</li>
+              <li><strong>Action:</strong> Clear CTAs · Promotions · Seamless checkout</li>
+              <li><strong>Retention:</strong> Follow-ups · Loyalty programs · Brand advocates</li>
+            </ul>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">📐 Analysis Tools</div>
+          <div class="card-title">Planning Frameworks</div>
+          <div class="card-body">
+            <ul>
+              <li><strong>PESTEL</strong> — Macro environment analysis</li>
+              <li><strong>Competitor</strong> — Direct + indirect mapping</li>
+              <li><strong>SWOT</strong> — Internal strength / weakness</li>
+              <li><strong>SMART Goals</strong> — Specific · Measurable · Achievable</li>
+              <li><strong>7Ps</strong> — Product · Price · Place · Promo · People · Process · Physical</li>
+            </ul>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">💰 Sales Strategy</div>
+          <div class="card-title">The 7 Stages</div>
+          <div class="card-body">
+            <ul>
+              <li>Defined roles & responsibilities</li>
+              <li>7 Stages of Sales Process — Sales Playbook</li>
+              <li>Quantitative + qualitative KPIs</li>
+              <li>Sales Budget allocation</li>
+            </ul>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">🤝 Smarketing</div>
+          <div class="card-title">Sales + Marketing Alignment</div>
+          <div class="card-body">
+            <ul>
+              <li>Regular Smarketing Meetings</li>
+              <li>Closed-Loop Feedback systems</li>
+              <li>Defined SLAs between departments</li>
+            </ul>
+            <div style="margin-top:10px;padding:8px 10px;background:rgba(124,109,250,.08);border-radius:6px;font-size:11px;color:var(--accent);">
+              💡 ถามเจฟฟ์: "วาง AIDA สำหรับ Peabuntid ให้หน่อย"
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRADING VIEW -->
+    <div id="view-learn-trading" style="display:none;" class="fade-in">
+      <div class="viewer-header">
+        <div class="viewer-icon">📈</div>
+        <div class="viewer-title">
+          <h2>Trading Rules — The5ers Prep</h2>
+          <p>Risk Management · Setup Checklist · Psychology — จาก trading/rules.md</p>
+        </div>
+        <span class="kb-tag">KB-LEARN</span>
+      </div>
+      <div class="content-grid">
+        <div class="content-card" style="grid-column:1/-1;">
+          <div class="card-tag">🛡️ Risk Rules — NON-NEGOTIABLE</div>
+          <div class="card-title">"Trading is about risk management, not being right."</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+            <div>
+              <div class="rule-item"><span class="rule-num">R1</span>Max risk per trade: <strong style="color:var(--accent3)">0.5% – 1.0%</strong> of starting balance</div>
+              <div class="rule-item"><span class="rule-num">R2</span>Max daily loss: <strong style="color:var(--red)">2%</strong> — terminal closes for the day if hit</div>
+              <div class="rule-item"><span class="rule-num">R3</span>Max drawdown: comply with The5ers limit (5–10%)</div>
+            </div>
+            <div>
+              <div class="rule-item"><span class="rule-num">R4</span>Trade only London / NY session (high volume, tight spread)</div>
+              <div class="rule-item"><span class="rule-num">R5</span>No revenge trading — 2 losses → stop 4 hours minimum</div>
+            </div>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">⚙️ Entry Checklist</div>
+          <div class="card-title">Edge Setup (H1/M15)</div>
+          <div class="checklist">
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>HTF trend confirmed? (Daily/H4)</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>Key Liquidity Zones identified?</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>Liquidity Sweep / ChoCh confirmed?</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>FVG or Retest entry valid?</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>RRR ≥ 1:2?</span></div>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">🧠 Psychology Check</div>
+          <div class="card-title">Before Every Trade</div>
+          <div class="checklist">
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>Not bored / greedy / angry right now?</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>Ready to accept this loss financially & emotionally?</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>Following trading rules 100%?</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MINDSET VIEW -->
+    <div id="view-learn-mindset" style="display:none;" class="fade-in">
+      <div class="viewer-header">
+        <div class="viewer-icon">🧠</div>
+        <div class="viewer-title">
+          <h2>Mindset SSOT</h2>
+          <p>Binary Decision · Thought Management · Core Philosophy — จาก mindset_ssot.md</p>
+        </div>
+        <span class="kb-tag">KB-PERSONAL</span>
+      </div>
+      <div class="content-grid">
+        <div class="content-card">
+          <div class="card-tag">⚡ Binary Decision Framework</div>
+          <div class="card-title">Strict Logic — No Gray Zone</div>
+          <div class="card-body">
+            <ul>
+              <li><strong>0 = No</strong> — ปฏิเสธ, ไม่ทำ, ไม่เข้า</li>
+              <li><strong>1 = Yes</strong> — ตกลง, ทำ, เข้า</li>
+              <li>ตัดสินใจจากข้อมูล ไม่ใช่อารมณ์</li>
+              <li>กรองความคิดรบกวนออกด้วย parameters ที่ชัดเจน</li>
+            </ul>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">🌿 Core Philosophy</div>
+          <div class="card-title">Memento Mori</div>
+          <div class="card-body">
+            <ul>
+              <li>จำไว้เสมอว่าชีวิตมีขีดจำกัด — อย่ารอช้า</li>
+              <li>Taoist influence — ไหลตามธรรมชาติ แต่มีทิศทาง</li>
+              <li>Health · Style · Continuous improvement</li>
+              <li>Soft Warm Autumn personal color alignment</li>
+            </ul>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">✅ Daily Mindset Check</div>
+          <div class="card-title">เช็คก่อนเริ่มวัน</div>
+          <div class="checklist">
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>ตัดสินใจวันนี้จากข้อมูล ไม่ใช่อารมณ์</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>มีเป้าหมายชัดเจน 1 อย่างสำหรับวันนี้</span></div>
+            <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>ไม่ทำสิ่งที่ขัดกับ core values</span></div>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">💡 Prompt เจฟฟ์</div>
+          <div class="card-title">Quick Questions</div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:6px;">
+            <div class="qcmd" style="display:block;margin:0;" onclick="setPrompt('วันนี้ควรโฟกัสที่อะไรก่อน?')">→ วันนี้ควรโฟกัสที่อะไรก่อน?</div>
+            <div class="qcmd" style="display:block;margin:0;" onclick="setPrompt('ช่วย Binary Decision: ควรเข้า Trade นี้ไหม?')">→ ช่วย Binary Decision เรื่อง Trade</div>
+            <div class="qcmd" style="display:block;margin:0;" onclick="setPrompt('ทบทวน Core Philosophy ของเปรม')">→ ทบทวน Core Philosophy</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PEABUNTID VIEW -->
+    <div id="view-proj-peabuntid" style="display:none;" class="fade-in">
+      <div class="viewer-header">
+        <div class="viewer-icon">🌿</div>
+        <div class="viewer-title">
+          <h2>Peabuntid</h2>
+          <p>Product Constitution · Sitemap — 01-projects/peabuntid/</p>
+        </div>
+        <span class="kb-tag">PROJECT</span>
+      </div>
+      <div class="content-grid">
+        <div class="content-card" style="grid-column:1/-1">
+          <div class="card-tag">🌿 Brand Core</div>
+          <div class="card-title">Peabuntid — Product Position</div>
+          <div class="card-body">
+            <ul>
+              <li>Thai wellness brand grounded in natural, plant-based identity</li>
+              <li>Target: health-conscious consumers who value authenticity</li>
+              <li>Constitution: Quality · Transparency · Nature-forward</li>
+            </ul>
+            <div style="margin-top:10px;padding:8px 10px;background:rgba(0,229,160,.06);border-radius:6px;font-size:11px;color:var(--accent3);">
+              💡 กดสั่งเจฟฟ์: "สร้าง content plan สำหรับ Peabuntid เดือนนี้"
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EILINAIRE VIEW -->
+    <div id="view-proj-eilinaire" style="display:none;" class="fade-in">
+      <div class="viewer-header">
+        <div class="viewer-icon">✨</div>
+        <div class="viewer-title">
+          <h2>Eilinaire</h2>
+          <p>Brand Architecture · Core Axes — 01-projects/eilinaire/</p>
+        </div>
+        <span class="kb-tag">PROJECT</span>
+      </div>
+      <div class="content-grid">
+        <div class="content-card" style="grid-column:1/-1">
+          <div class="card-tag">✨ Brand System</div>
+          <div class="card-title">Eilinaire — Architecture</div>
+          <div class="card-body">
+            <ul>
+              <li>Luxury creative brand — Soft Warm Autumn aesthetic</li>
+              <li>Core axes: Look System · Fuel System · Tech Pack</li>
+              <li>Factory brief: production-ready spec for manufacturing</li>
+              <li>Constitution: brand values, voice, and identity rules</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WF01 VIEW -->
+    <div id="view-proj-wf01" style="display:none;" class="fade-in">
+      <div class="viewer-header">
+        <div class="viewer-icon">⚙️</div>
+        <div class="viewer-title">
+          <h2>WF01 — AI Pipeline</h2>
+          <p>L1 Intent → L1-B Route → L3 KB → L1-C Response — 24 nodes</p>
+        </div>
+        <span class="kb-tag">SYSTEM</span>
+      </div>
+      <div class="content-grid">
+        <div class="content-card">
+          <div class="card-tag">📐 Architecture</div>
+          <div class="card-title">24-Node Pipeline</div>
+          <div class="card-body">
+            <ul>
+              <li><strong>Webhook</strong> → Telegram in</li>
+              <li><strong>L1-A</strong> → Intent parse</li>
+              <li><strong>L1-B</strong> → Classifier (JOB/PERSONAL/CREATIVE)</li>
+              <li><strong>HITL Gate</strong> → high-risk confirmation</li>
+              <li><strong>L3</strong> → KB retrieval (5 sources, keyword match)</li>
+              <li><strong>L1-C</strong> → Jeff response with KB context</li>
+              <li><strong>Telegram out</strong> → reply</li>
+            </ul>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="card-tag">🐛 Bug Log Resolved</div>
+          <div class="card-title">Session 6 Fixes</div>
+          <div class="card-body">
+            <ul>
+              <li>Thai chars broke JSON interpolation → JSON.stringify()</li>
+              <li>L1-C invalid JSON from Thai dify_reply → JSON.stringify in responseBody</li>
+              <li>KB segments=0 from retrieve API → Segments API + keyword match (Dify Cloud free tier)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG VIEW -->
+    <div id="view-log" style="display:none;" class="fade-in">
+      <div class="viewer-header">
+        <div class="viewer-icon">🔍</div>
+        <div class="viewer-title">
+          <h2>Event Log — Session 6</h2>
+          <p>STATUS.md · Bug Log · Execution History</p>
+        </div>
+        <span class="kb-tag">SYSTEM</span>
+      </div>
+      <div class="content-card" style="margin-bottom:14px;">
+        <div class="card-tag">✅ Session 6 — L3 KB Retrieval Live</div>
+        <table style="width:100%;margin-top:8px;">
+          <thead><tr><th>Action</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td>Dify KB IDs retrieved (all 5 KBs)</td><td style="color:var(--accent3)">✅</td></tr>
+            <tr><td>L3 Retriever nodes added to WF01</td><td style="color:var(--accent3)">✅</td></tr>
+            <tr><td>L1-C: context injected into system prompt</td><td style="color:var(--accent3)">✅</td></tr>
+            <tr><td>Ollama + WF01 24 nodes, exec 159 = success</td><td style="color:var(--accent3)">✅</td></tr>
+            <tr><td>Jeff answers with KB context (Marketing tasks)</td><td style="color:var(--accent3)">✅</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="content-card">
+        <div class="card-tag">🐛 Bug Log</div>
+        <table style="width:100%;margin-top:8px;">
+          <thead><tr><th>Bug</th><th>Root Cause</th><th>Fix</th></tr></thead>
+          <tbody>
+            <tr><td>L3 JSON body invalid</td><td>Thai chars in context broke string interpolation</td><td>JSON.stringify($json)</td></tr>
+            <tr><td>L1-C Respond invalid JSON</td><td>Thai dify_reply broke responseBody string</td><td>JSON.stringify in responseBody</td></tr>
+            <tr><td>KB segments=0 from retrieve API</td><td>Dify Cloud free tier: no vector embedding</td><td>Segments API + keyword match</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /content-area -->
+</center-panel>
+
+<!-- ─── RIGHT CHAT ─── -->
+<chat-panel>
+  <div class="chat-top">
+    <div class="jeff-av">🤵</div>
+    <div class="jeff-info">
+      <h3>Jeff — Executive Partner</h3>
+      <p>INTJ · Direct · No fluff</p>
+    </div>
+    <span class="model-tag" id="modelTag">Ollama T3</span>
+  </div>
+
+  <div class="chat-messages" id="chatMessages">
+    <div class="msg jeff">
+      <div class="msg-av">🤵</div>
+      <div>
+        <div class="msg-bubble">ระบบออนไลน์ครบ เปรม — exec 159 clean, KB ครบ 5 แหล่ง<br><br>สั่งงานได้เลยครับ</div>
+        <div class="msg-time" id="initTime">--:--</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-footer">
+    <div class="quick-cmds">
+      <div class="qcmd" onclick="setPrompt('สรุป task ที่ต้องทำวันนี้')">📋 Task วันนี้</div>
+      <div class="qcmd" onclick="setPrompt('health check ระบบทั้งหมด')">⚡ Health check</div>
+      <div class="qcmd" onclick="setPrompt('วิเคราะห์ trade setup นี้')">📈 วิเคราะห์ Trade</div>
+      <div class="qcmd" onclick="setPrompt('สรุป session นี้และสิ่งที่ค้างอยู่')">📝 สรุป session</div>
+    </div>
+    <div class="webhook-bar">
+      <span class="webhook-label">Webhook:</span>
+      <input class="webhook-input" id="webhookUrl" placeholder="https://n8n.peabuntid.com/webhook/..." value="">
+    </div>
+    <div class="input-row">
+      <textarea class="chat-input" id="chatInput" placeholder="สั่งงานเจฟฟ์…" rows="1"
+        onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+</chat-panel>
+
+</div><!-- /body -->
+</div><!-- /shell -->
+
+<script>
+// ─── Clock ───
+function tick(){
+  const n=new Date();
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('clk').textContent=n.toTimeString().slice(0,8);
+  document.getElementById('clkd').textContent=`${days[n.getDay()]}, ${months[n.getMonth()]} ${n.getDate()} ${n.getFullYear()}`;
+  document.getElementById('initTime').textContent=n.toTimeString().slice(0,5);
+}
+tick(); setInterval(tick,1000);
+
+// ─── View Switcher ───
+function showView(id){
+  document.querySelectorAll('[id^="view-"]').forEach(v=>v.style.display='none');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const v=document.getElementById('view-'+id);
+  if(v){v.style.display='block'; v.classList.add('fade-in');}
+  const n=document.getElementById('nav-'+id);
+  if(n) n.classList.add('active');
+}
+
+// ─── Check toggles ───
+function toggleCheck(el){
+  const box=el.querySelector('.check-box');
+  box.classList.toggle('done');
+  const span=el.querySelector('span');
+  span.style.textDecoration=box.classList.contains('done')?'line-through':'none';
+  span.style.color=box.classList.contains('done')?'var(--text3)':'';
+}
+
+// ─── Chat ───
+function getTime(){return new Date().toTimeString().slice(0,5);}
+
+function appendMsg(text,role){
+  const c=document.getElementById('chatMessages');
+  const d=document.createElement('div');
+  d.className=`msg ${role}`;
+  const av=role==='jeff'?'🤵':'👤';
+  d.innerHTML=`<div class="msg-av">${av}</div><div><div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div><div class="msg-time">${getTime()}</div></div>`;
+  c.appendChild(d);
+  c.scrollTop=c.scrollHeight;
+}
+
+function showTyping(){
+  const c=document.getElementById('chatMessages');
+  const d=document.createElement('div');
+  d.id='typing-indicator'; d.className='msg jeff';
+  d.innerHTML=`<div class="msg-av">🤵</div><div class="typing-dots"><span></span><span></span><span></span></div>`;
+  c.appendChild(d); c.scrollTop=c.scrollHeight;
+}
+function hideTyping(){
+  const t=document.getElementById('typing-indicator');
+  if(t) t.remove();
+}
+
+async function sendMessage(){
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim();
+  if(!text) return;
+  input.value=''; autoResize(input);
+  appendMsg(text,'user');
+
+  const webhook=document.getElementById('webhookUrl').value.trim();
+  showTyping();
+
+  if(webhook){
+    try{
+      const resp=await fetch(webhook,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({message:text,source:'command-center',timestamp:new Date().toISOString()})
+      });
+      hideTyping();
+      if(resp.ok){
+        const data=await resp.json().catch(()=>({reply:null}));
+        const reply=data.reply||data.response||data.output||data.text||'✅ Received — processing.';
+        appendMsg(reply,'jeff');
+      } else {
+        appendMsg(`⚠️ Webhook ${resp.status} — check n8n logs`,'jeff');
+      }
+    } catch(e){
+      hideTyping();
+      appendMsg(`⚠️ Connection failed: ${e.message}\n\nตั้ง webhook URL ด้านล่าง หรือใช้ Telegram แทน`,'jeff');
+    }
+  } else {
+    // Demo mode replies
+    const demos=[
+      'รับทราบครับ — กำลัง process อยู่ ตั้ง Webhook URL ด้านล่างเพื่อเชื่อมต่อ n8n จริง',
+      'Demo mode: ไม่มี webhook — ตั้ง URL ของ n8n แล้วคุยได้เลย',
+      'Log-first: อ่าน docker logs ก่อนเสมอ ไม่ assume state',
+      '3-Strikes rule: fail 3 ครั้ง → stop → escalate ทันที',
+      'DICE score ≥4 = ทำทันที | 2-3 = queue | <2 = defer'
+    ];
+    setTimeout(()=>{
+      hideTyping();
+      appendMsg(demos[Math.floor(Math.random()*demos.length)],'jeff');
+    },900+Math.random()*400);
+  }
+}
+
+function setPrompt(text){
+  const i=document.getElementById('chatInput');
+  i.value=text; autoResize(i); i.focus();
+}
+
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}
+}
+
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,100)+'px';
+}
+</script>
+</body>
+</html>

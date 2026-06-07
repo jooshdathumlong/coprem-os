@@ -1,0 +1,846 @@
+{
+  "updatedAt": "2026-05-31T08:12:31.158Z",
+  "createdAt": "2026-05-31T02:55:06.571Z",
+  "id": "2jU4tdTiP1lhNucK",
+  "name": "WF L1.5 — Session Context Manager",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "session-read",
+        "responseMode": "responseNode"
+      },
+      "id": "trigger-session",
+      "name": "Webhook — Read Session",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "88ac8bf8-77b3-476c-bc2a-97befcd0d656"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=session:{{ $json.body.channel_type }}:{{ $json.body.channel_id }}:{{ $json.body.user_id }}"
+      },
+      "id": "redis-read",
+      "name": "Redis — Read Session",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        460,
+        180
+      ],
+      "credentials": {
+        "redis": {
+          "id": "uOsaW3y6DV0CKN9l",
+          "name": "Redis COPREM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $('Webhook — Read Session').item.json.body;\n// Support Redis shape ($.value) and PG shape ($.value from COALESCE)\nconst raw = $input.item.json?.value || null;\n\nlet turns = [];\ntry {\n  turns = raw ? JSON.parse(raw) : [];\n  if (!Array.isArray(turns)) turns = [];\n} catch(e) {\n  turns = [];\n}\n\nconst last3 = turns.slice(-3);\nlet context = '';\nif (last3.length > 0) {\n  context = last3.map(t => `[${t.role}]: ${t.content.substring(0, 150)}`).join('\\n');\n}\n\nreturn {\n  session_key: `session:${body.channel_type}:${body.channel_id}:${body.user_id}`,\n  turns: last3,\n  context_injected: context,\n  has_context: last3.length > 0,\n  user_message: body.user_message,\n  channel_type: body.channel_type,\n  channel_id: body.channel_id,\n  user_id: body.user_id\n};"
+      },
+      "id": "build-context",
+      "name": "Code — Build Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond-context",
+      "name": "Respond — Context Payload",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "session-write",
+        "responseMode": "responseNode"
+      },
+      "id": "trigger-write",
+      "name": "Webhook — Write Session",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        520
+      ],
+      "webhookId": "8185da72-ef9b-4009-92b1-dd071e0957d8"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $('Webhook — Write Session').item.json.body;\nconst pgRow = $('Postgres — Read Existing PG').item.json;\n\nlet turns = [];\ntry {\n  const raw = pgRow.turns_raw || '[]';\n  turns = JSON.parse(raw);\n  if (!Array.isArray(turns)) turns = [];\n} catch(e) {\n  turns = [];\n}\n\nturns.push({ role: 'user', content: body.user_message, ts: Date.now() });\nif (body.agent_reply) {\n  turns.push({ role: 'assistant', content: body.agent_reply, ts: Date.now() });\n}\n\nconst trimmed = turns.slice(-10);\n\nreturn {\n  session_key: body.session_key,\n  turns_json: JSON.stringify(trimmed),\n  turn_count: trimmed.length\n};"
+      },
+      "id": "append-turn",
+      "name": "Code — Append Turn",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $json.session_key }}",
+        "value": "={{ $json.turns_json }}",
+        "expire": true,
+        "ttl": 1800
+      },
+      "id": "redis-write",
+      "name": "Redis — Write + TTL 30min",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        520
+      ],
+      "credentials": {
+        "redis": {
+          "id": "uOsaW3y6DV0CKN9l",
+          "name": "Redis COPREM"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"ok\": true, \"turns\": {{ $('Code — Append Turn').item.json.turn_count }}}"
+      },
+      "id": "respond-write",
+      "name": "Respond — Write OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        520
+      ]
+    },
+    {
+      "id": "redis-hit-check",
+      "name": "Redis Hit?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "typeValidation": "loose",
+            "version": 1,
+            "caseSensitive": false,
+            "leftValue": ""
+          },
+          "conditions": [
+            {
+              "id": "hit",
+              "leftValue": "={{ $json.value }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "pg-read-fallback",
+      "name": "Postgres — Read Session Fallback",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        680,
+        460
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COALESCE(turns::text, '[]') as value FROM session_store WHERE session_key = $1 LIMIT 1;",
+        "options": {
+          "queryReplacement": "=session:{{ $('Webhook — Read Session').item.json.body.channel_type }}:{{ $('Webhook — Read Session').item.json.body.channel_id }}:{{ $('Webhook — Read Session').item.json.body.user_id }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "rdxzBrj9putuOkku",
+          "name": "Postgres coprem_os"
+        }
+      }
+    },
+    {
+      "id": "pg-audit-cache-miss",
+      "name": "Audit — SESSION_CACHE_MISS",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        900,
+        460
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO audit_log (event_type, source, payload) VALUES ('SESSION_CACHE_MISS', 'L1.5', $1::jsonb); SELECT 1 AS ok;",
+        "options": {
+          "queryReplacement": "={{ JSON.stringify({ session_key: 'session:' + $('Webhook — Read Session').item.json.body.channel_type + ':' + $('Webhook — Read Session').item.json.body.channel_id + ':' + $('Webhook — Read Session').item.json.body.user_id }) }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "rdxzBrj9putuOkku",
+          "name": "Postgres coprem_os"
+        }
+      }
+    },
+    {
+      "id": "pg-read-existing-write",
+      "name": "Postgres — Read Existing PG",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        460,
+        520
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COALESCE(turns::text, '[]') as turns_raw FROM session_store WHERE session_key = $1 LIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ $json.body.session_key }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "rdxzBrj9putuOkku",
+          "name": "Postgres coprem_os"
+        }
+      }
+    },
+    {
+      "id": "pg-upsert-session",
+      "name": "Postgres — Upsert session_store",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        900,
+        520
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO session_store (session_key, turns, updated_at)\nVALUES ($1, $2::jsonb, NOW())\nON CONFLICT (session_key) DO UPDATE\n  SET turns = EXCLUDED.turns, updated_at = NOW();\nSELECT 1 AS ok;",
+        "options": {
+          "queryReplacement": "={{ $('Code — Append Turn').item.json.session_key }}, {{ $('Code — Append Turn').item.json.turns_json }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "rdxzBrj9putuOkku",
+          "name": "Postgres coprem_os"
+        }
+      }
+    },
+    {
+      "id": "turn-count-check",
+      "name": "Turns > 10?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        640
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "typeValidation": "loose",
+            "version": 1,
+            "caseSensitive": false,
+            "leftValue": ""
+          },
+          "conditions": [
+            {
+              "id": "tc",
+              "leftValue": "={{ $('Code — Append Turn').item.json.turn_count }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "llm-summarize",
+      "name": "LiteLLM — Summarize Session",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        640
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://litellm:4000/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 187234854205c015f2d8379d5455a0a8"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"model\": \"gemini-2.0-flash\", \"messages\": [{\"role\": \"system\", \"content\": \"Summarize these conversation turns into exactly 3 bullet points: 1) user intent 2) key facts 3) decisions made. Output plain text only.\"}, {\"role\": \"user\", \"content\": {{ JSON.stringify($('Code — Append Turn').item.json.turns_json) }}}], \"max_tokens\": 200, \"temperature\": 0 }",
+        "options": {
+          "timeout": 20000
+        }
+      }
+    },
+    {
+      "id": "store-summary",
+      "name": "Postgres — Store Summary",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1560,
+        640
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE session_store SET summary = $1, turns = '[]'::jsonb, updated_at = NOW() WHERE session_key = $2;\nINSERT INTO audit_log (event_type, source, payload) VALUES ('MEMORY_SUMMARIZED', 'L1.5', $3::jsonb);\nSELECT 1 AS ok;",
+        "options": {
+          "queryReplacement": "={{ ($json.choices && $json.choices[0]) ? $json.choices[0].message.content : '' }}, {{ $('Code — Append Turn').item.json.session_key }}, {{ JSON.stringify({ session_key: $('Code — Append Turn').item.json.session_key, turns_summarized: $('Code — Append Turn').item.json.turn_count }) }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "rdxzBrj9putuOkku",
+          "name": "Postgres coprem_os"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook — Read Session": {
+      "main": [
+        [
+          {
+            "node": "Redis — Read Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis — Read Session": {
+      "main": [
+        [
+          {
+            "node": "Redis Hit?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code — Build Context": {
+      "main": [
+        [
+          {
+            "node": "Respond — Context Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook — Write Session": {
+      "main": [
+        [
+          {
+            "node": "Postgres — Read Existing PG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code — Append Turn": {
+      "main": [
+        [
+          {
+            "node": "Postgres — Upsert session_store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis — Write + TTL 30min": {
+      "main": [
+        [
+          {
+            "node": "Respond — Write OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Hit?": {
+      "main": [
+        [
+          {
+            "node": "Code — Build Context",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Postgres — Read Session Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres — Read Session Fallback": {
+      "main": [
+        [
+          {
+            "node": "Audit — SESSION_CACHE_MISS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit — SESSION_CACHE_MISS": {
+      "main": [
+        [
+          {
+            "node": "Code — Build Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres — Read Existing PG": {
+      "main": [
+        [
+          {
+            "node": "Code — Append Turn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres — Upsert session_store": {
+      "main": [
+        [
+          {
+            "node": "Turns > 10?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Turns > 10?": {
+      "main": [
+        [
+          {
+            "node": "LiteLLM — Summarize Session",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redis — Write + TTL 30min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LiteLLM — Summarize Session": {
+      "main": [
+        [
+          {
+            "node": "Postgres — Store Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres — Store Summary": {
+      "main": [
+        [
+          {
+            "node": "Redis — Write + TTL 30min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "527e6069-bd42-47c1-82cb-4c108e7b5537",
+  "activeVersionId": "527e6069-bd42-47c1-82cb-4c108e7b5537",
+  "versionCounter": 2,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2026-05-31T02:55:06.571Z",
+      "createdAt": "2026-05-31T02:55:06.571Z",
+      "role": "workflow:owner",
+      "workflowId": "2jU4tdTiP1lhNucK",
+      "projectId": "zcgfC5I8AUAr3U8J",
+      "project": {
+        "updatedAt": "2026-05-30T20:55:56.474Z",
+        "createdAt": "2026-05-30T20:51:13.491Z",
+        "id": "zcgfC5I8AUAr3U8J",
+        "name": "Jeff COPREM <jooshdathumlong@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-31T08:12:31.159Z",
+    "createdAt": "2026-05-31T08:12:31.159Z",
+    "versionId": "527e6069-bd42-47c1-82cb-4c108e7b5537",
+    "workflowId": "2jU4tdTiP1lhNucK",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "session-read",
+          "responseMode": "responseNode"
+        },
+        "id": "trigger-session",
+        "name": "Webhook — Read Session",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          240,
+          300
+        ],
+        "webhookId": "88ac8bf8-77b3-476c-bc2a-97befcd0d656"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "key": "=session:{{ $json.body.channel_type }}:{{ $json.body.channel_id }}:{{ $json.body.user_id }}"
+        },
+        "id": "redis-read",
+        "name": "Redis — Read Session",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          460,
+          300
+        ],
+        "credentials": {
+          "redis": {
+            "id": "uOsaW3y6DV0CKN9l",
+            "name": "Redis COPREM"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const body = $('Webhook — Read Session').item.json.body;\nconst raw = $input.item.json.value;\n\nlet turns = [];\ntry {\n  turns = raw ? JSON.parse(raw) : [];\n} catch(e) {\n  turns = [];\n}\n\n// Keep last 3 turns only\nconst last3 = turns.slice(-3);\n\n// Build compressed context string (max 500 tokens approx)\nlet context = '';\nif (last3.length > 0) {\n  context = last3.map(t => `[${t.role}]: ${t.content.substring(0, 150)}`).join('\\n');\n}\n\nreturn {\n  session_key: `session:${body.channel_type}:${body.channel_id}:${body.user_id}`,\n  turns: last3,\n  context_injected: context,\n  has_context: last3.length > 0,\n  user_message: body.user_message,\n  channel_type: body.channel_type,\n  channel_id: body.channel_id,\n  user_id: body.user_id\n};"
+        },
+        "id": "build-context",
+        "name": "Code — Build Context",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          680,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify($json) }}"
+        },
+        "id": "respond-context",
+        "name": "Respond — Context Payload",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          900,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "session-write",
+          "responseMode": "responseNode"
+        },
+        "id": "trigger-write",
+        "name": "Webhook — Write Session",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          240,
+          520
+        ],
+        "webhookId": "8185da72-ef9b-4009-92b1-dd071e0957d8"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "key": "={{ $json.body.session_key }}"
+        },
+        "id": "redis-read-existing",
+        "name": "Redis — Read Existing",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          460,
+          520
+        ],
+        "credentials": {
+          "redis": {
+            "id": "uOsaW3y6DV0CKN9l",
+            "name": "Redis COPREM"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const body = $('Webhook — Write Session').item.json.body;\nconst raw = $('Redis — Read Existing').item.json.value;\n\nlet turns = [];\ntry {\n  turns = raw ? JSON.parse(raw) : [];\n} catch(e) {\n  turns = [];\n}\n\n// Append new turn\nturns.push({ role: 'user', content: body.user_message, ts: Date.now() });\nif (body.agent_reply) {\n  turns.push({ role: 'assistant', content: body.agent_reply, ts: Date.now() });\n}\n\n// Keep max 10 turns in Redis\nconst trimmed = turns.slice(-10);\n\nreturn {\n  session_key: body.session_key,\n  turns_json: JSON.stringify(trimmed),\n  turn_count: trimmed.length\n};"
+        },
+        "id": "append-turn",
+        "name": "Code — Append Turn",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          680,
+          520
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "set",
+          "key": "={{ $json.session_key }}",
+          "value": "={{ $json.turns_json }}",
+          "expire": true,
+          "ttl": 1800
+        },
+        "id": "redis-write",
+        "name": "Redis — Write + TTL 30min",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          900,
+          520
+        ],
+        "credentials": {
+          "redis": {
+            "id": "uOsaW3y6DV0CKN9l",
+            "name": "Redis COPREM"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "insert",
+          "table": "session_store",
+          "columns": "session_key, turns, updated_at",
+          "values": "={{ $('Code — Append Turn').item.json.session_key }}, {{ $('Code — Append Turn').item.json.turns_json }}::jsonb, NOW()"
+        },
+        "id": "postgres-sync",
+        "name": "Postgres — Sync session_store",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          1120,
+          520
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "rdxzBrj9putuOkku",
+            "name": "Postgres coprem_os"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={\"ok\": true, \"turns\": {{ $('Code — Append Turn').item.json.turn_count }}}"
+        },
+        "id": "respond-write",
+        "name": "Respond — Write OK",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          1340,
+          520
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook — Read Session": {
+        "main": [
+          [
+            {
+              "node": "Redis — Read Session",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Redis — Read Session": {
+        "main": [
+          [
+            {
+              "node": "Code — Build Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code — Build Context": {
+        "main": [
+          [
+            {
+              "node": "Respond — Context Payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook — Write Session": {
+        "main": [
+          [
+            {
+              "node": "Redis — Read Existing",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Redis — Read Existing": {
+        "main": [
+          [
+            {
+              "node": "Code — Append Turn",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code — Append Turn": {
+        "main": [
+          [
+            {
+              "node": "Redis — Write + TTL 30min",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Redis — Write + TTL 30min": {
+        "main": [
+          [
+            {
+              "node": "Postgres — Sync session_store",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Postgres — Sync session_store": {
+        "main": [
+          [
+            {
+              "node": "Respond — Write OK",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Jeff COPREM",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-31T08:12:31.179Z",
+        "id": 39,
+        "workflowId": "2jU4tdTiP1lhNucK",
+        "versionId": "527e6069-bd42-47c1-82cb-4c108e7b5537",
+        "event": "deactivated",
+        "userId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      },
+      {
+        "createdAt": "2026-05-31T08:12:31.188Z",
+        "id": 40,
+        "workflowId": "2jU4tdTiP1lhNucK",
+        "versionId": "527e6069-bd42-47c1-82cb-4c108e7b5537",
+        "event": "activated",
+        "userId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      }
+    ]
+  }
+}

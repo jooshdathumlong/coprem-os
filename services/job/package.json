@@ -1,0 +1,9 @@
+{
+  "name": "@coprem/job",
+  "version": "1.0.0",
+  "private": true,
+  "description": "JOB pillar — Jeff agent, n8n workflows, business automation",
+  "scripts": {
+    "validate-workflows": "node scripts/validate_workflows.js"
+  }
+}

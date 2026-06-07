@@ -1,0 +1,229 @@
+{
+  "name": "WF10 — KB Sync (Auto-Librarian)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kb-sync",
+        "responseMode": "responseNode"
+      },
+      "id": "a4358187-5fec-4399-a7e6-36f2a8a54b4c",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst KB_MAP = {\n  'eilinaire_constitution.md':  'KB-01',\n  'peabuntid_constitution.md':  'KB-01',\n  'ego_era_bible.md':           'KB-02',\n  'trading/rules.md':           'KB-03',\n  'job/dept_marketing.md':      'KB-04',\n  'job/dept_ops.md':            'KB-04',\n  'Decision_Memory_Log':        'KB-05'\n};\n\nconst body = $input.first().json;\n// Support both webhook (file change) and manual trigger\nconst sourceFile = body.source_file || body.name || body.file || '';\nconst content    = body.content    || body.text  || '';\n\nconst kbId = Object.entries(KB_MAP).find(([k]) => sourceFile.includes(k))?.[1] || null;\n\nif (!kbId) throw new Error('No KB mapping found for: ' + sourceFile);\n\nreturn [{ json: { kb_id: kbId, source_file: sourceFile, content, triggered_at: new Date().toISOString() } }];\n"
+      },
+      "id": "04708d27-c650-49a4-bca0-a2ca5d5dadb7",
+      "name": "Map File to KB",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.dify.ai/v1/datasets/{{ $json.kb_id }}/document/create_by_text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.DIFY_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "={{ $json.source_file }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.content }}"
+            },
+            {
+              "name": "indexing_technique",
+              "value": "high_quality"
+            },
+            {
+              "name": "process_rule",
+              "value": "={\"mode\":\"automatic\"}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "26fa308e-df75-4ae3-bbc5-0d9702b0bc60",
+      "name": "Re-embed via Dify KB API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO kb_sync_log (kb_id, source_file, status, diff_summary) VALUES ('{{ $('Map File to KB').item.json.kb_id }}', '{{ $('Map File to KB').item.json.source_file }}', 'success', 'Re-embedded at {{ $('Map File to KB').item.json.triggered_at }}');"
+      },
+      "id": "efc8f6da-13b0-4301-ab7e-cb2f34573b4e",
+      "name": "Log Sync Success",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        720,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres COPREM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO kb_sync_log (kb_id, source_file, status, diff_summary) VALUES ('{{ $('Map File to KB').item.json.kb_id }}', '{{ $('Map File to KB').item.json.source_file }}', 'error', 'Embedding failed at {{ $now }}');"
+      },
+      "id": "6467430e-b5ed-4829-8c67-6cdf4829f030",
+      "name": "Log Sync Error",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        720,
+        200
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres COPREM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "=❌ KB Sync Failed\nFile: {{ $('Map File to KB').item.json.source_file }}\nKB: {{ $('Map File to KB').item.json.kb_id }}"
+      },
+      "id": "8192dbf4-1d52-47d7-bc58-0d3fde3dbafe",
+      "name": "Alert Failure",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        960,
+        200
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"status\":\"synced\",\"kb_id\":\"{{ $('Map File to KB').item.json.kb_id }}\",\"source_file\":\"{{ $('Map File to KB').item.json.source_file }}\"}"
+      },
+      "id": "048415aa-c90f-4e6d-9b48-cf1e020ba011",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        960,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Map File to KB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map File to KB": {
+      "main": [
+        [
+          {
+            "node": "Re-embed via Dify KB API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Re-embed via Dify KB API": {
+      "main": [
+        [
+          {
+            "node": "Log Sync Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Sync Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Sync Success": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Sync Error": {
+      "main": [
+        [
+          {
+            "node": "Alert Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "authors": "Jeff / COPREM OS v8.2"
+  }
+}

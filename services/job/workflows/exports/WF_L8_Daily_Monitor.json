@@ -1,0 +1,103 @@
+{
+  "name": "WF L8 — Daily Monitor Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {"interval": [{"field": "cronExpression", "expression": "30 7 * * *"}]}
+      },
+      "id": "cron-l8",
+      "name": "Cron 07:30 Daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  COUNT(*) as total_messages,\n  COUNT(CASE WHEN status='ok' THEN 1 END) as success_count,\n  ROUND(COUNT(CASE WHEN status='ok' THEN 1 END)::numeric/NULLIF(COUNT(*),0)*100,1) as success_rate,\n  ROUND(COALESCE(SUM(cost_usd),0),4) as total_cost_usd,\n  ROUND(COALESCE(AVG(latency_ms),0)) as avg_latency_ms,\n  COUNT(DISTINCT user_id) as unique_users\nFROM inbox_log\nWHERE timestamp > NOW() - INTERVAL '24 hours';"
+      },
+      "id": "query-inbox",
+      "name": "Query — Inbox KPIs",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [460, 200],
+      "credentials": {"postgres": {"id": "WubLzl6gzdGXf2QQ", "name": "Postgres coprem_os"}}
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  COUNT(*) as audit_events,\n  COUNT(CASE WHEN event_type='WEBHOOK_REJECTED' THEN 1 END) as rejected,\n  COUNT(CASE WHEN event_type='HITL_REQUIRED' THEN 1 END) as hitl_count\nFROM audit_log\nWHERE timestamp > NOW() - INTERVAL '24 hours';"
+      },
+      "id": "query-audit",
+      "name": "Query — Audit Events",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [460, 360],
+      "credentials": {"postgres": {"id": "WubLzl6gzdGXf2QQ", "name": "Postgres coprem_os"}}
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  COUNT(*) as dlq_pending,\n  COUNT(CASE WHEN status='quarantined' THEN 1 END) as quarantined\nFROM failed_tasks_db\nWHERE created_at > NOW() - INTERVAL '24 hours';"
+      },
+      "id": "query-dlq",
+      "name": "Query — DLQ Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [460, 520],
+      "credentials": {"postgres": {"id": "WubLzl6gzdGXf2QQ", "name": "Postgres coprem_os"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "const inbox = $('Query — Inbox KPIs').item.json;\nconst audit = $('Query — Audit Events').item.json;\nconst dlq = $('Query — DLQ Status').item.json;\n\nconst successRate = inbox.success_rate || 0;\nconst costUsd = inbox.total_cost_usd || 0;\nconst totalMsg = inbox.total_messages || 0;\nconst latency = inbox.avg_latency_ms || 0;\nconst rejected = audit.rejected || 0;\nconst hitl = audit.hitl_count || 0;\nconst dlqPending = dlq.dlq_pending || 0;\n\n// SLO check\nconst sloOk = successRate >= 95 && costUsd <= 0.50;\nconst statusIcon = sloOk ? '✅' : '⚠️';\n\nconst report = `📊 *COPREM Daily Report — ${new Date().toLocaleDateString('th-TH')}*\n\n${statusIcon} *SLO Status:* ${sloOk ? 'PASS' : 'REVIEW NEEDED'}\n\n*L8 KPIs (24h):*\n• Messages: ${totalMsg}\n• Success Rate: ${successRate}% ${successRate >= 95 ? '✅' : '❌ <95%'}\n• API Cost: $${costUsd} ${costUsd <= 0.50 ? '✅' : '❌ >$0.50'}\n• Avg Latency: ${latency}ms\n• Unique Users: ${inbox.unique_users || 0}\n\n*Security (L7):*\n• Audit Events: ${audit.audit_events || 0}\n• Rejected Webhooks: ${rejected}\n• HITL Triggered: ${hitl}\n\n*DLQ (L6):*\n• Pending Tasks: ${dlqPending} ${dlqPending > 0 ? '⚠️' : '✅'}\n• Quarantined: ${dlq.quarantined || 0}`;\n\nreturn { report, slo_pass: sloOk };"
+      },
+      "id": "build-report",
+      "name": "Code — Build Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 360]
+    },
+    {
+      "parameters": {
+        "chatId": "7731591925",
+        "text": "={{ $json.report }}",
+        "additionalFields": {"parse_mode": "Markdown"}
+      },
+      "id": "send-report",
+      "name": "Telegram — Send Report",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [940, 360],
+      "credentials": {"telegramApi": {"id": "telegram_cred_id", "name": "Telegram Bot"}}
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "system_log",
+        "columns": "level, workflow_id, node_name, message, context, logged_at",
+        "values": "='INFO', 'WF_L8', 'Daily Monitor', 'Daily KPI report sent', '{{ JSON.stringify({slo_pass: $json.slo_pass, cost: $('Query — Inbox KPIs').item.json.total_cost_usd, success_rate: $('Query — Inbox KPIs').item.json.success_rate}) }}'::jsonb, NOW()"
+      },
+      "id": "log-system",
+      "name": "system_log — Record Run",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1180, 360],
+      "credentials": {"postgres": {"id": "WubLzl6gzdGXf2QQ", "name": "Postgres coprem_os"}}
+    }
+  ],
+  "connections": {
+    "Cron 07:30 Daily": {
+      "main": [[
+        {"node": "Query — Inbox KPIs", "type": "main", "index": 0},
+        {"node": "Query — Audit Events", "type": "main", "index": 0},
+        {"node": "Query — DLQ Status", "type": "main", "index": 0}
+      ]]
+    },
+    "Query — Inbox KPIs": {"main": [[{"node": "Code — Build Report", "type": "main", "index": 0}]]},
+    "Query — Audit Events": {"main": [[{"node": "Code — Build Report", "type": "main", "index": 0}]]},
+    "Query — DLQ Status": {"main": [[{"node": "Code — Build Report", "type": "main", "index": 0}]]},
+    "Code — Build Report": {"main": [[{"node": "Telegram — Send Report", "type": "main", "index": 0}]]},
+    "Telegram — Send Report": {"main": [[{"node": "system_log — Record Run", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"}
+}

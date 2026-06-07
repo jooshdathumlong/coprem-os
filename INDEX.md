@@ -1,6 +1,6 @@
 # COPREM OS — Index (Map of Content)
 
-> Version: 3.2.0 | Updated: 2026-06-06 | Structure: PARA
+> Version: 4.0.0 | Updated: 2026-06-07 | Structure: Monorepo (apps / services / infra / content / system)
 
 ## How to Use This Index
 - Read this file first (L2 in Context Pyramid)
@@ -44,7 +44,23 @@
 | `COPREM_Master_Context.md` | Full system snapshot — stack, KBs, scripts, session log | L1 read |
 | `COPREM_Reference_Guide.md` | Quick-reference card | — |
 
-## 03-system/ — COPREM OS Operational
+## NEW STRUCTURE (v4.0)
+| Path | Purpose |
+|------|---------|
+| `apps/dashboard/` | Next.js UI — 1 unified dashboard (port 3001) |
+| `services/job/` | JOB pillar — Jeff agent, workflows, skills |
+| `services/personal/` | PERSONAL pillar — Eilinaire agent |
+| `infra/` | docker-compose, DB init, migrations, scripts |
+| `content/projects/` | Active projects (was 01-projects) |
+| `content/knowledge/` | Knowledge base (was 02-knowledge) |
+| `content/outputs/` | Deliverables (was 04-outputs) |
+| `system/` | Runtime only — logs, memory, monitoring |
+
+> Legacy paths (01-projects, 02-knowledge, 03-system, 04-outputs) preserved for backwards compatibility.
+
+---
+
+## 03-system/ — COPREM OS Operational (legacy — still active)
 | File/Folder | Content | Status |
 |-------------|---------|--------|
 | `COPREM_OS_Master_Blueprint_v8.3.md` | Full system spec | ✅ CEO Approved |

@@ -1,0 +1,1607 @@
+{
+  "updatedAt": "2026-05-31T03:04:06.170Z",
+  "createdAt": "2026-05-30T22:25:22.775Z",
+  "id": "OTZhayuBBmCOO2CA",
+  "name": "WF01 \u2014 Inbox Receiver (Single Entry)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "tg-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        400
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "webhookId": "7ffa1b5c-6a97-4620-96d7-ab323a89a9c3"
+    },
+    {
+      "id": "l1a-preprocess",
+      "name": "L1-A Preprocessor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        400
+      ],
+      "parameters": {
+        "jsCode": "const msg = $input.first().json.message;\nconst text = (msg.text || '').replace(/\\u200b/g,'').trim();\nconst userId = msg.from.id;\nconst chatId = msg.chat.id;\nconst hash = require('crypto').createHash('md5').update(userId+'|'+text).digest('hex');\nconst isStart = text === '/start';\nconst isApproval = /^(APPROVE|REJECT)\\s+\\d+/i.test(text);\nconst isThai = /[\\u0E00-\\u0E7F]/.test(text);\nreturn [{ json: { text, userId, chatId, hash, isStart, isApproval, isThai, firstName: msg.from.first_name || '', username: msg.from.username || '' } }];"
+      }
+    },
+    {
+      "id": "check-dedup",
+      "name": "Dedup Check",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        680,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO dedup_cache (hash) VALUES ('{{ $json.hash }}') ON CONFLICT DO NOTHING; SELECT COUNT(*) as is_new FROM dedup_cache WHERE hash='{{ $json.hash }}' AND created_at > NOW() - INTERVAL '60 seconds';"
+      }
+    },
+    {
+      "id": "route-type",
+      "name": "Route by Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        920,
+        400
+      ],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('L1-A Preprocessor').item.json.isStart }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "registration"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('L1-A Preprocessor').item.json.isApproval }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "approval"
+            }
+          ]
+        },
+        "fallbackOutput": "extra"
+      }
+    },
+    {
+      "id": "reg-check",
+      "name": "Check Existing User",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1160,
+        200
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO users (chat_id, first_name, username, status) VALUES ({{ $('L1-A Preprocessor').item.json.chatId }}, '{{ $('L1-A Preprocessor').item.json.firstName }}', '{{ $('L1-A Preprocessor').item.json.username }}', 'pending') ON CONFLICT (chat_id) DO NOTHING; SELECT status FROM users WHERE chat_id={{ $('L1-A Preprocessor').item.json.chatId }};"
+      }
+    },
+    {
+      "id": "reg-notify-jeff",
+      "name": "Notify Jeff",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1400,
+        120
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "chatId": "7731591925",
+        "text": "=\ud83d\udd14 New Registration\n\nName: {{ $('L1-A Preprocessor').item.json.firstName }}\nUsername: @{{ $('L1-A Preprocessor').item.json.username }}\nChat ID: {{ $('L1-A Preprocessor').item.json.chatId }}\n\nReply:\nAPPROVE {{ $('L1-A Preprocessor').item.json.chatId }}\nor REJECT {{ $('L1-A Preprocessor').item.json.chatId }}"
+      },
+      "webhookId": "7015995c-8e4c-47bd-8a5e-12aab6bc71aa"
+    },
+    {
+      "id": "reg-reply-user",
+      "name": "Reply to Applicant",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1400,
+        260
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
+        "text": "\u2705 \u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e04\u0e33\u0e02\u0e2d\u0e41\u0e25\u0e49\u0e27\u0e04\u0e23\u0e31\u0e1a \u0e01\u0e23\u0e38\u0e13\u0e32\u0e23\u0e2d\u0e01\u0e32\u0e23\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e08\u0e32\u0e01 Jeff"
+      },
+      "webhookId": "b35a1b80-4e15-4172-9d3b-f7394b8b91fc"
+    },
+    {
+      "id": "approval-parse",
+      "name": "Parse Approval",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        400
+      ],
+      "parameters": {
+        "jsCode": "const text = $('L1-A Preprocessor').item.json.text.toUpperCase();\nconst parts = text.split(' ');\nconst action = parts[0];\nconst targetId = parseInt(parts[1]);\nconst newStatus = action === 'APPROVE' ? 'approved' : 'rejected';\nreturn [{ json: { action, targetId, newStatus } }];"
+      }
+    },
+    {
+      "id": "approval-update",
+      "name": "Update User Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1400,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE users SET status='{{ $json.newStatus }}', approved_at=NOW() WHERE chat_id={{ $json.targetId }}; SELECT chat_id, first_name, status FROM users WHERE chat_id={{ $json.targetId }};"
+      }
+    },
+    {
+      "id": "approval-notify",
+      "name": "Notify User of Decision",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1640,
+        400
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.status === 'approved' ? '\u2705 \u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e41\u0e25\u0e49\u0e27\u0e04\u0e23\u0e31\u0e1a! \u0e2a\u0e48\u0e07\u0e02\u0e49\u0e2d\u0e04\u0e27\u0e32\u0e21\u0e21\u0e32\u0e44\u0e14\u0e49\u0e40\u0e25\u0e22' : '\u274c \u0e02\u0e2d\u0e2d\u0e20\u0e31\u0e22 \u0e04\u0e33\u0e02\u0e2d\u0e16\u0e39\u0e01\u0e1b\u0e0f\u0e34\u0e40\u0e2a\u0e18\u0e04\u0e23\u0e31\u0e1a' }}"
+      },
+      "webhookId": "703db362-648a-472a-b324-a032c7c33c88"
+    },
+    {
+      "id": "check-approved",
+      "name": "Check User Approved",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1160,
+        600
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT status FROM users WHERE chat_id={{ $('L1-A Preprocessor').item.json.chatId }} LIMIT 1;"
+      }
+    },
+    {
+      "id": "is-approved",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        600
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dify-router",
+      "name": "Dify Smart Router",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1640,
+        520
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.dify.ai/v1/chat-messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer app-EeCD0rYnH9eTTxWKdYxbXD2Q"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"inputs\": {}, \"query\": \"{{ $('L1-A Preprocessor').item.json.text }}\", \"response_mode\": \"blocking\", \"conversation_id\": \"\", \"user\": \"{{ $('L1-A Preprocessor').item.json.userId }}\" }",
+        "options": {}
+      }
+    },
+    {
+      "id": "l25-normalize",
+      "name": "L2.5 Normalize Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1880,
+        520
+      ],
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nlet reply = data.answer || data.text || '\u0e02\u0e2d\u0e2d\u0e20\u0e31\u0e22 \u0e44\u0e21\u0e48\u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e15\u0e2d\u0e1a\u0e44\u0e14\u0e49\u0e15\u0e2d\u0e19\u0e19\u0e35\u0e49\u0e04\u0e23\u0e31\u0e1a';\nif (reply.length > 4096) reply = reply.substring(0, 4090) + '...[\u0e15\u0e48\u0e2d]';\nconst agent = data.metadata?.usage ? 'dify' : 'unknown';\nreturn [{ json: { reply, agent } }];"
+      }
+    },
+    {
+      "id": "send-reply",
+      "name": "Send Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2120,
+        520
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
+        "text": "={{ $json.reply }}"
+      },
+      "webhookId": "b2ecc497-eaf3-4834-af1d-7cf06132f6ca"
+    },
+    {
+      "id": "log-inbox",
+      "name": "Log to Inbox",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2360,
+        520
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO inbox_log (user_id, content_raw, content_clean, lang_detected, msg_hash, agent, status) VALUES ({{ $('L1-A Preprocessor').item.json.userId }}, '{{ $('L1-A Preprocessor').item.json.text }}', '{{ $('L1-A Preprocessor').item.json.text }}', '{{ $('L1-A Preprocessor').item.json.isThai ? 'th' : 'en' }}', '{{ $('L1-A Preprocessor').item.json.hash }}', '{{ $('L2.5 Normalize Output').item.json.agent }}', 'ok');"
+      }
+    },
+    {
+      "id": "not-approved",
+      "name": "Not Approved Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1640,
+        700
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
+        "text": "\u274c \u0e04\u0e38\u0e13\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e04\u0e23\u0e31\u0e1a \u0e01\u0e23\u0e38\u0e13\u0e32\u0e2a\u0e48\u0e07 /start \u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e2a\u0e21\u0e31\u0e04\u0e23\u0e01\u0e48\u0e2d\u0e19"
+      },
+      "webhookId": "6d11859e-5938-4aa4-9946-f72d5e3efdd8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/session-read",
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "channel_type",
+              "value": "telegram"
+            },
+            {
+              "name": "channel_id",
+              "value": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ $('Telegram Trigger').item.json.message.from.id }}"
+            },
+            {
+              "name": "user_message",
+              "value": "={{ $('L1-A Preprocessor').item.json.content_clean }}"
+            }
+          ]
+        }
+      },
+      "id": "l15-read",
+      "name": "L1.5 \u2014 Read Session Context",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/session-write",
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "session_key",
+              "value": "=session:telegram:{{ $('Telegram Trigger').item.json.message.chat.id }}:{{ $('Telegram Trigger').item.json.message.from.id }}"
+            },
+            {
+              "name": "user_message",
+              "value": "={{ $('L1-A Preprocessor').item.json.content_clean }}"
+            },
+            {
+              "name": "agent_reply",
+              "value": "={{ $('L2.5 Normalize Output').item.json.reply_text }}"
+            }
+          ]
+        }
+      },
+      "id": "l15-write",
+      "name": "L1.5 \u2014 Write Session Turn",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2300,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO audit_log (event_type, source_ip, source, payload, timestamp) VALUES ('WEBHOOK_RECEIVED', NULL, 'telegram', '{{ JSON.stringify({user_id: $json.message.from.id, chat_id: $json.message.chat.id, msg: $json.message.text}) }}'::jsonb, NOW()) ON CONFLICT DO NOTHING;"
+      },
+      "id": "l7-audit-received",
+      "name": "L7 \u2014 Audit WEBHOOK_RECEIVED",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        320,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) as blocked FROM blocked_ips WHERE ip = '{{ $('Telegram Trigger').item.json.message.from.id.toString() }}' AND (expires_at IS NULL OR expires_at > NOW());"
+      },
+      "id": "l7-blocked-check",
+      "name": "L7 \u2014 Check Blocked User",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        560,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "blocked-check",
+              "leftValue": "={{ $json.blocked }}",
+              "rightValue": "0",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "l7-blocked-gate",
+      "name": "L7 \u2014 Blocked Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        800,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO audit_log (event_type, source_ip, source, payload, timestamp) VALUES ('AGENT_OUTPUT', NULL, 'telegram', '{{ JSON.stringify({user_id: $('Telegram Trigger').item.json.message.from.id, reply: $json.reply_text?.substring(0,200)}) }}'::jsonb, NOW());"
+      },
+      "id": "l7-audit-output",
+      "name": "L7 \u2014 Audit AGENT_OUTPUT",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2000,
+        520
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "WubLzl6gzdGXf2QQ",
+          "name": "Postgres coprem_os"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "L7 \u2014 Audit WEBHOOK_RECEIVED",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1-A Preprocessor": {
+      "main": [
+        [
+          {
+            "node": "Dedup Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dedup Check": {
+      "main": [
+        [
+          {
+            "node": "Route by Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Type": {
+      "main": [
+        [
+          {
+            "node": "Check Existing User",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse Approval",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check User Approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Existing User": {
+      "main": [
+        [
+          {
+            "node": "Notify Jeff",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Reply to Applicant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Approval": {
+      "main": [
+        [
+          {
+            "node": "Update User Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update User Status": {
+      "main": [
+        [
+          {
+            "node": "Notify User of Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check User Approved": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "L1.5 \u2014 Read Session Context",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Not Approved Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dify Smart Router": {
+      "main": [
+        [
+          {
+            "node": "L2.5 Normalize Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2.5 Normalize Output": {
+      "main": [
+        [
+          {
+            "node": "L7 \u2014 Audit AGENT_OUTPUT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Reply": {
+      "main": [
+        [
+          {
+            "node": "L1.5 \u2014 Write Session Turn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1.5 \u2014 Read Session Context": {
+      "main": [
+        [
+          {
+            "node": "Dify Smart Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1.5 \u2014 Write Session Turn": {
+      "main": [
+        [
+          {
+            "node": "Log to Inbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L7 \u2014 Audit WEBHOOK_RECEIVED": {
+      "main": [
+        [
+          {
+            "node": "L7 \u2014 Check Blocked User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L7 \u2014 Check Blocked User": {
+      "main": [
+        [
+          {
+            "node": "L7 \u2014 Blocked Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L7 \u2014 Blocked Gate": {
+      "main": [
+        [
+          {
+            "node": "L1-A Preprocessor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "L7 \u2014 Audit AGENT_OUTPUT": {
+      "main": [
+        [
+          {
+            "node": "Send Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "092185ae-fcd0-4f0f-8a6a-d2dc7a6bffa1",
+  "activeVersionId": "092185ae-fcd0-4f0f-8a6a-d2dc7a6bffa1",
+  "versionCounter": 4,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-30T22:25:22.775Z",
+      "createdAt": "2026-05-30T22:25:22.775Z",
+      "role": "workflow:owner",
+      "workflowId": "OTZhayuBBmCOO2CA",
+      "projectId": "zcgfC5I8AUAr3U8J",
+      "project": {
+        "updatedAt": "2026-05-30T20:55:56.474Z",
+        "createdAt": "2026-05-30T20:51:13.491Z",
+        "id": "zcgfC5I8AUAr3U8J",
+        "name": "Jeff COPREM <jooshdathumlong@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-31T03:04:06.171Z",
+    "createdAt": "2026-05-31T03:04:06.171Z",
+    "versionId": "092185ae-fcd0-4f0f-8a6a-d2dc7a6bffa1",
+    "workflowId": "OTZhayuBBmCOO2CA",
+    "nodes": [
+      {
+        "id": "tg-trigger",
+        "name": "Telegram Trigger",
+        "type": "n8n-nodes-base.telegramTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          200,
+          400
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "updates": [
+            "message"
+          ],
+          "additionalFields": {}
+        },
+        "webhookId": "7ffa1b5c-6a97-4620-96d7-ab323a89a9c3"
+      },
+      {
+        "id": "l1a-preprocess",
+        "name": "L1-A Preprocessor",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          440,
+          400
+        ],
+        "parameters": {
+          "jsCode": "const msg = $input.first().json.message;\nconst text = (msg.text || '').replace(/\\u200b/g,'').trim();\nconst userId = msg.from.id;\nconst chatId = msg.chat.id;\nconst hash = require('crypto').createHash('md5').update(userId+'|'+text).digest('hex');\nconst isStart = text === '/start';\nconst isApproval = /^(APPROVE|REJECT)\\s+\\d+/i.test(text);\nconst isThai = /[\\u0E00-\\u0E7F]/.test(text);\nreturn [{ json: { text, userId, chatId, hash, isStart, isApproval, isThai, firstName: msg.from.first_name || '', username: msg.from.username || '' } }];"
+        }
+      },
+      {
+        "id": "check-dedup",
+        "name": "Dedup Check",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          680,
+          400
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
+          }
+        },
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO dedup_cache (hash) VALUES ('{{ $json.hash }}') ON CONFLICT DO NOTHING; SELECT COUNT(*) as is_new FROM dedup_cache WHERE hash='{{ $json.hash }}' AND created_at > NOW() - INTERVAL '60 seconds';"
+        }
+      },
+      {
+        "id": "route-type",
+        "name": "Route by Type",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3,
+        "position": [
+          920,
+          400
+        ],
+        "parameters": {
+          "mode": "rules",
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $('L1-A Preprocessor').item.json.isStart }}",
+                      "rightValue": true,
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "equals"
+                      }
+                    }
+                  ]
+                },
+                "renameOutput": true,
+                "outputKey": "registration"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $('L1-A Preprocessor').item.json.isApproval }}",
+                      "rightValue": true,
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "equals"
+                      }
+                    }
+                  ]
+                },
+                "renameOutput": true,
+                "outputKey": "approval"
+              }
+            ]
+          },
+          "fallbackOutput": "extra"
+        }
+      },
+      {
+        "id": "reg-check",
+        "name": "Check Existing User",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          1160,
+          200
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
+          }
+        },
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO users (chat_id, first_name, username, status) VALUES ({{ $('L1-A Preprocessor').item.json.chatId }}, '{{ $('L1-A Preprocessor').item.json.firstName }}', '{{ $('L1-A Preprocessor').item.json.username }}', 'pending') ON CONFLICT (chat_id) DO NOTHING; SELECT status FROM users WHERE chat_id={{ $('L1-A Preprocessor').item.json.chatId }};"
+        }
+      },
+      {
+        "id": "reg-notify-jeff",
+        "name": "Notify Jeff",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1400,
+          120
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "7731591925",
+          "text": "=\ud83d\udd14 New Registration\n\nName: {{ $('L1-A Preprocessor').item.json.firstName }}\nUsername: @{{ $('L1-A Preprocessor').item.json.username }}\nChat ID: {{ $('L1-A Preprocessor').item.json.chatId }}\n\nReply:\nAPPROVE {{ $('L1-A Preprocessor').item.json.chatId }}\nor REJECT {{ $('L1-A Preprocessor').item.json.chatId }}"
+        },
+        "webhookId": "7015995c-8e4c-47bd-8a5e-12aab6bc71aa"
+      },
+      {
+        "id": "reg-reply-user",
+        "name": "Reply to Applicant",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1400,
+          260
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
+          "text": "\u2705 \u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e04\u0e33\u0e02\u0e2d\u0e41\u0e25\u0e49\u0e27\u0e04\u0e23\u0e31\u0e1a \u0e01\u0e23\u0e38\u0e13\u0e32\u0e23\u0e2d\u0e01\u0e32\u0e23\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e08\u0e32\u0e01 Jeff"
+        },
+        "webhookId": "b35a1b80-4e15-4172-9d3b-f7394b8b91fc"
+      },
+      {
+        "id": "approval-parse",
+        "name": "Parse Approval",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1160,
+          400
+        ],
+        "parameters": {
+          "jsCode": "const text = $('L1-A Preprocessor').item.json.text.toUpperCase();\nconst parts = text.split(' ');\nconst action = parts[0];\nconst targetId = parseInt(parts[1]);\nconst newStatus = action === 'APPROVE' ? 'approved' : 'rejected';\nreturn [{ json: { action, targetId, newStatus } }];"
+        }
+      },
+      {
+        "id": "approval-update",
+        "name": "Update User Status",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          1400,
+          400
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
+          }
+        },
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "UPDATE users SET status='{{ $json.newStatus }}', approved_at=NOW() WHERE chat_id={{ $json.targetId }}; SELECT chat_id, first_name, status FROM users WHERE chat_id={{ $json.targetId }};"
+        }
+      },
+      {
+        "id": "approval-notify",
+        "name": "Notify User of Decision",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1640,
+          400
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "={{ $json.chat_id }}",
+          "text": "={{ $json.status === 'approved' ? '\u2705 \u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e41\u0e25\u0e49\u0e27\u0e04\u0e23\u0e31\u0e1a! \u0e2a\u0e48\u0e07\u0e02\u0e49\u0e2d\u0e04\u0e27\u0e32\u0e21\u0e21\u0e32\u0e44\u0e14\u0e49\u0e40\u0e25\u0e22' : '\u274c \u0e02\u0e2d\u0e2d\u0e20\u0e31\u0e22 \u0e04\u0e33\u0e02\u0e2d\u0e16\u0e39\u0e01\u0e1b\u0e0f\u0e34\u0e40\u0e2a\u0e18\u0e04\u0e23\u0e31\u0e1a' }}"
+        },
+        "webhookId": "703db362-648a-472a-b324-a032c7c33c88"
+      },
+      {
+        "id": "check-approved",
+        "name": "Check User Approved",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          1160,
+          600
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
+          }
+        },
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT status FROM users WHERE chat_id={{ $('L1-A Preprocessor').item.json.chatId }} LIMIT 1;"
+        }
+      },
+      {
+        "id": "is-approved",
+        "name": "Approved?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          1400,
+          600
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true
+            },
+            "conditions": [
+              {
+                "id": "c1",
+                "leftValue": "={{ $json.status }}",
+                "rightValue": "approved",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "dify-router",
+        "name": "Dify Smart Router",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1640,
+          520
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.dify.ai/v1/chat-messages",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "Bearer app-EeCD0rYnH9eTTxWKdYxbXD2Q"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={ \"inputs\": {}, \"query\": \"{{ $('L1-A Preprocessor').item.json.text }}\", \"response_mode\": \"blocking\", \"conversation_id\": \"\", \"user\": \"{{ $('L1-A Preprocessor').item.json.userId }}\" }",
+          "options": {}
+        }
+      },
+      {
+        "id": "l25-normalize",
+        "name": "L2.5 Normalize Output",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1880,
+          520
+        ],
+        "parameters": {
+          "jsCode": "const data = $input.first().json;\nlet reply = data.answer || data.text || '\u0e02\u0e2d\u0e2d\u0e20\u0e31\u0e22 \u0e44\u0e21\u0e48\u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e15\u0e2d\u0e1a\u0e44\u0e14\u0e49\u0e15\u0e2d\u0e19\u0e19\u0e35\u0e49\u0e04\u0e23\u0e31\u0e1a';\nif (reply.length > 4096) reply = reply.substring(0, 4090) + '...[\u0e15\u0e48\u0e2d]';\nconst agent = data.metadata?.usage ? 'dify' : 'unknown';\nreturn [{ json: { reply, agent } }];"
+        }
+      },
+      {
+        "id": "send-reply",
+        "name": "Send Reply",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          2120,
+          520
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
+          "text": "={{ $json.reply }}"
+        },
+        "webhookId": "b2ecc497-eaf3-4834-af1d-7cf06132f6ca"
+      },
+      {
+        "id": "log-inbox",
+        "name": "Log to Inbox",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2360,
+          520
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
+          }
+        },
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO inbox_log (user_id, content_raw, content_clean, lang_detected, msg_hash, agent, status) VALUES ({{ $('L1-A Preprocessor').item.json.userId }}, '{{ $('L1-A Preprocessor').item.json.text }}', '{{ $('L1-A Preprocessor').item.json.text }}', '{{ $('L1-A Preprocessor').item.json.isThai ? 'th' : 'en' }}', '{{ $('L1-A Preprocessor').item.json.hash }}', '{{ $('L2.5 Normalize Output').item.json.agent }}', 'ok');"
+        }
+      },
+      {
+        "id": "not-approved",
+        "name": "Not Approved Reply",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1640,
+          700
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "={{ $('L1-A Preprocessor').item.json.chatId }}",
+          "text": "\u274c \u0e04\u0e38\u0e13\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e04\u0e23\u0e31\u0e1a \u0e01\u0e23\u0e38\u0e13\u0e32\u0e2a\u0e48\u0e07 /start \u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e2a\u0e21\u0e31\u0e04\u0e23\u0e01\u0e48\u0e2d\u0e19"
+        },
+        "webhookId": "6d11859e-5938-4aa4-9946-f72d5e3efdd8"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://localhost:5678/webhook/session-read",
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "channel_type",
+                "value": "telegram"
+              },
+              {
+                "name": "channel_id",
+                "value": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+              },
+              {
+                "name": "user_id",
+                "value": "={{ $('Telegram Trigger').item.json.message.from.id }}"
+              },
+              {
+                "name": "user_message",
+                "value": "={{ $('L1-A Preprocessor').item.json.content_clean }}"
+              }
+            ]
+          }
+        },
+        "id": "l15-read",
+        "name": "L1.5 \u2014 Read Session Context",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1520,
+          520
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://localhost:5678/webhook/session-write",
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "session_key",
+                "value": "=session:telegram:{{ $('Telegram Trigger').item.json.message.chat.id }}:{{ $('Telegram Trigger').item.json.message.from.id }}"
+              },
+              {
+                "name": "user_message",
+                "value": "={{ $('L1-A Preprocessor').item.json.content_clean }}"
+              },
+              {
+                "name": "agent_reply",
+                "value": "={{ $('L2.5 Normalize Output').item.json.reply_text }}"
+              }
+            ]
+          }
+        },
+        "id": "l15-write",
+        "name": "L1.5 \u2014 Write Session Turn",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          2300,
+          520
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO audit_log (event_type, source_ip, source, payload, timestamp) VALUES ('WEBHOOK_RECEIVED', NULL, 'telegram', '{{ JSON.stringify({user_id: $json.message.from.id, chat_id: $json.message.chat.id, msg: $json.message.text}) }}'::jsonb, NOW()) ON CONFLICT DO NOTHING;"
+        },
+        "id": "l7-audit-received",
+        "name": "L7 \u2014 Audit WEBHOOK_RECEIVED",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          320,
+          400
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT COUNT(*) as blocked FROM blocked_ips WHERE ip = '{{ $('Telegram Trigger').item.json.message.from.id.toString() }}' AND (expires_at IS NULL OR expires_at > NOW());"
+        },
+        "id": "l7-blocked-check",
+        "name": "L7 \u2014 Check Blocked User",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          560,
+          400
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "blocked-check",
+                "leftValue": "={{ $json.blocked }}",
+                "rightValue": "0",
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          }
+        },
+        "id": "l7-blocked-gate",
+        "name": "L7 \u2014 Blocked Gate",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          800,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO audit_log (event_type, source_ip, source, payload, timestamp) VALUES ('AGENT_OUTPUT', NULL, 'telegram', '{{ JSON.stringify({user_id: $('Telegram Trigger').item.json.message.from.id, reply: $json.reply_text?.substring(0,200)}) }}'::jsonb, NOW());"
+        },
+        "id": "l7-audit-output",
+        "name": "L7 \u2014 Audit AGENT_OUTPUT",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2000,
+          520
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "WubLzl6gzdGXf2QQ",
+            "name": "Postgres coprem_os"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Telegram Trigger": {
+        "main": [
+          [
+            {
+              "node": "L7 \u2014 Audit WEBHOOK_RECEIVED",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "L1-A Preprocessor": {
+        "main": [
+          [
+            {
+              "node": "Dedup Check",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Dedup Check": {
+        "main": [
+          [
+            {
+              "node": "Route by Type",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Route by Type": {
+        "main": [
+          [
+            {
+              "node": "Check Existing User",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Parse Approval",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Check User Approved",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Existing User": {
+        "main": [
+          [
+            {
+              "node": "Notify Jeff",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Reply to Applicant",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Approval": {
+        "main": [
+          [
+            {
+              "node": "Update User Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update User Status": {
+        "main": [
+          [
+            {
+              "node": "Notify User of Decision",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check User Approved": {
+        "main": [
+          [
+            {
+              "node": "Approved?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Approved?": {
+        "main": [
+          [
+            {
+              "node": "L1.5 \u2014 Read Session Context",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Not Approved Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Dify Smart Router": {
+        "main": [
+          [
+            {
+              "node": "L2.5 Normalize Output",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "L2.5 Normalize Output": {
+        "main": [
+          [
+            {
+              "node": "L7 \u2014 Audit AGENT_OUTPUT",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send Reply": {
+        "main": [
+          [
+            {
+              "node": "L1.5 \u2014 Write Session Turn",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "L1.5 \u2014 Read Session Context": {
+        "main": [
+          [
+            {
+              "node": "Dify Smart Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "L1.5 \u2014 Write Session Turn": {
+        "main": [
+          [
+            {
+              "node": "Log to Inbox",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "L7 \u2014 Audit WEBHOOK_RECEIVED": {
+        "main": [
+          [
+            {
+              "node": "L7 \u2014 Check Blocked User",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "L7 \u2014 Check Blocked User": {
+        "main": [
+          [
+            {
+              "node": "L7 \u2014 Blocked Gate",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "L7 \u2014 Blocked Gate": {
+        "main": [
+          [
+            {
+              "node": "L1-A Preprocessor",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          []
+        ]
+      },
+      "L7 \u2014 Audit AGENT_OUTPUT": {
+        "main": [
+          [
+            {
+              "node": "Send Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Jeff COPREM",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-31T03:04:06.836Z",
+        "id": 10,
+        "workflowId": "OTZhayuBBmCOO2CA",
+        "versionId": "092185ae-fcd0-4f0f-8a6a-d2dc7a6bffa1",
+        "event": "deactivated",
+        "userId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      },
+      {
+        "createdAt": "2026-05-31T03:04:08.099Z",
+        "id": 11,
+        "workflowId": "OTZhayuBBmCOO2CA",
+        "versionId": "092185ae-fcd0-4f0f-8a6a-d2dc7a6bffa1",
+        "event": "activated",
+        "userId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      }
+    ]
+  }
+}

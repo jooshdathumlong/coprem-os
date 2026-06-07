@@ -1,0 +1,92 @@
+{
+  "name": "WF09 — Automated Backup",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 3 * * 0" }] }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 300],
+      "name": "Sunday 03:00"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT json_agg(row_to_json(d)) as data FROM decision_memory_log d WHERE archived = false;"
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [440, 200],
+      "name": "Export KB-05 Decisions",
+      "credentials": { "postgres": { "id": "coprem_os", "name": "Postgres coprem_os" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT json_agg(row_to_json(p)) as data FROM prompt_library p WHERE is_active = true;"
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [440, 400],
+      "name": "Export Active Prompts",
+      "credentials": { "postgres": { "id": "coprem_os", "name": "Postgres coprem_os" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT json_agg(row_to_json(t)) as data FROM task_board t WHERE created_at >= NOW() - INTERVAL '30 days';"
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [440, 600],
+      "name": "Export Recent Tasks",
+      "credentials": { "postgres": { "id": "coprem_os", "name": "Postgres coprem_os" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const getRows = (nodeName) => { try { return $node[nodeName].json.data || []; } catch(e) { return []; } };\nconst decisions = getRows('Export KB-05 Decisions');\nconst prompts = getRows('Export Active Prompts');\nconst tasks = getRows('Export Recent Tasks');\n\nconst backup = {\n  version: 'v8.2',\n  exported_at: new Date().toISOString(),\n  decisions,\n  prompts,\n  tasks\n};\n\nreturn [{ json: { backup: JSON.stringify(backup, null, 2), filename: `coprem-backup-${new Date().toISOString().split('T')[0]}.json` } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 400],
+      "name": "Compose Backup JSON"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO system_log (level, workflow, node, message) VALUES ('info', 'WF09', 'backup', 'Weekly backup completed: {{ $json.filename }}');"
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [940, 400],
+      "name": "Log Backup",
+      "credentials": { "postgres": { "id": "coprem_os", "name": "Postgres coprem_os" } }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "💾 Weekly backup completed: {{ $json.filename }}\nDecisions: {{ JSON.parse($('Compose Backup JSON').item.json.backup).decisions.length || 0 }}\nPrompts: {{ JSON.parse($('Compose Backup JSON').item.json.backup).prompts.length || 0 }}\nTasks: {{ JSON.parse($('Compose Backup JSON').item.json.backup).tasks.length || 0 }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1160, 400],
+      "name": "Notify Backup Done"
+    }
+  ],
+  "connections": {
+    "Sunday 03:00": { "main": [[
+      { "node": "Export KB-05 Decisions", "type": "main", "index": 0 },
+      { "node": "Export Active Prompts", "type": "main", "index": 0 },
+      { "node": "Export Recent Tasks", "type": "main", "index": 0 }
+    ]] },
+    "Export KB-05 Decisions": { "main": [[{ "node": "Compose Backup JSON", "type": "main", "index": 0 }]] },
+    "Export Active Prompts": { "main": [[{ "node": "Compose Backup JSON", "type": "main", "index": 0 }]] },
+    "Export Recent Tasks": { "main": [[{ "node": "Compose Backup JSON", "type": "main", "index": 0 }]] },
+    "Compose Backup JSON": { "main": [[{ "node": "Log Backup", "type": "main", "index": 0 }]] },
+    "Log Backup": { "main": [[{ "node": "Notify Backup Done", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "COPREM" }, { "name": "L7-Security" }]
+}

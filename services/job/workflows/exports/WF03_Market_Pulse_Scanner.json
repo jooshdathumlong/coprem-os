@@ -1,0 +1,340 @@
+{
+  "updatedAt": "2026-05-30T21:05:33.892Z",
+  "createdAt": "2026-05-30T21:03:39.067Z",
+  "id": "HFKavzP2rQGrHYAS",
+  "name": "WF03 — Market Pulse Scanner",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "Every 6h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 */6 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "n2",
+      "name": "Signal Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const score=Math.floor(Math.random()*40+60);\nreturn [{json:{score,keywords:[\"minimalism drink\",\"eilinaire\",\"peabuntid\"],alert:score>80}}];"
+      }
+    },
+    {
+      "id": "n3",
+      "name": "Alert?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.score }}",
+              "rightValue": 80,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "n4",
+      "name": "Send Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        920,
+        200
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "bekevyLkkiivHo0L",
+          "name": "Telegram Bot"
+        }
+      },
+      "parameters": {
+        "chatId": "7731591925",
+        "text": "=🔴 Market Alert! Score: {{ $json.score }}/100"
+      },
+      "webhookId": "c0fe23d3-2047-4cf2-b02f-6840101f810c"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO market_signal_log (keyword, trend_score, source, signal_type, notes) VALUES ('COPREM_PULSE', {{ $json.score }}, 'scheduled', '{{ $json.score >= 70 ? \"alert\" : \"normal\" }}', 'Auto scan {{ $now.format(\"YYYY-MM-DD HH:mm\") }}') RETURNING id, timestamp, signal_type;"
+      },
+      "id": "pg-market-log-001",
+      "name": "Log to market_signal_log",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres COPREM"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every 6h": {
+      "main": [
+        [
+          {
+            "node": "Signal Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Signal Score": {
+      "main": [
+        [
+          {
+            "node": "Log to market_signal_log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alert?": {
+      "main": [
+        [
+          {
+            "node": "Send Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Log to market_signal_log": {
+      "main": [
+        [
+          {
+            "node": "Alert?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": null,
+  "staticData": {
+    "node:Every 6h": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "a930dff7-a2ac-4fd3-aba7-2e3e06ec5c4d",
+  "activeVersionId": "a930dff7-a2ac-4fd3-aba7-2e3e06ec5c4d",
+  "versionCounter": 1,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-30T21:03:39.067Z",
+      "createdAt": "2026-05-30T21:03:39.067Z",
+      "role": "workflow:owner",
+      "workflowId": "HFKavzP2rQGrHYAS",
+      "projectId": "zcgfC5I8AUAr3U8J",
+      "project": {
+        "updatedAt": "2026-05-30T20:55:56.474Z",
+        "createdAt": "2026-05-30T20:51:13.491Z",
+        "id": "zcgfC5I8AUAr3U8J",
+        "name": "Jeff COPREM <jooshdathumlong@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "12a7009a-8941-44c5-ba2c-39b02509ad3c"
+      }
+    }
+  ],
+  "tags": [],
+  "parentFolder": null,
+  "activeVersion": {
+    "updatedAt": "2026-05-30T21:03:39.067Z",
+    "createdAt": "2026-05-30T21:03:39.067Z",
+    "versionId": "a930dff7-a2ac-4fd3-aba7-2e3e06ec5c4d",
+    "workflowId": "HFKavzP2rQGrHYAS",
+    "nodes": [
+      {
+        "id": "n1",
+        "name": "Every 6h",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          200,
+          300
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 */6 * * *"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "n2",
+        "name": "Signal Score",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          440,
+          300
+        ],
+        "parameters": {
+          "jsCode": "const score=Math.floor(Math.random()*40+60);\nreturn [{json:{score,keywords:[\"minimalism drink\",\"eilinaire\",\"peabuntid\"],alert:score>80}}];"
+        }
+      },
+      {
+        "id": "n3",
+        "name": "Alert?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          680,
+          300
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true
+            },
+            "conditions": [
+              {
+                "id": "c1",
+                "leftValue": "={{ $json.score }}",
+                "rightValue": 80,
+                "operator": {
+                  "type": "number",
+                  "operation": "gt"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "n4",
+        "name": "Send Alert",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          920,
+          200
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "bekevyLkkiivHo0L",
+            "name": "Telegram Bot"
+          }
+        },
+        "parameters": {
+          "chatId": "7731591925",
+          "text": "=🔴 Market Alert! Score: {{ $json.score }}/100"
+        },
+        "webhookId": "c0fe23d3-2047-4cf2-b02f-6840101f810c"
+      }
+    ],
+    "connections": {
+      "Every 6h": {
+        "main": [
+          [
+            {
+              "node": "Signal Score",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Signal Score": {
+        "main": [
+          [
+            {
+              "node": "Alert?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alert?": {
+        "main": [
+          [
+            {
+              "node": "Send Alert",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          []
+        ]
+      }
+    },
+    "authors": "Jeff COPREM",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": []
+  },
+  "scopes": [
+    "workflow:create",
+    "workflow:delete",
+    "workflow:execute",
+    "workflow:execute-chat",
+    "workflow:list",
+    "workflow:move",
+    "workflow:publish",
+    "workflow:read",
+    "workflow:share",
+    "workflow:unpublish",
+    "workflow:unshare",
+    "workflow:update",
+    "workflow:updateRedactionSetting"
+  ],
+  "checksum": "3dc1d651ebc2a5ccef1aec7d683976601c04016ec40b1a6740b20c81f154b8b2"
+}

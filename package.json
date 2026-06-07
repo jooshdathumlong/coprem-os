@@ -1,0 +1,16 @@
+{
+  "name": "coprem-os",
+  "version": "8.4.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/dashboard",
+    "build": "npm run build --workspace=apps/dashboard",
+    "dashboard": "npm run dev --workspace=apps/dashboard",
+    "health": "bash infra/scripts/health_check.sh",
+    "embed": "python3 infra/scripts/embed_kb.py"
+  }
+}
