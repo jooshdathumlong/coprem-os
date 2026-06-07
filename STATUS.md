@@ -1034,3 +1034,11 @@ PENDING:
 | 2026-06-07 | UPDATE: health_check.sh — PID path → system/logs (fallback to legacy) | ✅ |
 | 2026-06-07 | NEW: STRUCTURE.md — developer guide สำหรับ monorepo | ✅ |
 | 2026-06-07 | NEW: COPREM_MASTER_ANALYSIS_FILE.md — 18 sections รวมทุก context สำหรับ AI | ✅ |
+
+## 2026-06-07 — Content Automation A1/A2/B1/B2/C1
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-07 | Migration 010: content_drafts, campaign_plans, campaign_kols, weekly_reports | ✅ 4 tables |
+| 2026-06-07 | API: /api/job/caption (A1), /description (A2), /kol (B1), /campaign (B2), /report (C1), /approve | ✅ tested |
+| 2026-06-07 | WF01 L1-A v6: /caption /desc /kol /campaign /report commands | ✅ ewT0XOTFqZBiB8n0 |
+| 2026-06-07 | WF_C1 Weekly Report JSON: import ใน n8n → cron จันทร์ 09:00 | ✅ ready to import |

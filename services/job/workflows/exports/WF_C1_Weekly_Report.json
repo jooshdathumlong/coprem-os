@@ -1,0 +1,44 @@
+{
+  "name": "WF C1 — Weekly Sales Report",
+  "nodes": [
+    {
+      "id": "trigger-weekly",
+      "name": "Every Monday 09:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 300],
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 9 * * 1" }]
+        }
+      }
+    },
+    {
+      "id": "http-report",
+      "name": "Generate Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001/api/job/report",
+        "sendBody": true,
+        "bodyParameters": { "parameters": [] },
+        "options": { "timeout": 60000 }
+      }
+    },
+    {
+      "id": "log-done",
+      "name": "Log Done",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [800, 300],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Every Monday 09:00": { "main": [[{ "node": "Generate Report", "type": "main", "index": 0 }]] },
+    "Generate Report":    { "main": [[{ "node": "Log Done",        "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}
