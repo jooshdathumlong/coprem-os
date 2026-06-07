@@ -1090,3 +1090,10 @@ PENDING:
 | 2026-06-07 | NEW: generate_dify_dsl.py — generates 9 agent DSL YAML files | ✅ |
 | 2026-06-07 | NEW: Dify DSL 9 files — services/job/dify-dsl/*.yml | ✅ ready to import |
 | 2026-06-07 | PHASE 3 COMPLETE — 4 workflows active, 9 DSL files ready, pgvector pipeline built | ✅ |
+
+## 2026-06-07 — BUG FIX: Knowledge Base 0 files
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-07 | ROOT CAUSE: 02-knowledge/ ถูกลบตอน monorepo v4.0, dashboard ยังอ่าน path เดิม | ✅ found |
+| 2026-06-07 | FIX: symlink 02-knowledge → content/knowledge | ✅ |
+| 2026-06-07 | RESULT: Day Job=4 files, My Business=8 files, KB categories=2 files (software-dev) | ✅ |
