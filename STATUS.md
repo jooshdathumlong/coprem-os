@@ -1052,3 +1052,14 @@ PENDING:
 | 2026-06-07 | UPDATE: Smart Router — 6 pillars (added DEV/BIZDEV/RESEARCH) | ✅ prompts.md v9.0 |
 | 2026-06-07 | UPDATE: CLAUDE.md v9.0 — routing, key paths, architecture state | ✅ |
 | 2026-06-07 | NEXT: Phase 2 — WF_SCOUT cron + KB integration pipeline | pending |
+
+## 2026-06-07 — Phase 1 Completion: Full 9-Agent Roster
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-07 | NEW: Vera agent (HR pillar) — workload, capacity, performance | ✅ services/hr/ |
+| 2026-06-07 | NEW: Rex agent (FINANCE pillar) — P&L, API cost, budget control | ✅ services/finance/ |
+| 2026-06-07 | NEW: Quinn agent (QA pillar) — code review, quality gate, testing | ✅ services/qa/ |
+| 2026-06-07 | NEW: Lex agent (LEGAL pillar) — Thailand อย., PDPA, compliance | ✅ services/legal/ |
+| 2026-06-07 | UPDATE: Smart Router v9.1 — 10 pillars, 9 active agents | ✅ prompts.md |
+| 2026-06-07 | UPDATE: CLAUDE.md — full agent roster + content publish flow | ✅ |
+| 2026-06-07 | ROSTER: Jeff/Eilinaire/Krit/Nova/Scout/Vera/Rex/Quinn/Lex = 9 agents | ✅ complete |

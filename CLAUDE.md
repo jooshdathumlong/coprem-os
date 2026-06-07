@@ -40,14 +40,22 @@
 - **DEV** → `services/dev/` | Agent: Krit — IT Developer (autonomous)
 - **BIZDEV** → `services/bizdev/` | Agent: Nova — Business Developer (Eilinaire + Peadbuntid brands)
 - **RESEARCH** → `services/research/` | Agent: Scout — Journalist/Intelligence (daily KB updates)
+- **HR** → `services/hr/` | Agent: Vera — Resource Manager (workload, capacity, performance)
+- **FINANCE** → `services/finance/` | Agent: Rex — CFO (revenue, expenses, API cost, ROI)
+- **QA** → `services/qa/` | Agent: Quinn — Quality Gate (code review, testing, content gate)
+- **LEGAL** → `services/legal/` | Agent: Lex — Compliance (Thailand FDA/OrYor, PDPA, platform policies)
 
-Active: JOB + PERSONAL + DEV + BIZDEV + RESEARCH. CREATIVE suspended.
+Active: JOB + PERSONAL + DEV + BIZDEV + RESEARCH + HR + FINANCE + QA + LEGAL. CREATIVE suspended.
 
 Agent inter-communication:
-- Scout → feeds data to Nova + Krit via `services/research/feeds/`
-- Krit → improvement proposals to Jeff via `services/dev/proposals/`
-- Nova → brand opportunities to Jeff via `services/bizdev/opportunities/`
+- Scout → feeds data to Nova + Krit + Lex via `services/research/feeds/`
+- Krit → improvement proposals to Jeff via `services/dev/proposals/` (Quinn reviews before deploy)
+- Nova → content to Quinn (quality) → Lex (legal) → publish only after both PASS
+- Rex → cost alerts to Jeff when API threshold exceeded
+- Vera → workload reports to Jeff every Monday 08:00
 - Jeff → orchestrates all agents, escalates to Prem when HITL required
+
+Content publish flow: Nova writes → Lex reviews → Quinn approves → Jeff notifies Prem → publish
 
 ---
 
@@ -155,6 +163,15 @@ services/research/agents/scout_prompt.md  Scout Research/Journalist system promp
 services/research/feeds/                  Scout output: market_intel / tech_updates / competitor_watch / opportunities
 services/research/archive/                Scout monthly archives
 
+services/hr/agents/vera_prompt.md         Vera HR/Resource Manager system prompt
+services/hr/reports/                      Vera weekly agent performance reports
+services/finance/agents/rex_prompt.md     Rex CFO/Finance Controller system prompt
+services/finance/reports/                 Rex daily/weekly/monthly P&L reports
+services/qa/agents/quinn_prompt.md        Quinn QA/Quality Assurance system prompt
+services/qa/reports/                      Quinn audit reports
+services/legal/agents/lex_prompt.md       Lex Legal/Compliance system prompt
+services/legal/reports/                   Lex compliance review reports
+
 infra/migrations/migrations/              DB migrations (001–009)
 infra/database/init.sql                   DB init (coprem_os)
 
@@ -200,6 +217,10 @@ New machine: `sh infra/scripts/setup.sh`
 - DEV (Krit): ACTIVE — Phase 1 deployed 2026-06-07
 - BIZDEV (Nova): ACTIVE — Phase 1 deployed 2026-06-07
 - RESEARCH (Scout): ACTIVE — Phase 1 deployed 2026-06-07 | WF_SCOUT cron: Phase 2
+- HR (Vera): ACTIVE — deployed 2026-06-07
+- FINANCE (Rex): ACTIVE — deployed 2026-06-07
+- QA (Quinn): ACTIVE — deployed 2026-06-07
+- LEGAL (Lex): ACTIVE — deployed 2026-06-07
 - CREATIVE (Ego Era): SUSPENDED
 - Dashboard port 3001: ACTIVE
 - WF13 Discord: INACTIVE / deferred
