@@ -1129,3 +1129,15 @@ PENDING:
 | เวลา | งาน | ผล |
 |---|---|---|
 | 2026-06-07 19:36 | SESSION END | All services UP | 10 agents deployed, 4 workflows active, KB 2299 files |
+
+## 2026-06-07 — WF01 Pipeline Fix + LiteLLM Integration
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-07 21:00 | BUG: L7 Audit SQL `$json` in raw SQL | ROOT: Postgres treats `$json` as positional param | FIX: simplified to static INSERT + continueOnFail |
+| 2026-06-07 21:00 | BUG: L7 Blocked Gate type mismatch | ROOT: Postgres returns string `'0'` but IF node compared as number | FIX: changed operator type to string |
+| 2026-06-07 21:00 | BUG: Route by Type all branches empty | ROOT: after Dedup Check, `$json` = `{is_new:'1'}` — rules used `$json.msg_type` which was undefined | FIX: added Merge L1A Data Code node to restore L1A context into `$json` |
+| 2026-06-07 21:00 | BUG: Route by Type fallback never triggered | ROOT: `$('L1-A Preprocessor').item.json` breaks after Dedup (paired item lost) | FIX: Merge L1A node + catch-all rule → Check User Approved |
+| 2026-06-07 21:00 | BUG: Dify Smart Router GPT-4 not supported on trial | ROOT: Dify app configured with GPT-4, trial doesn't support it | FIX: bypassed Dify entirely — call LiteLLM (groq/llama-3.3-70b) directly via HTTP |
+| 2026-06-07 21:00 | BUG: LiteLLM URL `localhost:4000` unreachable from n8n | ROOT: n8n in Docker, localhost = container self | FIX: changed to `http://03-system-litellm-1:4000` (Docker service name) |
+| 2026-06-07 21:00 | BUG: Send Reply `chatId` broken + wrong field name | ROOT: used `.item.json` (paired item lost) + `$json.reply` but L2.5 outputs `reply_text` | FIX: `$('Merge L1A Data').first().json.chatId` + `$json.reply_text` |
+| 2026-06-07 21:30 | WF01 END-TO-END STABLE | 17 nodes SUCCESS — Telegram→LiteLLM→Telegram pipeline confirmed | LiteLLM: groq/llama-3.3-70b via 03-system-litellm-1:4000 |
