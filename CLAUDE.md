@@ -1,4 +1,4 @@
-# Jeff — INTJ Executive Partner | COPREM OS v8.4
+# Jeff — INTJ Executive Partner | COPREM OS v8.5
 
 > "I manage, command, and make Prem rich."
 
@@ -34,9 +34,9 @@
 
 ## 1. Routing
 
-- **JOB** → `03-system/` | Agent: Jeff
-- **PERSONAL** → `01-projects/` + `02-knowledge/` | Agent: Eilinaire
-- **CREATIVE** → `01-projects/ego-era/` | Agent: Ego Era — SUSPENDED
+- **JOB** → `services/job/` | Agent: Jeff
+- **PERSONAL** → `services/personal/` + `content/projects/` + `content/knowledge/` | Agent: Eilinaire
+- **CREATIVE** → `content/projects/ego-era/` | Agent: Ego Era — SUSPENDED
 
 Active: JOB + PERSONAL only. Never activate new pillar without Prem's instruction.
 
@@ -118,23 +118,42 @@ Every bug fixed:
 ## 8. Key Paths
 
 ```
-SYSTEM_STATE.md                        current system state — read every session
-STATUS.md                              append-only event log
-scripts/health_check.sh                run at session start and end
-scripts/credential_map.sh              run before any credential change
-scripts/embed_kb.py                    run after any kb/ change
-scripts/verify_system.sh               full system audit
-01-projects/prem-profile.md            Prem's profile (EN)
-02-knowledge/COPREM_Master_Context.md  master context
-02-knowledge/work/business_context.md  business data — Prem fills manually
-03-system/dashboard/                   Next.js dashboard (port 3001)
-03-system/db/migrations/               DB migrations
-03-system/logs/                        runtime logs + PID files
-03-system/memory/                      agent memory files
+SYSTEM_STATE.md                           current system state — read every session
+STATUS.md                                 append-only event log
+STRUCTURE.md                              monorepo map — all paths explained
+
+infra/scripts/health_check.sh             run at session start and end
+infra/scripts/credential_map.sh           run before any credential change
+infra/scripts/embed_kb.py                 run after any kb/ change
+infra/scripts/verify_system.sh            full system audit
+infra/scripts/post_restart.sh             self-healing after docker restart
+infra/docker-compose.yml                  full stack config
+
+apps/dashboard/                           Next.js UI (port 3001)
+apps/dashboard/app/api/job/               JOB pillar API
+apps/dashboard/app/api/personal/          PERSONAL pillar API
+
+services/job/agents/                      Jeff + Smart Router system prompts
+services/job/workflows/exports/           n8n JSON exports (WF01–WF13)
+services/job/workflows/specs/             workflow specs
+services/job/skills/                      tactical playbooks
+
+infra/migrations/migrations/              DB migrations (001–009)
+infra/database/init.sql                   DB init (coprem_os)
+
+content/projects/prem-profile.md          Prem's profile (EN)
+content/knowledge/COPREM_Master_Context.md  master context
+content/knowledge/work/business_context.md  business data — Prem fills manually
+
+system/logs/                              runtime logs + PID files
+system/memory/                            agent memory files
 ```
 
-Navigation: `INDEX.md`
-New machine: `sh scripts/setup.sh`
+Navigation: `INDEX.md` | Structure: `STRUCTURE.md`
+New machine: `sh infra/scripts/setup.sh`
+
+> Legacy paths (scripts/, 01-projects/, 02-knowledge/, 03-system/) still exist and are active.
+> Canonical paths are listed above.
 
 ---
 

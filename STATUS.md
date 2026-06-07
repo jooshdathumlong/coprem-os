@@ -1024,3 +1024,13 @@ PENDING:
 | 2026-06-07 03:34 | INFO | WF01 ID updated | v4I9Kej9VjM2bdEm (after Save Confirm Reply credential fix) |
 
 | 2026-06-07 03:35 | SESSION END | All services UP | WF01=v4I9Kej9VjM2bdEm, Dashboard port 3001, Autonomous Loop PID 10232 |
+
+## 2026-06-07 — Monorepo v4.0 + Master Analysis File
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-07 | ARCH: Monorepo v4.0 — apps/services/infra/content/system structure | ✅ |
+| 2026-06-07 | UPDATE: CLAUDE.md v8.5 — routing paths, key paths section updated | ✅ |
+| 2026-06-07 | UPDATE: post_restart.sh — dashboard path → apps/dashboard, logs → system/logs | ✅ |
+| 2026-06-07 | UPDATE: health_check.sh — PID path → system/logs (fallback to legacy) | ✅ |
+| 2026-06-07 | NEW: STRUCTURE.md — developer guide สำหรับ monorepo | ✅ |
+| 2026-06-07 | NEW: COPREM_MASTER_ANALYSIS_FILE.md — 18 sections รวมทุก context สำหรับ AI | ✅ |

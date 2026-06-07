@@ -81,7 +81,7 @@ else
 fi
 
 # 8. Ensure autonomous loop is running
-PID_FILE="$ROOT/03-system/logs/autonomous_loop.pid"
+PID_FILE="$ROOT/system/logs/autonomous_loop.pid"
 LOOP_RUNNING=false
 if [ -f "$PID_FILE" ]; then
   LOOP_PID=$(cat "$PID_FILE")
@@ -91,19 +91,19 @@ if [ -f "$PID_FILE" ]; then
   fi
 fi
 if [ "$LOOP_RUNNING" = false ]; then
-  mkdir -p "$ROOT/logs"
-  nohup python3 "$ROOT/scripts/autonomous_loop.py" >> "$ROOT/03-system/logs/autonomous_loop.log" 2>&1 &
+  mkdir -p "$ROOT/system/logs"
+  nohup python3 "$ROOT/scripts/autonomous_loop.py" >> "$ROOT/system/logs/autonomous_loop.log" 2>&1 &
   echo $! > "$PID_FILE"
   log "Autonomous loop: ✅ started (PID $!)"
 fi
 
 # 9. Start dashboard (Next.js port 3001) if not running
-DASH_LOG="$ROOT/03-system/logs/dashboard.log"
+DASH_LOG="$ROOT/system/logs/dashboard.log"
 if ! lsof -i :3001 -sTCP:LISTEN -t > /dev/null 2>&1; then
   log "Starting dashboard..."
-  mkdir -p "$ROOT/logs"
-  cd "$ROOT/03-system/dashboard" && nohup npm run dev >> "$DASH_LOG" 2>&1 &
-  echo $! > "$ROOT/03-system/logs/dashboard.pid"
+  mkdir -p "$ROOT/system/logs"
+  cd "$ROOT/apps/dashboard" && nohup npm run dev >> "$DASH_LOG" 2>&1 &
+  echo $! > "$ROOT/system/logs/dashboard.pid"
   cd "$ROOT"
   log "Dashboard: ✅ started on port 3001 (PID $!)"
 else
