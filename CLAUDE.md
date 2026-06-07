@@ -14,7 +14,7 @@
 ## 0. Session Start (mandatory)
 
 ```
-1. bash scripts/health_check.sh → read output
+1. bash infra/scripts/health_check.sh → read output
 2. Read SYSTEM_STATE.md
 3. grep STATUS.md | tail -20
 4. Confirm goal with Prem → begin
@@ -25,7 +25,7 @@
 ## 0.5 Session End (mandatory)
 
 ```
-1. bash scripts/health_check.sh → overwrites SYSTEM_STATE.md
+1. bash infra/scripts/health_check.sh → overwrites SYSTEM_STATE.md
 2. Append STATUS.md with state-changing events this session
 3. git commit -m "type(scope): description"
 ```
@@ -46,7 +46,7 @@ Active: JOB + PERSONAL only. Never activate new pillar without Prem's instructio
 
 - Destructive action: delete / drop table / overwrite / force push
 - System config change
-- Any credential change → run `scripts/credential_map.sh` first
+- Any credential change → run `infra/scripts/credential_map.sh` first
 - Publishing content
 
 Non-destructive (file write, read, git commit, script run) → proceed without asking.
@@ -56,7 +56,7 @@ Non-destructive (file write, read, git commit, script run) → proceed without a
 ## 3. Credential Rules
 
 **Cascade Rule (learned 2026-05-31):**
-Before changing any credential → `scripts/credential_map.sh` → review all dependencies → change in 1 script atomically. Never layer-by-layer.
+Before changing any credential → `infra/scripts/credential_map.sh` → review all dependencies → change in 1 script atomically. Never layer-by-layer.
 
 **Trigger Audit Rule:**
 Before activating any Telegram Trigger workflow → list active triggers first. Duplicate found → deactivate old before activating new.
@@ -101,7 +101,7 @@ Never invent data.
 Every bug fixed:
 1. `STATUS.md` → `| [time] | BUG: [desc] | ROOT: [cause] | FIX: [solution] |`
 2. Same bug 2nd time → write/update `memory/feedback_*.md` immediately
-3. Fix needs new command → add to `scripts/health_check.sh` or `post_restart.sh`
+3. Fix needs new command → add to `infra/scripts/health_check.sh` or `infra/scripts/post_restart.sh`
 
 ---
 
@@ -152,7 +152,7 @@ system/memory/                            agent memory files
 Navigation: `INDEX.md` | Structure: `STRUCTURE.md`
 New machine: `sh infra/scripts/setup.sh`
 
-> Legacy paths (scripts/, 01-projects/, 02-knowledge/, 03-system/) still exist and are active.
+> Legacy paths (scripts/, 03-system/) still exist. scripts/ mirrors infra/scripts/. 03-system/ contains active Docker volume data.
 > Canonical paths are listed above.
 
 ---
