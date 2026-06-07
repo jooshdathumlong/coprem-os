@@ -1,0 +1,117 @@
+{
+  "name": "WF_SCOUT — Daily Research & KB Update",
+  "description": "Scout agent: daily 07:00 research run — market intel, tech updates, competitor watch. Writes to services/research/feeds/ and alerts Jeff on HIGH relevance findings.",
+  "active": false,
+  "nodes": [
+    {
+      "id": "scout-trigger",
+      "name": "Daily 07:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 300],
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 7 * * *" }]
+        }
+      }
+    },
+    {
+      "id": "scout-research",
+      "name": "Scout — Research Queries",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [420, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "http://litellm:4000/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=",
+              "value": "={ \"model\": \"ollama/qwen2.5:3b\", \"messages\": [{ \"role\": \"system\", \"content\": \"You are Scout, the Research Intelligence Agent for COPREM OS. Your job: research and summarize today's most relevant updates for a Thai e-commerce/beauty brand business. Focus: (1) Thailand beauty/haircare market news (2) TikTok/Shopee/social commerce updates (3) AI/LLM tech news relevant to system stack (4) Competitor brand activity. Output JSON array of findings, each with: topic, summary, source, relevance (HIGH/MED/LOW), impact_on_coprem, action_required (boolean).\" }, { \"role\": \"user\", \"content\": \"Today is {{ $now.format('YYYY-MM-DD') }}. Research and return today's findings as JSON array.\" }], \"max_tokens\": 2000 } }"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "scout-parse",
+      "name": "Parse Findings",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst content = response.choices?.[0]?.message?.content || '{}';\n\nlet findings = [];\ntry {\n  const parsed = JSON.parse(content);\n  findings = Array.isArray(parsed) ? parsed : [parsed];\n} catch(e) {\n  findings = [{ topic: 'Parse Error', summary: content.substring(0,200), relevance: 'LOW', action_required: false }];\n}\n\nconst today = new Date().toISOString().split('T')[0];\nconst highFindings = findings.filter(f => f.relevance === 'HIGH');\n\nreturn [{\n  json: {\n    date: today,\n    findings,\n    highCount: highFindings.length,\n    highFindings,\n    feedEntry: findings.map(f =>\n      `---\\n[${today}] [SOURCE: ${f.source || 'AI Research'}] [RELEVANCE: ${f.relevance}]\\n**Topic:** ${f.topic}\\n**Summary:** ${f.summary}\\n**Impact on Coprem:** ${f.impact_on_coprem || 'None identified'}\\n**Action Required:** ${f.action_required ? 'Yes' : 'No'}\\n---`\n    ).join('\\n')\n  }\n}];"
+      }
+    },
+    {
+      "id": "scout-write-feed",
+      "name": "Write to Market Intel Feed",
+      "type": "n8n-nodes-base.writeFile",
+      "typeVersion": 1,
+      "position": [860, 200],
+      "parameters": {
+        "fileName": "/home/node/exports/../../../services/research/feeds/market_intel.md",
+        "dataPropertyName": "feedEntry",
+        "appendToFile": true
+      }
+    },
+    {
+      "id": "scout-check-high",
+      "name": "Any HIGH relevance?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [860, 400],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [{ "id": "high-check", "leftValue": "={{ $json.highCount }}", "rightValue": 0, "operator": { "type": "number", "operation": "gt" } }]
+        }
+      }
+    },
+    {
+      "id": "scout-alert",
+      "name": "Alert Jeff — HIGH Finding",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1080, 300],
+      "parameters": {
+        "chatId": "7731591925",
+        "text": "=🔍 Scout Alert — {{ $json.date }}\n\n{{ $json.highFindings.map(f => `🔴 HIGH: ${f.topic}\\n${f.summary}\\nAction: ${f.action_required ? 'YES - needs routing' : 'No'}`).join('\\n\\n') }}\n\nFull report: services/research/feeds/market_intel.md"
+      }
+    },
+    {
+      "id": "scout-done",
+      "name": "Scout Done — No Alerts",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1080, 500],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Daily 07:00": { "main": [[{ "node": "Scout — Research Queries", "type": "main", "index": 0 }]] },
+    "Scout — Research Queries": { "main": [[{ "node": "Parse Findings", "type": "main", "index": 0 }]] },
+    "Parse Findings": {
+      "main": [[
+        { "node": "Write to Market Intel Feed", "type": "main", "index": 0 },
+        { "node": "Any HIGH relevance?", "type": "main", "index": 0 }
+      ]]
+    },
+    "Any HIGH relevance?": {
+      "main": [
+        [{ "node": "Alert Jeff — HIGH Finding", "type": "main", "index": 0 }],
+        [{ "node": "Scout Done — No Alerts", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "scout" }, { "name": "research" }, { "name": "phase2" }]
+}

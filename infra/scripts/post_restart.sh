@@ -40,7 +40,7 @@ fi
 # 4. Activate WF01 (plain Webhook node — no secret refresh needed)
 log "Activating WF01..."
 N8N_API_KEY_VAL=$(grep "^N8N_API_KEY=" "$ENV" | cut -d= -f2-)
-WF01_ID="ewT0XOTFqZBiB8n0"
+WF01_ID="7ti3CNRTTQwdFmZR"
 curl -sf -X POST -H "X-N8N-API-KEY: $N8N_API_KEY_VAL" \
   "http://localhost:5678/api/v1/workflows/$WF01_ID/activate" > /dev/null 2>&1 || true
 log "WF01 activated ✅"
@@ -109,5 +109,16 @@ if ! lsof -i :3001 -sTCP:LISTEN -t > /dev/null 2>&1; then
 else
   log "Dashboard: ✅ already running on port 3001"
 fi
+
+# 10. Ensure Phase 2 agent tables exist (migration 011)
+log "Ensuring agent KB tables (migration 011)..."
+_PG2=$(docker ps --filter label=coprem.service=postgres -q 2>/dev/null | head -1)
+[ -z "$_PG2" ] && _PG2=$(docker ps --filter name=postgres -q 2>/dev/null | head -1)
+docker exec $_PG2 psql -U coprem -d coprem_os -t -c \
+  "CREATE TABLE IF NOT EXISTS research_feeds (id SERIAL PRIMARY KEY, feed_type VARCHAR(50) NOT NULL, entry_date DATE NOT NULL DEFAULT CURRENT_DATE, source TEXT, relevance VARCHAR(10), topic TEXT NOT NULL, summary TEXT NOT NULL, impact TEXT, action_required BOOLEAN DEFAULT false, action_routed_to VARCHAR(20), embedding vector(1536), created_at TIMESTAMPTZ DEFAULT NOW());
+   CREATE TABLE IF NOT EXISTS finance_daily_costs (id SERIAL PRIMARY KEY, report_date DATE NOT NULL UNIQUE DEFAULT CURRENT_DATE, total_spend NUMERIC(10,6) DEFAULT 0, threshold_status VARCHAR(20), action_taken TEXT, log_count INTEGER DEFAULT 0, raw_data JSONB, created_at TIMESTAMPTZ DEFAULT NOW());
+   CREATE TABLE IF NOT EXISTS agent_workload_log (id SERIAL PRIMARY KEY, snapshot_date DATE NOT NULL DEFAULT CURRENT_DATE, agent_name VARCHAR(20) NOT NULL, pillar VARCHAR(20) NOT NULL, task_count INTEGER DEFAULT 0, status VARCHAR(20) DEFAULT 'ACTIVE', notes TEXT, created_at TIMESTAMPTZ DEFAULT NOW());
+   CREATE TABLE IF NOT EXISTS qa_audit_log (id SERIAL PRIMARY KEY, audit_date TIMESTAMPTZ DEFAULT NOW(), agent_reviewed VARCHAR(20), review_type VARCHAR(30), verdict VARCHAR(10), severity VARCHAR(5), findings TEXT, resolved_at TIMESTAMPTZ, resolved_by VARCHAR(20));" > /dev/null 2>&1 && \
+  log "Agent KB tables: ✅ ensured" || log "Agent KB tables: ⚠️  check migration 011"
 
 log "post_restart complete ✅"

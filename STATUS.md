@@ -1063,3 +1063,12 @@ PENDING:
 | 2026-06-07 | UPDATE: Smart Router v9.1 — 10 pillars, 9 active agents | ✅ prompts.md |
 | 2026-06-07 | UPDATE: CLAUDE.md — full agent roster + content publish flow | ✅ |
 | 2026-06-07 | ROSTER: Jeff/Eilinaire/Krit/Nova/Scout/Vera/Rex/Quinn/Lex = 9 agents | ✅ complete |
+
+## 2026-06-07 — Phase 2: Automation + DB
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-07 | NEW: WF_SCOUT_Daily_Research.json — cron 07:00, research+alert | ✅ ready to import |
+| 2026-06-07 | NEW: WF_REX_Daily_Cost_Report.json — cron 23:00, LiteLLM cost | ✅ ready to import |
+| 2026-06-07 | NEW: WF_VERA_Weekly_Performance.json — cron Mon 08:00, agent report | ✅ ready to import |
+| 2026-06-07 | NEW: Migration 011 — research_feeds/finance_daily_costs/agent_workload_log/qa_audit_log | ✅ applied |
+| 2026-06-07 | UPDATE: post_restart.sh — step 10 ensures migration 011 tables on every restart | ✅ |

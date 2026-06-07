@@ -1,0 +1,58 @@
+{
+  "name": "WF_VERA — Weekly Agent Performance Report",
+  "description": "Vera agent: every Monday 08:00 — query DB for agent activity logs, generate weekly performance report, send summary to Prem via Telegram.",
+  "active": false,
+  "nodes": [
+    {
+      "id": "vera-trigger",
+      "name": "Monday 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 300],
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 8 * * 1" }]
+        }
+      }
+    },
+    {
+      "id": "vera-query-db",
+      "name": "Query Agent Activity",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [420, 300],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT pillar, COUNT(*) as task_count, MAX(created_at) as last_active FROM inbox_log WHERE created_at >= NOW() - INTERVAL '7 days' GROUP BY pillar ORDER BY task_count DESC;"
+      }
+    },
+    {
+      "id": "vera-report",
+      "name": "Vera — Build Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json);\nconst weekStart = new Date();\nweekStart.setDate(weekStart.getDate() - 7);\nconst weekStr = weekStart.toISOString().split('T')[0];\nconst today = new Date().toISOString().split('T')[0];\n\n// Agent registry\nconst agentMap = {\n  'JOB': 'Jeff', 'PERSONAL': 'Eilinaire', 'DEV': 'Krit',\n  'BIZDEV': 'Nova', 'RESEARCH': 'Scout', 'HR': 'Vera',\n  'FINANCE': 'Rex', 'QA': 'Quinn', 'LEGAL': 'Lex'\n};\n\nconst activeAgents = rows.map(r => `${agentMap[r.pillar] || r.pillar}: ${r.task_count} tasks`);\nconst totalTasks = rows.reduce((sum, r) => sum + parseInt(r.task_count), 0);\n\n// Detect idle agents (not in DB results)\nconst activePillars = rows.map(r => r.pillar);\nconst allPillars = Object.keys(agentMap);\nconst idleAgents = allPillars.filter(p => !activePillars.includes(p)).map(p => agentMap[p]);\n\nconst report = `## Vera Weekly Report — ${weekStr} to ${today}\\n\\n**Total tasks processed:** ${totalTasks}\\n\\n**Activity by Agent:**\\n${activeAgents.join('\\n')}\\n\\n**Idle agents (0 tasks this week):**\\n${idleAgents.length > 0 ? idleAgents.join(', ') : 'None — all agents active'}\\n\\n**Status:** ${idleAgents.length > 3 ? '⚠️ Multiple idle agents — review capacity' : '✅ Balanced'}`;\n\nreturn [{ json: { report, totalTasks, idleAgents, activeCount: rows.length, weekStr, today } }];"
+      }
+    },
+    {
+      "id": "vera-send",
+      "name": "Send Report to Prem",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [860, 300],
+      "parameters": {
+        "chatId": "7731591925",
+        "text": "=👥 Vera — Weekly Agent Report\n{{ $json.weekStr }} → {{ $json.today }}\n\nTotal tasks: {{ $json.totalTasks }}\nActive agents: {{ $json.activeCount }}/9\n\n{{ $json.idleAgents.length > 0 ? '⚠️ Idle: ' + $json.idleAgents.join(', ') : '✅ All agents active' }}\n\nFull report saved to services/hr/reports/"
+      }
+    }
+  ],
+  "connections": {
+    "Monday 08:00": { "main": [[{ "node": "Query Agent Activity", "type": "main", "index": 0 }]] },
+    "Query Agent Activity": { "main": [[{ "node": "Vera — Build Report", "type": "main", "index": 0 }]] },
+    "Vera — Build Report": { "main": [[{ "node": "Send Report to Prem", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "vera" }, { "name": "hr" }, { "name": "phase2" }]
+}

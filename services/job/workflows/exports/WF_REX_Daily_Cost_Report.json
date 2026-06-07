@@ -1,0 +1,98 @@
+{
+  "name": "WF_REX — Daily Cost & Finance Report",
+  "description": "Rex agent: nightly 23:00 — pull API usage from LiteLLM, check cost thresholds, generate daily report, alert Jeff if thresholds exceeded.",
+  "active": false,
+  "nodes": [
+    {
+      "id": "rex-trigger",
+      "name": "Nightly 23:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 300],
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 23 * * *" }]
+        }
+      }
+    },
+    {
+      "id": "rex-litellm-usage",
+      "name": "Pull LiteLLM Usage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [420, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "http://litellm:4000/spend/logs",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "start_date", "value": "={{ $now.format('YYYY-MM-DD') }}" },
+            { "name": "end_date", "value": "={{ $now.format('YYYY-MM-DD') }}" }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $env.LITELLM_MASTER_KEY }}" }]
+        }
+      }
+    },
+    {
+      "id": "rex-calculate",
+      "name": "Rex — Calculate & Classify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst today = new Date().toISOString().split('T')[0];\n\n// Sum total spend from LiteLLM logs\nlet totalSpend = 0;\nconst logs = Array.isArray(data) ? data : (data.data || []);\nlogs.forEach(log => { totalSpend += parseFloat(log.spend || log.cost || 0); });\n\n// Cost threshold classification (CLAUDE.md Section 10)\nlet status, threshold, action;\nif (totalSpend > 5) {\n  status = '🔴 CRITICAL';\n  threshold = '>$5/day';\n  action = 'KILLSWITCH — Switch to Ollama only immediately';\n} else if (totalSpend > 3) {\n  status = '🟠 HIGH';\n  threshold = '>$3/day';\n  action = 'Switch ALL tasks to Gemini Flash';\n} else if (totalSpend > 1) {\n  status = '🟡 WARNING';\n  threshold = '>$1/day';\n  action = 'Switch thinking tasks to Gemini Pro';\n} else {\n  status = '✅ NORMAL';\n  threshold = 'Under $1/day';\n  action = 'None';\n}\n\nconst requiresAlert = totalSpend > 1;\n\nreturn [{ json: { date: today, totalSpend: totalSpend.toFixed(4), status, threshold, action, requiresAlert, logCount: logs.length } }];"
+      }
+    },
+    {
+      "id": "rex-threshold-check",
+      "name": "Threshold Exceeded?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [860, 300],
+      "parameters": {
+        "conditions": {
+          "conditions": [{ "id": "threshold-check", "leftValue": "={{ $json.requiresAlert }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equal" } }]
+        }
+      }
+    },
+    {
+      "id": "rex-alert",
+      "name": "Alert Jeff — Cost Threshold",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1080, 200],
+      "parameters": {
+        "chatId": "7731591925",
+        "text": "=💰 Rex — Daily Cost Report {{ $json.date }}\n\n{{ $json.status }} | Spend: ${{ $json.totalSpend }}\nThreshold: {{ $json.threshold }}\n\n⚡ Action Required:\n{{ $json.action }}\n\nReport: services/finance/reports/daily_{{ $json.date }}.md"
+      }
+    },
+    {
+      "id": "rex-normal",
+      "name": "Rex — Normal, No Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1080, 420],
+      "parameters": {
+        "chatId": "7731591925",
+        "text": "=✅ Rex Daily Report {{ $json.date }}\nAPI Spend: ${{ $json.totalSpend }} — Under threshold\nNo action required."
+      }
+    }
+  ],
+  "connections": {
+    "Nightly 23:00": { "main": [[{ "node": "Pull LiteLLM Usage", "type": "main", "index": 0 }]] },
+    "Pull LiteLLM Usage": { "main": [[{ "node": "Rex — Calculate & Classify", "type": "main", "index": 0 }]] },
+    "Rex — Calculate & Classify": { "main": [[{ "node": "Threshold Exceeded?", "type": "main", "index": 0 }]] },
+    "Threshold Exceeded?": {
+      "main": [
+        [{ "node": "Alert Jeff — Cost Threshold", "type": "main", "index": 0 }],
+        [{ "node": "Rex — Normal, No Alert", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "rex" }, { "name": "finance" }, { "name": "phase2" }]
+}
