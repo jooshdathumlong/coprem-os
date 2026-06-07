@@ -60,3 +60,5 @@ dashboard/tsconfig.tsbuildinfo
 # Large KB course files — tracked locally only
 02-knowledge/categories/
 02-knowledge/courses/
+content/knowledge/categories/
+content/knowledge/courses/
