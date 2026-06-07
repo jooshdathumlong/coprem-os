@@ -1080,3 +1080,13 @@ PENDING:
 | 2026-06-07 | DEPLOY: WF_REX ZQBr6O5TU0rVUnVz — cron 23:00 nightly | ✅ active |
 | 2026-06-07 | DEPLOY: WF_VERA jffezDI5uhrU16L5 — cron Mon 08:00 | ✅ active |
 | 2026-06-07 | NEW: infra/scripts/import_phase2_workflows.py — reusable import script | ✅ |
+
+## 2026-06-07 — Phase 3: pgvector + Analyst + Dify DSL
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-07 | NEW: scout_embed.py — Scout feeds → pgvector embeddings pipeline | ✅ |
+| 2026-06-07 | NEW: Analyst agent (ANALYST pillar) — self-audit, improvement proposals | ✅ services/analyst/ |
+| 2026-06-07 | DEPLOY: WF_ANALYST B7IGcTj5x0EipJz8 — Sunday 22:00 self-audit | ✅ active |
+| 2026-06-07 | NEW: generate_dify_dsl.py — generates 9 agent DSL YAML files | ✅ |
+| 2026-06-07 | NEW: Dify DSL 9 files — services/job/dify-dsl/*.yml | ✅ ready to import |
+| 2026-06-07 | PHASE 3 COMPLETE — 4 workflows active, 9 DSL files ready, pgvector pipeline built | ✅ |
