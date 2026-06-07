@@ -1072,3 +1072,11 @@ PENDING:
 | 2026-06-07 | NEW: WF_VERA_Weekly_Performance.json — cron Mon 08:00, agent report | ✅ ready to import |
 | 2026-06-07 | NEW: Migration 011 — research_feeds/finance_daily_costs/agent_workload_log/qa_audit_log | ✅ applied |
 | 2026-06-07 | UPDATE: post_restart.sh — step 10 ensures migration 011 tables on every restart | ✅ |
+
+## 2026-06-07 — Phase 2 Workflows Deployed
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-07 | DEPLOY: WF_SCOUT lArwKZDTKvkj5M7k — cron 07:00 daily | ✅ active |
+| 2026-06-07 | DEPLOY: WF_REX ZQBr6O5TU0rVUnVz — cron 23:00 nightly | ✅ active |
+| 2026-06-07 | DEPLOY: WF_VERA jffezDI5uhrU16L5 — cron Mon 08:00 | ✅ active |
+| 2026-06-07 | NEW: infra/scripts/import_phase2_workflows.py — reusable import script | ✅ |
