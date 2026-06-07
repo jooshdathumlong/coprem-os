@@ -8,6 +8,35 @@ const KB_ROOT = join(ROOT, '02-knowledge')
 const CAT_ROOT = join(KB_ROOT, 'categories')
 const COURSES_DIR = join(KB_ROOT, 'courses')
 
+// ── Category scan cache (TTL: 5 minutes) ─────────────────────────────────
+const CACHE_TTL_MS = 5 * 60 * 1000
+const _categoryCache: Map<string, { data: ReturnType<typeof _scanCategoryRaw>; ts: number }> = new Map()
+
+function scanCategory(catId: string, lang = 'en') {
+  const key = `${catId}:${lang}`
+  const now = Date.now()
+  const hit = _categoryCache.get(key)
+  if (hit && now - hit.ts < CACHE_TTL_MS) return hit.data
+  const data = _scanCategoryRaw(catId, lang)
+  _categoryCache.set(key, { data, ts: now })
+  return data
+}
+
+// ── Pre-warm cache on first request (lazy, one-shot) ─────────────────────
+let _cacheWarmed = false
+function ensureCacheWarmed() {
+  if (_cacheWarmed) return
+  _cacheWarmed = true
+  setImmediate(() => {
+    try {
+      const cats = ['ai-ml','data-science','software-dev','cloud-devops','cybersecurity',
+        'digital-marketing','business','management','productivity','content-creative',
+        'communication','language','career','health','misc']
+      cats.forEach(id => scanCategory(id, 'en'))
+    } catch { /* silent */ }
+  })
+}
+
 // ── Courses index: Thai title → filename ─────────────────────────────────
 let _coursesIndex: Record<string, string> | null = null
 function getCoursesIndex(): Record<string, string> {
@@ -124,7 +153,7 @@ function collectMdFiles(dir: string): { filename: string; fullPath: string; relP
 }
 
 // ── Helper: scan .md files in a category folder (recursive) ───────────────
-function scanCategory(catId: string, lang = 'en') {
+function _scanCategoryRaw(catId: string, lang = 'en') {
   const dir = join(CAT_ROOT, catId)
   if (!existsSync(dir)) return []
   return collectMdFiles(dir)
@@ -172,6 +201,7 @@ function readMd(fullPath: string) {
 
 // ── Route ─────────────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
+  ensureCacheWarmed()
   const sp = req.nextUrl.searchParams
   const action = sp.get('action') || ''
   const pillar = sp.get('pillar') || ''
@@ -196,13 +226,20 @@ export async function GET(req: NextRequest) {
 
   // ── Knowledge categories (bento grid) ────────────────────────────────────
   if (action === 'categories') {
-    return NextResponse.json(
-      Object.entries(CATEGORIES).map(([id, meta]) => {
-        const files = scanCategory(id, lang)
-        const totalCourses = files.reduce((n, f) => n + f.linkCount, 0)
-        return { id, label: meta.label, labelTh: meta.labelTh, emoji: meta.emoji, gradient: meta.gradient, fileCount: files.length, totalCourses }
-      })
-    )
+    const result = Object.entries(CATEGORIES).map(([id, meta]) => {
+      const files = scanCategory(id, lang)
+      const totalCourses = files.reduce((n, f) => n + f.linkCount, 0)
+      return { id, label: meta.label, labelTh: meta.labelTh, emoji: meta.emoji, gradient: meta.gradient, fileCount: files.length, totalCourses }
+    })
+    return NextResponse.json(result, {
+      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' }
+    })
+  }
+
+  // ── Cache invalidation ────────────────────────────────────────────────────
+  if (action === 'purge-cache') {
+    _categoryCache.clear()
+    return NextResponse.json({ ok: true, message: 'cache cleared' })
   }
 
   // ── Files in a category ───────────────────────────────────────────────────

@@ -1117,3 +1117,10 @@ PENDING:
 | 2026-06-07 | BUG: LiteLLM check ใช้ localhost แทน docker exec → แก้ check ใน container | ✅ |
 | 2026-06-07 | BUG: Autonomous Loop PID check ไม่ auto-restart → เพิ่ม auto-restart logic | ✅ |
 | 2026-06-07 | RESULT: health_check.sh ทุก service UP — n8n/postgres/redis/litellm/dify/webhook/loop | ✅ |
+
+## 2026-06-07 — PERF FIX: KB categories page (Krit)
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-07 | ROOT CAUSE: scanCategory() readFileSync 2299 files ทุก request ไม่มี cache | found |
+| 2026-06-07 | FIX: in-memory cache TTL 5min + lazy pre-warm + Cache-Control header | ✅ |
+| 2026-06-07 | RESULT: cold=4.5s → cached=33ms (136x faster) | ✅ |
