@@ -1042,3 +1042,13 @@ PENDING:
 | 2026-06-07 | API: /api/job/caption (A1), /description (A2), /kol (B1), /campaign (B2), /report (C1), /approve | ✅ tested |
 | 2026-06-07 | WF01 L1-A v6: /caption /desc /kol /campaign /report commands | ✅ ewT0XOTFqZBiB8n0 |
 | 2026-06-07 | WF_C1 Weekly Report JSON: import ใน n8n → cron จันทร์ 09:00 | ✅ ready to import |
+
+## 2026-06-07 — Phase 1: Multi-Agent Expansion (Krit / Nova / Scout)
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-07 | NEW: Krit agent (DEV pillar) — system prompt + service dir | ✅ services/dev/ |
+| 2026-06-07 | NEW: Nova agent (BIZDEV pillar) — system prompt + service dir | ✅ services/bizdev/ |
+| 2026-06-07 | NEW: Scout agent (RESEARCH pillar) — system prompt + feeds | ✅ services/research/ |
+| 2026-06-07 | UPDATE: Smart Router — 6 pillars (added DEV/BIZDEV/RESEARCH) | ✅ prompts.md v9.0 |
+| 2026-06-07 | UPDATE: CLAUDE.md v9.0 — routing, key paths, architecture state | ✅ |
+| 2026-06-07 | NEXT: Phase 2 — WF_SCOUT cron + KB integration pipeline | pending |

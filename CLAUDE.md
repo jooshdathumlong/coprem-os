@@ -37,8 +37,17 @@
 - **JOB** → `services/job/` | Agent: Jeff
 - **PERSONAL** → `services/personal/` + `content/projects/` + `content/knowledge/` | Agent: Eilinaire
 - **CREATIVE** → `content/projects/ego-era/` | Agent: Ego Era — SUSPENDED
+- **DEV** → `services/dev/` | Agent: Krit — IT Developer (autonomous)
+- **BIZDEV** → `services/bizdev/` | Agent: Nova — Business Developer (Eilinaire + Peadbuntid brands)
+- **RESEARCH** → `services/research/` | Agent: Scout — Journalist/Intelligence (daily KB updates)
 
-Active: JOB + PERSONAL only. Never activate new pillar without Prem's instruction.
+Active: JOB + PERSONAL + DEV + BIZDEV + RESEARCH. CREATIVE suspended.
+
+Agent inter-communication:
+- Scout → feeds data to Nova + Krit via `services/research/feeds/`
+- Krit → improvement proposals to Jeff via `services/dev/proposals/`
+- Nova → brand opportunities to Jeff via `services/bizdev/opportunities/`
+- Jeff → orchestrates all agents, escalates to Prem when HITL required
 
 ---
 
@@ -133,10 +142,18 @@ apps/dashboard/                           Next.js UI (port 3001)
 apps/dashboard/app/api/job/               JOB pillar API
 apps/dashboard/app/api/personal/          PERSONAL pillar API
 
-services/job/agents/                      Jeff + Smart Router system prompts
+services/job/agents/                      Jeff + Smart Router + all agent system prompts
 services/job/workflows/exports/           n8n JSON exports (WF01–WF13)
 services/job/workflows/specs/             workflow specs
 services/job/skills/                      tactical playbooks
+
+services/dev/agents/krit_prompt.md        Krit IT Developer system prompt
+services/dev/proposals/                   Krit improvement proposals (pending Prem approval)
+services/bizdev/agents/nova_prompt.md     Nova Business Developer system prompt
+services/bizdev/opportunities/            Nova brand opportunity briefs
+services/research/agents/scout_prompt.md  Scout Research/Journalist system prompt
+services/research/feeds/                  Scout output: market_intel / tech_updates / competitor_watch / opportunities
+services/research/archive/                Scout monthly archives
 
 infra/migrations/migrations/              DB migrations (001–009)
 infra/database/init.sql                   DB init (coprem_os)
@@ -180,8 +197,11 @@ New machine: `sh infra/scripts/setup.sh`
 
 - WF01 end-to-end: ✅ STABLE (2026-06-07)
 - JOB + PERSONAL: ACTIVE
+- DEV (Krit): ACTIVE — Phase 1 deployed 2026-06-07
+- BIZDEV (Nova): ACTIVE — Phase 1 deployed 2026-06-07
+- RESEARCH (Scout): ACTIVE — Phase 1 deployed 2026-06-07 | WF_SCOUT cron: Phase 2
 - CREATIVE (Ego Era): SUSPENDED
 - Dashboard port 3001: ACTIVE
 - WF13 Discord: INACTIVE / deferred
-- L1-B Classifier: ollama/qwen2.5:3b (no rate limits)
+- L1-B Classifier: ollama/qwen2.5:3b (no rate limits) — needs update for new pillars DEV/BIZDEV/RESEARCH
 - Telegram webhook: force-reset on every health_check.sh run
