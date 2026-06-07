@@ -1097,3 +1097,10 @@ PENDING:
 | 2026-06-07 | ROOT CAUSE: 02-knowledge/ ถูกลบตอน monorepo v4.0, dashboard ยังอ่าน path เดิม | ✅ found |
 | 2026-06-07 | FIX: symlink 02-knowledge → content/knowledge | ✅ |
 | 2026-06-07 | RESULT: Day Job=4 files, My Business=8 files, KB categories=2 files (software-dev) | ✅ |
+
+## 2026-06-07 — KB Categories Populated
+| เวลา | งาน | ผล |
+|---|---|---|
+| 2026-06-07 | NEW: 20 KB files across 15 categories | ✅ all categories have files |
+| 2026-06-07 | Categories: ai-ml/cloud-devops/cybersecurity/digital-marketing/business/management/productivity/communication/career/language/health/misc/data-science/content-creative | ✅ |
+| 2026-06-07 | Total KB: 22 files across 15 categories | ✅ |
